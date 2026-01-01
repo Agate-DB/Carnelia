@@ -1,0 +1,13 @@
+# File: `crates/mdcs-core/Cargo.toml`
+[package]
+name = "mdcs-core"
+version = "0.1.0"
+edition = "2021"
+description = "Core CRDT types and traits for Carnelia"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+ulid = { version = "1.1", features = ["serde"] }
+
+[dev-dependencies]
+proptest = "1.0"

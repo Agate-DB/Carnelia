@@ -1,6 +1,25 @@
 [package]
-name = "Carnelia"
+name = "carnelia"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+description = "Merkle-Delta CRDT Store - A lock-free, offline-first CRDT database"
+
+[workspace]
+members = [
+    "crates/mdcs-core",      # Core CRDT types and traits
+#    "crates/mdcs-delta",     # Delta-state machinery
+#    "crates/mdcs-merkle",    # Merkle-Clock and DAG
+#    "crates/mdcs-sync",      # Anti-entropy protocols
+#    "crates/mdcs-compact",   # Compaction/GC subsystem
+#    "crates/mdcs-db",        # Database API layer
+#    "crates/mdcs-sim",       # Network simulation for testing
+]
 
 [dependencies]
+mdcs-core = { path = "crates/mdcs-core" }
+criterion = "0.8.1"
+postcard = "1.1.3"
+proptest = "1.9.0"
+quickcheck = "1.0.3"
+serde = "1.0.228"
+serde_json = "1.0.148"
