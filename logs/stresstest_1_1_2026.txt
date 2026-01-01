@@ -1,0 +1,425 @@
+
+
+╔════════════════════════════════════════════════════════════╗
+║            ASYNC STRESS TESTS                               ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 4 | Ops/Replica: 100 | Syncs: 200 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                             4 ║
+║  Operations per Replica:                                       100 ║
+║  Total Sync Operations:                                        151 ║
+║  Total Time:                                                  0.018s ║
+║  Average Sync Time:                                           67µs ║
+║  Operations/Second:                                          31318 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        ORSet Stress Test (Async)                           ║
+║  Replicas: 4 | Ops/Replica: 100 | Syncs: 200 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                             4 ║
+║  Operations per Replica:                                       100 ║
+║  Total Sync Operations:                                        150 ║
+║  Total Time:                                                  0.181s ║
+║  Average Sync Time:                                         1093µs ║
+║  Operations/Second:                                           3038 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 10 | Ops/Replica: 500 | Syncs: 1000 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1000
+  Syncs completed: 200/1000
+  Syncs completed: 300/1000
+  Syncs completed: 400/1000
+  Syncs completed: 500/1000
+  Syncs completed: 600/1000
+  Syncs completed: 700/1000
+  Syncs completed: 800/1000
+  Syncs completed: 900/1000
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                            10 ║
+║  Operations per Replica:                                       500 ║
+║  Total Sync Operations:                                        917 ║
+║  Total Time:                                                  0.417s ║
+║  Average Sync Time:                                          295µs ║
+║  Operations/Second:                                          14175 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        ORSet Stress Test (Async)                           ║
+║  Replicas: 10 | Ops/Replica: 500 | Syncs: 1000 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1000
+  Syncs completed: 200/1000
+  Syncs completed: 300/1000
+  Syncs completed: 400/1000
+  Syncs completed: 500/1000
+  Syncs completed: 600/1000
+  Syncs completed: 700/1000
+  Syncs completed: 800/1000
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                            10 ║
+║  Operations per Replica:                                       500 ║
+║  Total Sync Operations:                                        897 ║
+║  Total Time:                                                  6.783s ║
+║  Average Sync Time:                                         7035µs ║
+║  Operations/Second:                                            869 ║
+╚════════════════════════════════════════════════════════════╝
+
+
+╔════════════════════════════════════════════════════════════╗
+║          SCALING ANALYSIS (GSet)                           ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║      Scaling Analysis - GSet Performance vs Replicas      ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 2 | Ops/Replica: 50 | Syncs: 200 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                             2 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                        110 ║
+║  Total Time:                                                  0.008s ║
+║  Average Sync Time:                                           38µs ║
+║  Operations/Second:                                          26349 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 4 | Ops/Replica: 50 | Syncs: 400 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/400
+  Syncs completed: 200/400
+  Syncs completed: 300/400
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                             4 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                        304 ║
+║  Total Time:                                                  0.025s ║
+║  Average Sync Time:                                           46µs ║
+║  Operations/Second:                                          19807 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 6 | Ops/Replica: 50 | Syncs: 600 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/600
+  Syncs completed: 200/600
+  Syncs completed: 300/600
+  Syncs completed: 400/600
+  Syncs completed: 500/600
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                             6 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                        516 ║
+║  Total Time:                                                  0.026s ║
+║  Average Sync Time:                                           29µs ║
+║  Operations/Second:                                          31522 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 8 | Ops/Replica: 50 | Syncs: 800 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/800
+  Syncs completed: 200/800
+  Syncs completed: 300/800
+  Syncs completed: 400/800
+  Syncs completed: 500/800
+  Syncs completed: 600/800
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                             8 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                        699 ║
+║  Total Time:                                                  0.038s ║
+║  Average Sync Time:                                           31µs ║
+║  Operations/Second:                                          28592 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 10 | Ops/Replica: 50 | Syncs: 1000 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1000
+  Syncs completed: 200/1000
+  Syncs completed: 300/1000
+  Syncs completed: 400/1000
+  Syncs completed: 500/1000
+  Syncs completed: 600/1000
+  Syncs completed: 700/1000
+  Syncs completed: 800/1000
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                            10 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                        899 ║
+║  Total Time:                                                  0.053s ║
+║  Average Sync Time:                                           35µs ║
+║  Operations/Second:                                          26536 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 12 | Ops/Replica: 50 | Syncs: 1200 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1200
+  Syncs completed: 200/1200
+  Syncs completed: 300/1200
+  Syncs completed: 400/1200
+  Syncs completed: 500/1200
+  Syncs completed: 600/1200
+  Syncs completed: 700/1200
+  Syncs completed: 800/1200
+  Syncs completed: 900/1200
+  Syncs completed: 1000/1200
+  Syncs completed: 1100/1200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                            12 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                       1100 ║
+║  Total Time:                                                  0.053s ║
+║  Average Sync Time:                                           27µs ║
+║  Operations/Second:                                          32380 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 14 | Ops/Replica: 50 | Syncs: 1400 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1400
+  Syncs completed: 200/1400
+  Syncs completed: 300/1400
+  Syncs completed: 400/1400
+  Syncs completed: 500/1400
+  Syncs completed: 600/1400
+  Syncs completed: 700/1400
+  Syncs completed: 800/1400
+  Syncs completed: 900/1400
+  Syncs completed: 1000/1400
+  Syncs completed: 1100/1400
+  Syncs completed: 1200/1400
+  Syncs completed: 1300/1400
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                            14 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                       1305 ║
+║  Total Time:                                                  0.065s ║
+║  Average Sync Time:                                           30µs ║
+║  Operations/Second:                                          30775 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 16 | Ops/Replica: 50 | Syncs: 1600 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1600
+  Syncs completed: 200/1600
+  Syncs completed: 300/1600
+  Syncs completed: 400/1600
+  Syncs completed: 500/1600
+  Syncs completed: 600/1600
+  Syncs completed: 700/1600
+  Syncs completed: 800/1600
+  Syncs completed: 900/1600
+  Syncs completed: 1000/1600
+  Syncs completed: 1100/1600
+  Syncs completed: 1200/1600
+  Syncs completed: 1300/1600
+  Syncs completed: 1400/1600
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                            16 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                       1487 ║
+║  Total Time:                                                  0.076s ║
+║  Average Sync Time:                                           28µs ║
+║  Operations/Second:                                          30211 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 18 | Ops/Replica: 50 | Syncs: 1800 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1800
+  Syncs completed: 200/1800
+  Syncs completed: 300/1800
+  Syncs completed: 400/1800
+  Syncs completed: 500/1800
+  Syncs completed: 600/1800
+  Syncs completed: 700/1800
+  Syncs completed: 800/1800
+  Syncs completed: 900/1800
+  Syncs completed: 1000/1800
+  Syncs completed: 1100/1800
+  Syncs completed: 1200/1800
+  Syncs completed: 1300/1800
+  Syncs completed: 1400/1800
+  Syncs completed: 1500/1800
+  Syncs completed: 1600/1800
+  Syncs completed: 1700/1800
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                            18 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                       1711 ║
+║  Total Time:                                                  0.085s ║
+║  Average Sync Time:                                           28µs ║
+║  Operations/Second:                                          30839 ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║        GSet Stress Test (Async)                            ║
+║  Replicas: 20 | Ops/Replica: 50 | Syncs: 2000 ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/2000
+  Syncs completed: 200/2000
+  Syncs completed: 300/2000
+  Syncs completed: 400/2000
+  Syncs completed: 500/2000
+  Syncs completed: 600/2000
+  Syncs completed: 700/2000
+  Syncs completed: 800/2000
+  Syncs completed: 900/2000
+  Syncs completed: 1000/2000
+  Syncs completed: 1100/2000
+  Syncs completed: 1200/2000
+  Syncs completed: 1300/2000
+  Syncs completed: 1400/2000
+  Syncs completed: 1500/2000
+  Syncs completed: 1600/2000
+  Syncs completed: 1700/2000
+  Syncs completed: 1800/2000
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║              Stress Test Statistics                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Number of Replicas:                                            20 ║
+║  Operations per Replica:                                        50 ║
+║  Total Sync Operations:                                       1897 ║
+║  Total Time:                                                  0.102s ║
+║  Average Sync Time:                                           32µs ║
+║  Operations/Second:                                          28345 ║
+╚════════════════════════════════════════════════════════════╝
+
+✓ All stress tests completed successfully!

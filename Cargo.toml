@@ -17,3 +17,8 @@ members = [
 
 [dependencies]
 mdcs-core = { path = "crates/mdcs-core" }
+tokio = { version = "1.35", features = ["full"] }
+rand = "0.8"
+chrono = "0.4"
+async-stream = "0.3"
+futures = "0.3"
