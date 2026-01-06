@@ -84,7 +84,25 @@ async fn perform_sync<T>(
     }
 }
 
-/// Stress test for GSet with async synchronization
+/// Stress test for GSet with async synchronization.
+///
+/// This function performs a two-phase stress test:
+/// 1. Concurrently spawns tokio tasks that insert `ops_per_replica` unique u64 values into each of
+///    `num_replicas` GSet replicas.
+/// 2. Performs `num_syncs` random pairwise synchronizations between replicas, measuring sync times.
+///
+/// Parameters:
+/// - `num_replicas`: number of replicas to create and operate on.
+/// - `ops_per_replica`: number of insert operations executed per replica during phase 1.
+/// - `num_syncs`: number of random pairwise synchronizations to perform during phase 2.
+///
+/// Returns:
+/// - `StressTestStats` containing overall timings and basic throughput metrics.
+///
+/// Notes:
+/// - This function must be run inside a tokio runtime.
+/// - Replicas are protected by tokio::sync::Mutex and are synchronized by taking locks and joining sets.
+/// - Self-syncs are skipped and do not count toward `num_syncs`.
 pub async fn stress_test_gset(
     num_replicas: usize,
     ops_per_replica: usize,
@@ -173,7 +191,25 @@ pub async fn stress_test_gset(
     }
 }
 
-/// Stress test for ORSet with async synchronization
+/// Stress test for ORSet with async synchronization.
+///
+/// This function performs a two-phase stress test on ORSet replicas:
+/// 1. Concurrently spawns tokio tasks that add string items to each replica and occasionally remove
+///    items (randomly, based on a probability), performing `ops_per_replica` operations per replica.
+/// 2. Performs `num_syncs` random pairwise synchronizations between replicas, measuring sync times.
+///
+/// Parameters:
+/// - `num_replicas`: number of replicas to create and operate on.
+/// - `ops_per_replica`: number of add/remove operations executed per replica during phase 1.
+/// - `num_syncs`: number of random pairwise synchronizations to perform during phase 2.
+///
+/// Returns:
+/// - `StressTestStats` containing overall timings and basic throughput metrics.
+///
+/// Notes:
+/// - This function must be run inside a tokio runtime.
+/// - Replica add/remove operations encode a replica id in the element tags (e.g. "replica_{idx}").
+/// - Synchronization is performed by locking pairs of replicas and joining their states.
 pub async fn stress_test_orset(
     num_replicas: usize,
     ops_per_replica: usize,
@@ -181,8 +217,7 @@ pub async fn stress_test_orset(
 ) -> StressTestStats {
     println!("\n╔════════════════════════════════════════════════════════════╗");
     println!("║        ORSet Stress Test (Async)                           ║");
-    println!("║  Replicas: {} | Ops/Replica: {} | Syncs: {} ║",
-             num_replicas, ops_per_replica, num_syncs);
+    println!("║  Replicas: {} | Ops/Replica: {} | Syncs: {} ║", num_replicas, ops_per_replica, num_syncs);
     println!("╚════════════════════════════════════════════════════════════╝");
 
     let start = Instant::now();
@@ -268,7 +303,20 @@ pub async fn stress_test_orset(
     }
 }
 
-/// Parallel stress test comparing different replica scales
+/// Parallel stress test comparing different replica scales.
+///
+/// Runs `stress_test_gset` repeatedly, increasing the replica count from `step_size` up to
+/// `max_replicas` (inclusive) in increments of `step_size`. Each iteration awaits the completion
+/// of the GSet stress test and prints collected statistics.
+///
+/// Parameters:
+/// - `max_replicas`: maximum number of replicas to test.
+/// - `step_size`: increment step for the number of replicas; the function will test replica counts
+///   step_size, 2*step_size, ..., up to max_replicas.
+///
+/// Notes:
+/// - This function must be run inside a tokio runtime.
+/// - Uses a fixed ops_per_replica of 50 and `num_syncs = current_replicas * 100` for each test run.
 pub async fn stress_test_scaling(max_replicas: usize, step_size: usize) {
     println!("\n╔════════════════════════════════════════════════════════════╗");
     println!("║      Scaling Analysis - GSet Performance vs Replicas      ║");
@@ -281,4 +329,3 @@ pub async fn stress_test_scaling(max_replicas: usize, step_size: usize) {
         current_replicas += step_size;
     }
 }
-
