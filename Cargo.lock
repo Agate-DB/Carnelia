@@ -80,6 +80,7 @@ dependencies = [
  "chrono",
  "futures",
  "mdcs-core",
+ "mdcs-delta",
  "rand 0.8.5",
  "tokio",
 ]
@@ -327,6 +328,15 @@ dependencies = [
  "proptest",
  "serde",
  "ulid",
+]
+
+[[package]]
+name = "mdcs-delta"
+version = "0.1.0"
+dependencies = [
+ "mdcs-core",
+ "proptest",
+ "serde",
 ]
 
 [[package]]

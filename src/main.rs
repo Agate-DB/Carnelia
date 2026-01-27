@@ -1,4 +1,4 @@
-use stress_test::{stress_test_gset, stress_test_orset, stress_test_scaling};
+use stress_test::{stress_test_gset, stress_test_orset, stress_test_scaling, stress_test_delta_suite};
 pub mod stress_test;
 
 fn main() {
@@ -34,6 +34,9 @@ async fn async_main() {
     println!("║          SCALING ANALYSIS (GSet)                           ║");
     println!("╚════════════════════════════════════════════════════════════╝");
     stress_test_scaling(20, 2).await;
+
+    // Test 6: Delta stress test suite (convergence under failures)
+    stress_test_delta_suite().await;
 
     println!("\n✓ All stress tests completed successfully!");
 }

@@ -1,0 +1,12 @@
+[package]
+name = "mdcs-delta"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+mdcs-core = { path = "../mdcs-core" }
+
+[dev-dependencies]
+proptest = "1.0"
+
