@@ -7,10 +7,16 @@
 
 use mdcs_core::gset::GSet;
 use mdcs_core::orset::ORSet;
+use mdcs_core::pncounter::PNCounter;
+use mdcs_core::lwwreg::LWWRegister;
+use mdcs_core::mvreg::MVRegister;
 use mdcs_core::lattice::{Lattice, DeltaCRDT};
-use mdcs_delta::buffer::{DeltaBuffer, DeltaReplica, AckTracker};
+use mdcs_delta::buffer::DeltaBuffer;
 use mdcs_delta::anti_entropy::{AntiEntropyCluster, NetworkConfig};
 use mdcs_delta::mutators::gset as gset_mutators;
+use mdcs_delta::mutators::pncounter as pncounter_mutators;
+use mdcs_delta::mutators::lwwreg as lwwreg_mutators;
+use mdcs_delta::mutators::mvreg as mvreg_mutators;
 
 fn main() {
     println!("═══════════════════════════════════════════════════════════════");
@@ -22,6 +28,9 @@ fn main() {
     example_3_anti_entropy_basic();
     example_4_convergence_under_failure();
     example_5_orset_with_deltas();
+    example_6_pncounter_deltas();
+    example_7_lwwreg_deltas();
+    example_8_mvreg_deltas();
 
     println!("\n═══════════════════════════════════════════════════════════════");
     println!("  All examples completed successfully!");
@@ -246,3 +255,145 @@ fn example_5_orset_with_deltas() {
     println!("\n✓ ORSet delta demonstration complete\n");
 }
 
+/// Example 6: PNCounter with delta operations
+fn example_6_pncounter_deltas() {
+    println!("┌─────────────────────────────────────────────────────────────┐");
+    println!("│ Example 6: PNCounter Delta-Mutators                        │");
+    println!("│            Distributed Counting with Inc/Dec               │");
+    println!("└─────────────────────────────────────────────────────────────┘\n");
+
+    // Create two replicas
+    let mut counter1: PNCounter<String> = PNCounter::new();
+    let mut counter2: PNCounter<String> = PNCounter::new();
+
+    // Replica 1 increments
+    counter1.increment("r1".to_string(), 10);
+    counter1.increment("r1".to_string(), 5);
+    println!("Replica 1 after +10, +5: value = {}", counter1.value());
+
+    // Replica 2 increments and decrements
+    counter2.increment("r2".to_string(), 20);
+    counter2.decrement("r2".to_string(), 3);
+    println!("Replica 2 after +20, -3: value = {}\n", counter2.value());
+
+    // Demonstrate delta-mutator: create deltas representing operations
+    let delta_inc = pncounter_mutators::increment_delta::<String>("r1".to_string(), 7);
+    let delta_dec = pncounter_mutators::decrement_delta::<String>("r2".to_string(), 2);
+    println!("Created deltas: increment(r1, 7) and decrement(r2, 2)");
+    println!("  IncrementDelta: {:?}", delta_inc);
+    println!("  DecrementDelta: {:?}", delta_dec);
+
+    // Apply deltas using apply functions (this is how deltas are applied to state)
+    let mut counter1_clone = counter1.clone();
+    pncounter_mutators::apply_increment(&mut counter1_clone, "r1".to_string(), 7);
+    pncounter_mutators::apply_decrement(&mut counter1_clone, "r2".to_string(), 2);
+    
+    println!("\nAfter applying deltas to counter1:");
+    println!("  Counter 1 value: {}", counter1_clone.value());
+
+    // Sync the counters using lattice join
+    let synced = counter1.join(&counter2);
+    println!("\nAfter lattice sync (counter1 ⊔ counter2): value = {}", synced.value());
+
+    // Apply same deltas to synced state
+    let mut final_counter = synced.clone();
+    pncounter_mutators::apply_increment(&mut final_counter, "r1".to_string(), 7);
+    pncounter_mutators::apply_decrement(&mut final_counter, "r2".to_string(), 2);
+    println!("After applying deltas to synced: value = {}", final_counter.value());
+
+    println!("\n✓ PNCounter delta demonstration complete\n");
+}
+
+/// Example 7: LWWRegister with delta operations
+fn example_7_lwwreg_deltas() {
+    println!("┌─────────────────────────────────────────────────────────────┐");
+    println!("│ Example 7: LWWRegister Delta-Mutators                      │");
+    println!("│            Last-Write-Wins with Timestamps                 │");
+    println!("└─────────────────────────────────────────────────────────────┘\n");
+
+    // Create two replicas
+    let mut reg1: LWWRegister<String, String> = LWWRegister::new("r1".to_string());
+    let mut reg2: LWWRegister<String, String> = LWWRegister::new("r2".to_string());
+
+    // Set values with timestamps
+    reg1.set("Alice".to_string(), 100, "r1".to_string());
+    println!("Replica 1 set 'Alice' at t=100");
+
+    reg2.set("Bob".to_string(), 200, "r2".to_string());
+    println!("Replica 2 set 'Bob' at t=200");
+
+    // Create deltas - these represent write operations
+    let _delta1 = lwwreg_mutators::set_delta("Charlie".to_string(), 150, "r1".to_string());
+    let _delta2 = lwwreg_mutators::set_delta("Diana".to_string(), 250, "r2".to_string());
+    println!("\nCreated deltas:");
+    println!("  Delta 1: 'Charlie' at t=150 from r1");
+    println!("  Delta 2: 'Diana' at t=250 from r2");
+
+    // Apply deltas using apply function
+    let mut reg1_clone = reg1.clone();
+    lwwreg_mutators::apply_set(&mut reg1_clone, "Charlie".to_string(), 150, "r1".to_string());
+    lwwreg_mutators::apply_set(&mut reg1_clone, "Diana".to_string(), 250, "r2".to_string());
+
+    println!("\nAfter applying deltas to reg1:");
+    println!("  Value: {:?} (t={})", reg1_clone.get(), reg1_clone.timestamp());
+
+    // Merge replicas using lattice join - this is how state syncs
+    let merged = reg1.join(&reg2);
+    println!("\nAfter lattice sync (reg1 ⊔ reg2):");
+    println!("  Value: {:?} (t={})", merged.get(), merged.timestamp());
+
+    // Apply delta to merged state
+    let mut final_reg = merged.clone();
+    lwwreg_mutators::apply_set(&mut final_reg, "Diana".to_string(), 250, "r2".to_string());
+    println!("\nAfter applying 'Diana'@t=250 delta:");
+    println!("  Value: {:?} (t={})", final_reg.get(), final_reg.timestamp());
+    assert_eq!(final_reg.get(), Some(&"Diana".to_string()), "Latest timestamp wins!");
+
+    println!("\n✓ LWWRegister delta demonstration complete\n");
+}
+
+/// Example 8: MVRegister with delta operations
+fn example_8_mvreg_deltas() {
+    println!("┌─────────────────────────────────────────────────────────────┐");
+    println!("│ Example 8: MVRegister Delta-Mutators                       │");
+    println!("│            Multi-Value Concurrent Write Tracking           │");
+    println!("└─────────────────────────────────────────────────────────────┘\n");
+
+    // Create two replicas
+    let mut reg1: MVRegister<String> = MVRegister::new();
+    let mut reg2: MVRegister<String> = MVRegister::new();
+
+    // Concurrent writes (before sync) - each replica writes independently
+    let dot1 = reg1.write("r1", "value_from_r1".to_string());
+    let dot2 = reg2.write("r2", "value_from_r2".to_string());
+
+    println!("Before sync:");
+    println!("  Replica 1 values: {:?}", reg1.read());
+    println!("  Replica 2 values: {:?}", reg2.read());
+    println!("  Dot from r1: {:?}", dot1);
+    println!("  Dot from r2: {:?}", dot2);
+
+    // Apply new writes using delta mutator
+    let new_dot1 = mvreg_mutators::apply_write(&mut reg1, "r1", "new_value_r1".to_string());
+    let new_dot2 = mvreg_mutators::apply_write(&mut reg2, "r2", "new_value_r2".to_string());
+    println!("\nApplied new writes via delta mutators:");
+    println!("  New dot from r1: {:?}", new_dot1);
+    println!("  New dot from r2: {:?}", new_dot2);
+
+    println!("\nAfter new writes:");
+    println!("  Replica 1 values: {:?}", reg1.read());
+    println!("  Replica 2 values: {:?}", reg2.read());
+
+    // Merge using lattice join - preserves all concurrent values
+    let merged = reg1.join(&reg2);
+    
+    println!("\nAfter lattice merge (reg1 ⊔ reg2):");
+    println!("  Merged values: {:?}", merged.read());
+    println!("  Number of concurrent values: {}", merged.len());
+
+    // Demonstrate that all concurrent values are preserved
+    let values = merged.read();
+    println!("\n  All concurrent writes preserved: {}", values.len() >= 2);
+
+    println!("\n✓ MVRegister delta demonstration complete\n");
+}
