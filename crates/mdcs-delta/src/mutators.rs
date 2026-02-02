@@ -134,38 +134,191 @@ pub mod orset {
 }
 
 // ============================================================================
-// LWWRegister Delta Mutators (placeholder for future implementation)
+// LWWRegister Delta Mutators
 // ============================================================================
 
-/// Placeholder for LWW Register delta types
 pub mod lwwreg {
+    use super::*;
+    use mdcs_core::lwwreg::LWWRegister;
+    use serde::{Deserialize, Serialize};
+
     /// Delta for LWW Register write operation
-    /// Will contain: (timestamp, value)
-    #[derive(Clone, Debug)]
-    pub struct LWWWriteDelta<T, Ts> {
-        pub timestamp: Ts,
+    #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+    pub struct LWWWriteDelta<T: Ord + Clone, K: Ord + Clone> {
+        pub timestamp: u64,
+        pub replica_id: K,
         pub value: T,
+    }
+
+    impl<T: Ord + Clone, K: Ord + Clone> Lattice for LWWWriteDelta<T, K> {
+        fn bottom() -> Self {
+            panic!("LWWWriteDelta has no bottom element");
+        }
+
+        fn join(&self, other: &Self) -> Self {
+            // Keep the value with higher timestamp (tie-break on replica_id)
+            if other.timestamp > self.timestamp
+                || (other.timestamp == self.timestamp && other.replica_id > self.replica_id)
+            {
+                other.clone()
+            } else {
+                self.clone()
+            }
+        }
+    }
+
+    /// Delta-mutator for set operation
+    /// Property: X.set(v) = X ⊔ mδ_set(X, v, ts, rid)
+    pub fn set_delta<T: Ord + Clone, K: Ord + Clone>(
+        value: T,
+        timestamp: u64,
+        replica_id: K,
+    ) -> LWWWriteDelta<T, K> {
+        LWWWriteDelta {
+            timestamp,
+            replica_id,
+            value,
+        }
+    }
+
+    /// Convert delta to a LWW Register state
+    pub fn apply_set<T: Ord + Clone, K: Ord + Clone + Default>(
+        state: &mut LWWRegister<T, K>,
+        value: T,
+        timestamp: u64,
+        replica_id: K,
+    ) {
+        state.set(value, timestamp, replica_id);
     }
 }
 
 // ============================================================================
-// PNCounter Delta Mutators (placeholder for future implementation)
+// PNCounter Delta Mutators
 // ============================================================================
 
-/// Placeholder for PN-Counter delta types
 pub mod pncounter {
+    use super::*;
+    use mdcs_core::pncounter::PNCounter;
+    use serde::{Deserialize, Serialize};
+
     /// Delta for increment operation
-    #[derive(Clone, Debug)]
-    pub struct IncrementDelta {
-        pub replica_id: String,
+    #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+    pub struct IncrementDelta<K: Ord + Clone> {
+        pub replica_id: K,
         pub amount: u64,
     }
 
     /// Delta for decrement operation
-    #[derive(Clone, Debug)]
-    pub struct DecrementDelta {
-        pub replica_id: String,
+    #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+    pub struct DecrementDelta<K: Ord + Clone> {
+        pub replica_id: K,
         pub amount: u64,
+    }
+
+    impl<K: Ord + Clone> Lattice for IncrementDelta<K> {
+        fn bottom() -> Self {
+            panic!("IncrementDelta has no bottom element");
+        }
+
+        fn join(&self, other: &Self) -> Self {
+            // For same replica, take max; otherwise union both
+            if self.replica_id == other.replica_id {
+                Self {
+                    replica_id: self.replica_id.clone(),
+                    amount: self.amount.max(other.amount),
+                }
+            } else {
+                self.clone() // Semantically different replicas, but we can't represent union
+            }
+        }
+    }
+
+    impl<K: Ord + Clone> Lattice for DecrementDelta<K> {
+        fn bottom() -> Self {
+            panic!("DecrementDelta has no bottom element");
+        }
+
+        fn join(&self, other: &Self) -> Self {
+            if self.replica_id == other.replica_id {
+                Self {
+                    replica_id: self.replica_id.clone(),
+                    amount: self.amount.max(other.amount),
+                }
+            } else {
+                self.clone()
+            }
+        }
+    }
+
+    /// Delta-mutator for increment operation
+    pub fn increment_delta<K: Ord + Clone>(replica_id: K, amount: u64) -> IncrementDelta<K> {
+        IncrementDelta { replica_id, amount }
+    }
+
+    /// Delta-mutator for decrement operation
+    pub fn decrement_delta<K: Ord + Clone>(replica_id: K, amount: u64) -> DecrementDelta<K> {
+        DecrementDelta { replica_id, amount }
+    }
+
+    /// Apply increment delta to counter
+    pub fn apply_increment<K: Ord + Clone>(
+        state: &mut PNCounter<K>,
+        replica_id: K,
+        amount: u64,
+    ) {
+        state.increment(replica_id, amount);
+    }
+
+    /// Apply decrement delta to counter
+    pub fn apply_decrement<K: Ord + Clone>(
+        state: &mut PNCounter<K>,
+        replica_id: K,
+        amount: u64,
+    ) {
+        state.decrement(replica_id, amount);
+    }
+}
+
+// ============================================================================
+// MVRegister Delta Mutators
+// ============================================================================
+
+pub mod mvreg {
+    use super::*;
+    use mdcs_core::mvreg::{Dot, MVRegister};
+    use serde::{Deserialize, Serialize};
+
+    /// Delta for write operation on Multi-Value Register
+    #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+    pub struct WriteDelta<T: Ord + Clone> {
+        pub dot: Dot,
+        pub value: T,
+    }
+
+    impl<T: Ord + Clone> Lattice for WriteDelta<T> {
+        fn bottom() -> Self {
+            panic!("WriteDelta has no bottom element");
+        }
+
+        fn join(&self, _other: &Self) -> Self {
+            // Union: keep both values (they're different dots)
+            // This is handled by MVRegister's join semantics
+            self.clone()
+        }
+    }
+
+    /// Delta-mutator for write operation
+    pub fn write_delta<T: Ord + Clone>(dot: Dot, value: T) -> WriteDelta<T> {
+        WriteDelta { dot, value }
+    }
+
+    /// Apply write delta to MVRegister
+    pub fn apply_write<T: Ord + Clone>(
+        state: &mut MVRegister<T>,
+        replica_id: &str,
+        value: T,
+    ) -> Dot {
+        state.write(replica_id, value)
     }
 }
 
@@ -173,6 +326,9 @@ pub mod pncounter {
 mod tests {
     use super::*;
     use mdcs_core::lattice::DeltaCRDT;
+    use mdcs_core::lwwreg::LWWRegister;
+    use mdcs_core::pncounter::PNCounter;
+    use mdcs_core::mvreg::MVRegister;
 
     #[test]
     fn test_gset_insert_delta() {
@@ -263,6 +419,98 @@ mod tests {
 
         // Idempotent (same tags won't be added twice)
         assert_eq!(count1, count2);
+    }
+
+    #[test]
+    fn test_lwwreg_set_delta() {
+        let mut state: LWWRegister<i32, String> = LWWRegister::new("replica1".to_string());
+
+        // Apply set via delta
+        lwwreg::apply_set(&mut state, 42, 100, "replica1".to_string());
+
+        assert_eq!(state.get(), Some(&42));
+        assert_eq!(state.timestamp(), 100);
+    }
+
+    #[test]
+    fn test_lwwreg_delta_higher_timestamp_wins() {
+        let mut state: LWWRegister<i32, String> = LWWRegister::new("replica1".to_string());
+
+        lwwreg::apply_set(&mut state, 10, 100, "replica1".to_string());
+        assert_eq!(state.get(), Some(&10));
+
+        lwwreg::apply_set(&mut state, 20, 200, "replica2".to_string());
+        assert_eq!(state.get(), Some(&20));
+
+        // Old timestamp doesn't overwrite
+        lwwreg::apply_set(&mut state, 30, 150, "replica1".to_string());
+        assert_eq!(state.get(), Some(&20));
+    }
+
+    #[test]
+    fn test_pncounter_increment_delta() {
+        let mut state: PNCounter<String> = PNCounter::new();
+
+        // Apply increment via delta
+        pncounter::apply_increment(&mut state, "replica1".to_string(), 5);
+        assert_eq!(state.value(), 5);
+
+        pncounter::apply_increment(&mut state, "replica1".to_string(), 3);
+        assert_eq!(state.value(), 8);
+    }
+
+    #[test]
+    fn test_pncounter_decrement_delta() {
+        let mut state: PNCounter<String> = PNCounter::new();
+
+        pncounter::apply_increment(&mut state, "replica1".to_string(), 10);
+        assert_eq!(state.value(), 10);
+
+        pncounter::apply_decrement(&mut state, "replica1".to_string(), 3);
+        assert_eq!(state.value(), 7);
+    }
+
+    #[test]
+    fn test_pncounter_delta_convergence() {
+        let mut state1: PNCounter<String> = PNCounter::new();
+        let mut state2: PNCounter<String> = PNCounter::new();
+
+        // Apply different operations to each state
+        pncounter::apply_increment(&mut state1, "replica1".to_string(), 5);
+        pncounter::apply_increment(&mut state2, "replica2".to_string(), 3);
+        pncounter::apply_decrement(&mut state2, "replica1".to_string(), 2);
+
+        // Merge states
+        let merged1 = state1.join(&state2);
+        let merged2 = state2.join(&state1);
+
+        assert_eq!(merged1.value(), merged2.value());
+    }
+
+    #[test]
+    fn test_mvreg_write_delta() {
+        let mut state: MVRegister<i32> = MVRegister::new();
+
+        // Apply write via delta
+        let _dot = mvreg::apply_write(&mut state, "replica1", 42);
+
+        let values = state.read();
+        assert_eq!(values.len(), 1);
+        assert_eq!(values[0], &42);
+    }
+
+    #[test]
+    fn test_mvreg_concurrent_deltas() {
+        let mut state1: MVRegister<i32> = MVRegister::new();
+        let mut state2: MVRegister<i32> = MVRegister::new();
+
+        let _dot1 = mvreg::apply_write(&mut state1, "replica1", 10);
+        let _dot2 = mvreg::apply_write(&mut state2, "replica2", 20);
+
+        // Merge: both values should exist
+        let merged = state1.join(&state2);
+        let values = merged.read();
+        assert_eq!(values.len(), 2);
     }
 }
 

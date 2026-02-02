@@ -9,4 +9,5 @@ mdcs-core = { path = "../mdcs-core" }
 
 [dev-dependencies]
 proptest = "1.0"
+rand = "0.8"
 
