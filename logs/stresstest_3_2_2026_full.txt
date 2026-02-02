@@ -1,0 +1,1196 @@
+
+╔════════════════════════════════════════════════════════════╗
+║            FULL BENCHMARK SUITE                            ║
+╚════════════════════════════════════════════════════════════╝
+
+This will run all tests - this may take several minutes...
+
+════════════════════════════════════════════════════════════
+                    PHASE 1: CORE CRDTs
+════════════════════════════════════════════════════════════
+
+
+╔════════════════════════════════════════════════════════════╗
+║            CORE CRDT STRESS TESTS                          ║
+╚════════════════════════════════════════════════════════════╝
+
+── Small Scale (4 replicas, 100 ops) ─────────────────────────
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:   4 │ Ops/Replica:   100 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                        GSet Results                       ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                        164 ║
+║  Total Time:                                      0.043s ║
+║  Avg Sync Time:                                   249µs ║
+║  Ops/Second:                                       13091 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                     ORSet Stress Test                     ║
+║  Replicas:   4 │ Ops/Replica:   100 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                       ORSet Results                       ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                        156 ║
+║  Total Time:                                      0.333s ║
+║  Avg Sync Time:                                  2109µs ║
+║  Ops/Second:                                        1668 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                   PNCounter Stress Test                   ║
+║  Replicas:   4 │ Ops/Replica:   100 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Incrementing/decrementing counters...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+  Final values: [36, 36, 36, 36]
+  Converged: true
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                     PNCounter Results                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                        158 ║
+║  Total Time:                                      0.004s ║
+║  Avg Sync Time:                                    10µs ║
+║  Ops/Second:                                      151213 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                  LWWRegister Stress Test                  ║
+║  Replicas:   4 │ Ops/Replica:   100 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Setting values with competing timestamps...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+  Final (value, timestamp): (Some(1099), 999)
+  Converged: true
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                    LWWRegister Results                    ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                        156 ║
+║  Total Time:                                      0.003s ║
+║  Avg Sync Time:                                     2µs ║
+║  Ops/Second:                                      216382 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                   MVRegister Stress Test                  ║
+║  Replicas:   4 │ Ops/Replica:   100 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Writing concurrent values...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+  Concurrent values per replica: [4, 4, 4, 4]
+  Converged: true
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                     MVRegister Results                    ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                        150 ║
+║  Total Time:                                      0.003s ║
+║  Avg Sync Time:                                     6µs ║
+║  Ops/Second:                                      172140 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+── Medium Scale (10 replicas, 500 ops) ─────────────────────
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:  10 │ Ops/Replica:   500 │ Syncs:  1000      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1000
+  Syncs completed: 200/1000
+  Syncs completed: 300/1000
+  Syncs completed: 400/1000
+  Syncs completed: 500/1000
+  Syncs completed: 600/1000
+  Syncs completed: 700/1000
+  Syncs completed: 800/1000
+  Syncs completed: 900/1000
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                        GSet Results                       ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                            10 ║
+║  Ops/Replica:                                        500 ║
+║  Total Syncs:                                        906 ║
+║  Total Time:                                      2.742s ║
+║  Avg Sync Time:                                  3015µs ║
+║  Ops/Second:                                        2154 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                     ORSet Stress Test                     ║
+║  Replicas:  10 │ Ops/Replica:   500 │ Syncs:  1000      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1000
+  Syncs completed: 200/1000
+  Syncs completed: 300/1000
+  Syncs completed: 400/1000
+  Syncs completed: 500/1000
+  Syncs completed: 600/1000
+  Syncs completed: 700/1000
+  Syncs completed: 800/1000
+  Syncs completed: 900/1000
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                       ORSet Results                       ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                            10 ║
+║  Ops/Replica:                                        500 ║
+║  Total Syncs:                                        901 ║
+║  Total Time:                                     35.373s ║
+║  Avg Sync Time:                                 39229µs ║
+║  Ops/Second:                                         167 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                   PNCounter Stress Test                   ║
+║  Replicas:  10 │ Ops/Replica:   500 │ Syncs:  1000      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Incrementing/decrementing counters...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1000
+  Syncs completed: 200/1000
+  Syncs completed: 300/1000
+  Syncs completed: 400/1000
+  Syncs completed: 500/1000
+  Syncs completed: 600/1000
+  Syncs completed: 700/1000
+  Syncs completed: 800/1000
+  Final values: [1016, 1016, 1016, 1016, 1016, 1016, 1016, 1016, 1016, 1016]
+  Converged: true
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                     PNCounter Results                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                            10 ║
+║  Ops/Replica:                                        500 ║
+║  Total Syncs:                                        898 ║
+║  Total Time:                                      0.030s ║
+║  Avg Sync Time:                                    23µs ║
+║  Ops/Second:                                      198059 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+── Combined Core CRDT Test ─────────────────────────────────
+
+
+╔════════════════════════════════════════════════════════════════════════╗
+║              CORE CRDT STRESS TEST SUITE                               ║
+║  Testing: GSet, ORSet, PNCounter, LWWRegister, MVRegister              ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:   6 │ Ops/Replica:   200 │ Syncs:   400      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/400
+  Syncs completed: 200/400
+  Syncs completed: 300/400
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                     ORSet Stress Test                     ║
+║  Replicas:   6 │ Ops/Replica:   200 │ Syncs:   400      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/400
+  Syncs completed: 200/400
+  Syncs completed: 300/400
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                   PNCounter Stress Test                   ║
+║  Replicas:   6 │ Ops/Replica:   200 │ Syncs:   400      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Incrementing/decrementing counters...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/400
+  Syncs completed: 200/400
+  Syncs completed: 300/400
+  Final values: [180, 180, 180, 180, 180, 180]
+  Converged: true
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                  LWWRegister Stress Test                  ║
+║  Replicas:   6 │ Ops/Replica:   200 │ Syncs:   400      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Setting values with competing timestamps...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/400
+  Syncs completed: 200/400
+  Syncs completed: 300/400
+  Final (value, timestamp): (Some(4199), 1998)
+  Converged: true
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                   MVRegister Stress Test                  ║
+║  Replicas:   6 │ Ops/Replica:   200 │ Syncs:   400      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Writing concurrent values...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/400
+  Syncs completed: 200/400
+  Syncs completed: 300/400
+  Concurrent values per replica: [6, 6, 6, 6, 6, 6]
+  Converged: true
+[Phase 2/2] ✓ Completed
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║                          BENCHMARK SUMMARY                               ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║  Component       │  Time (s) │   Ops/sec │ Avg Sync (µs) │ Converged    ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║  GSet           │     0.245 │      6251 │        725.00 │            ✓ ║
+║  ORSet          │     2.569 │       597 │       7649.00 │            ✓ ║
+║  PNCounter      │     0.009 │    176420 │         13.00 │            ✓ ║
+║  LWWRegister    │     0.004 │    352835 │          2.00 │            ✓ ║
+║  MVRegister     │     0.007 │    229576 │          9.00 │            ✓ ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+✓ Core CRDT tests completed successfully!
+
+════════════════════════════════════════════════════════════
+                   PHASE 2: DATABASE LAYER
+════════════════════════════════════════════════════════════
+
+
+╔════════════════════════════════════════════════════════════╗
+║            DATABASE LAYER STRESS TESTS                     ║
+╚════════════════════════════════════════════════════════════╝
+
+── RGA Text ────────────────────────────────────────────────
+
+╔════════════════════════════════════════════════════════════╗
+║  RGAText Collaborative Text Stress Test                    ║
+║  Replicas:   4 │ Ops/Replica:   100                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating concurrent text edits...
+  Replica 2/4 completed
+  Replica 4/4 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 1136 chars
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      RGAText Results                      ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                         18 ║
+║  Total Time:                                      0.316s ║
+║  Avg Sync Time:                                  5528µs ║
+║  Ops/Second:                                        1323 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║  RGAText Collaborative Text Stress Test                    ║
+║  Replicas:   8 │ Ops/Replica:   300                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating concurrent text edits...
+  Replica 2/8 completed
+  Replica 4/8 completed
+  Replica 6/8 completed
+  Replica 8/8 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 7910 chars
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      RGAText Results                      ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             8 ║
+║  Ops/Replica:                                        300 ║
+║  Total Syncs:                                         84 ║
+║  Total Time:                                      7.067s ║
+║  Avg Sync Time:                                 36080µs ║
+║  Ops/Second:                                         351 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+── Rich Text ───────────────────────────────────────────────
+
+╔════════════════════════════════════════════════════════════╗
+║  RichText Formatting Stress Test                           ║
+║  Replicas:   4 │ Ops/Replica:   100                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating rich text edits with formatting...
+  Replica 2/4 completed
+  Replica 4/4 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 1108 chars
+  Total marks: 122
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      RichText Results                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                         18 ║
+║  Total Time:                                      0.381s ║
+║  Avg Sync Time:                                  7012µs ║
+║  Ops/Second:                                        1096 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║  RichText Formatting Stress Test                           ║
+║  Replicas:   6 │ Ops/Replica:   200                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating rich text edits with formatting...
+  Replica 2/6 completed
+  Replica 4/6 completed
+  Replica 6/6 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 3423 chars
+  Total marks: 381
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      RichText Results                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             6 ║
+║  Ops/Replica:                                        200 ║
+║  Total Syncs:                                         45 ║
+║  Total Time:                                      2.494s ║
+║  Avg Sync Time:                                 21623µs ║
+║  Ops/Second:                                         499 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+── JSON CRDT ───────────────────────────────────────────────
+
+╔════════════════════════════════════════════════════════════╗
+║  JsonCrdt Nested Document Stress Test                      ║
+║  Replicas:   4 │ Ops/Replica:   100                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating JSON document edits...
+  Replica 2/4 completed
+  Replica 4/4 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Top-level keys: 4
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      JsonCrdt Results                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                         18 ║
+║  Total Time:                                      0.014s ║
+║  Avg Sync Time:                                   459µs ║
+║  Ops/Second:                                       29157 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║  JsonCrdt Nested Document Stress Test                      ║
+║  Replicas:   6 │ Ops/Replica:   200                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating JSON document edits...
+  Replica 2/6 completed
+  Replica 4/6 completed
+  Replica 6/6 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Top-level keys: 4
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      JsonCrdt Results                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             6 ║
+║  Ops/Replica:                                        200 ║
+║  Total Syncs:                                         45 ║
+║  Total Time:                                      0.051s ║
+║  Avg Sync Time:                                   733µs ║
+║  Ops/Second:                                       24548 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+── Document Store ──────────────────────────────────────────
+
+╔════════════════════════════════════════════════════════════╗
+║  DocumentStore Multi-Document Stress Test                  ║
+║  Documents:  50 │ Ops/Document:   200                     ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Creating and editing documents...
+  Created 17 text, 17 JSON, 16 rich text documents
+  Operations: 100/200
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Querying documents...
+  Query returned 50 documents in 10.94µs
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                   DocumentStore Results                   ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             1 ║
+║  Ops/Replica:                                      10050 ║
+║  Total Syncs:                                          0 ║
+║  Total Time:                                      0.645s ║
+║  Avg Sync Time:                                    10µs ║
+║  Ops/Second:                                       15585 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║  DocumentStore Multi-Document Stress Test                  ║
+║  Documents: 100 │ Ops/Document:   500                     ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Creating and editing documents...
+  Created 34 text, 33 JSON, 33 rich text documents
+  Operations: 100/500
+  Operations: 200/500
+  Operations: 300/500
+  Operations: 400/500
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Querying documents...
+  Query returned 100 documents in 17.994µs
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                   DocumentStore Results                   ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             1 ║
+║  Ops/Replica:                                      50100 ║
+║  Total Syncs:                                          0 ║
+║  Total Time:                                      6.365s ║
+║  Avg Sync Time:                                    17µs ║
+║  Ops/Second:                                        7871 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+── Combined Database Test ──────────────────────────────────
+
+
+╔════════════════════════════════════════════════════════════════════════╗
+║              DATABASE LAYER STRESS TEST SUITE                          ║
+║  Testing: RGAText, RichText, JsonCrdt, DocumentStore                   ║
+╚════════════════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║  RGAText Collaborative Text Stress Test                    ║
+║  Replicas:   4 │ Ops/Replica:   100                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating concurrent text edits...
+  Replica 2/4 completed
+  Replica 4/4 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 1136 chars
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║  RichText Formatting Stress Test                           ║
+║  Replicas:   4 │ Ops/Replica:   100                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating rich text edits with formatting...
+  Replica 2/4 completed
+  Replica 4/4 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 1108 chars
+  Total marks: 122
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║  JsonCrdt Nested Document Stress Test                      ║
+║  Replicas:   4 │ Ops/Replica:   100                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating JSON document edits...
+  Replica 2/4 completed
+  Replica 4/4 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Top-level keys: 4
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║  DocumentStore Multi-Document Stress Test                  ║
+║  Documents:  20 │ Ops/Document:    50                     ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Creating and editing documents...
+  Created 7 text, 7 JSON, 6 rich text documents
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Querying documents...
+  Query returned 20 documents in 8.376µs
+[Phase 2/2] ✓ Completed
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║                          BENCHMARK SUMMARY                               ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║  Component       │  Time (s) │   Ops/sec │ Avg Sync (µs) │ Converged    ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║  RGAText        │     0.329 │      1271 │       5572.00 │            ✓ ║
+║  RichText       │     0.379 │      1104 │       6816.00 │            ✓ ║
+║  JsonCrdt       │     0.015 │     28055 │        479.00 │            ✓ ║
+║  DocumentStore  │     0.037 │     27687 │          8.00 │            ✓ ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+✓ Database layer tests completed successfully!
+
+════════════════════════════════════════════════════════════
+                  PHASE 3: SCALING ANALYSIS
+════════════════════════════════════════════════════════════
+
+
+╔════════════════════════════════════════════════════════════╗
+║            SCALING ANALYSIS                                ║
+╚════════════════════════════════════════════════════════════╝
+
+── GSet Scaling ────────────────────────────────────────────
+
+╔════════════════════════════════════════════════════════════╗
+║  Scaling Analysis - Performance vs Replica Count           ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:   2 │ Ops/Replica:    50 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:   4 │ Ops/Replica:    50 │ Syncs:   400      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/400
+  Syncs completed: 200/400
+  Syncs completed: 300/400
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:   6 │ Ops/Replica:    50 │ Syncs:   600      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/600
+  Syncs completed: 200/600
+  Syncs completed: 300/600
+  Syncs completed: 400/600
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:   8 │ Ops/Replica:    50 │ Syncs:   800      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/800
+  Syncs completed: 200/800
+  Syncs completed: 300/800
+  Syncs completed: 400/800
+  Syncs completed: 500/800
+  Syncs completed: 600/800
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:  10 │ Ops/Replica:    50 │ Syncs:  1000      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1000
+  Syncs completed: 200/1000
+  Syncs completed: 300/1000
+  Syncs completed: 400/1000
+  Syncs completed: 500/1000
+  Syncs completed: 600/1000
+  Syncs completed: 700/1000
+  Syncs completed: 800/1000
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:  12 │ Ops/Replica:    50 │ Syncs:  1200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1200
+  Syncs completed: 200/1200
+  Syncs completed: 300/1200
+  Syncs completed: 400/1200
+  Syncs completed: 500/1200
+  Syncs completed: 600/1200
+  Syncs completed: 700/1200
+  Syncs completed: 800/1200
+  Syncs completed: 900/1200
+  Syncs completed: 1000/1200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:  14 │ Ops/Replica:    50 │ Syncs:  1400      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1400
+  Syncs completed: 200/1400
+  Syncs completed: 300/1400
+  Syncs completed: 400/1400
+  Syncs completed: 500/1400
+  Syncs completed: 600/1400
+  Syncs completed: 700/1400
+  Syncs completed: 800/1400
+  Syncs completed: 900/1400
+  Syncs completed: 1000/1400
+  Syncs completed: 1100/1400
+  Syncs completed: 1200/1400
+  Syncs completed: 1300/1400
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:  16 │ Ops/Replica:    50 │ Syncs:  1600      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1600
+  Syncs completed: 200/1600
+  Syncs completed: 300/1600
+  Syncs completed: 400/1600
+  Syncs completed: 500/1600
+  Syncs completed: 600/1600
+  Syncs completed: 700/1600
+  Syncs completed: 800/1600
+  Syncs completed: 900/1600
+  Syncs completed: 1000/1600
+  Syncs completed: 1100/1600
+  Syncs completed: 1200/1600
+  Syncs completed: 1300/1600
+  Syncs completed: 1400/1600
+  Syncs completed: 1500/1600
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:  18 │ Ops/Replica:    50 │ Syncs:  1800      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1800
+  Syncs completed: 200/1800
+  Syncs completed: 300/1800
+  Syncs completed: 400/1800
+  Syncs completed: 500/1800
+  Syncs completed: 600/1800
+  Syncs completed: 700/1800
+  Syncs completed: 800/1800
+  Syncs completed: 900/1800
+  Syncs completed: 1000/1800
+  Syncs completed: 1100/1800
+  Syncs completed: 1200/1800
+  Syncs completed: 1300/1800
+  Syncs completed: 1400/1800
+  Syncs completed: 1500/1800
+  Syncs completed: 1600/1800
+  Syncs completed: 1700/1800
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:  20 │ Ops/Replica:    50 │ Syncs:  2000      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/2000
+  Syncs completed: 200/2000
+  Syncs completed: 300/2000
+  Syncs completed: 400/2000
+  Syncs completed: 500/2000
+  Syncs completed: 600/2000
+  Syncs completed: 700/2000
+  Syncs completed: 800/2000
+  Syncs completed: 900/2000
+  Syncs completed: 1000/2000
+  Syncs completed: 1100/2000
+  Syncs completed: 1200/2000
+  Syncs completed: 1300/2000
+  Syncs completed: 1400/2000
+  Syncs completed: 1500/2000
+  Syncs completed: 1600/2000
+  Syncs completed: 1700/2000
+  Syncs completed: 1800/2000
+  Syncs completed: 1900/2000
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                 SCALING SUMMARY                            ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas │  Time (s) │   Ops/sec │ Avg Sync (µs)          ║
+╠════════════════════════════════════════════════════════════╣
+║        2 │     0.009 │     23134 │      67.00             ║
+║        4 │     0.043 │     11779 │     129.00             ║
+║        6 │     0.097 │      8217 │     188.00             ║
+║        8 │     0.175 │      6188 │     247.00             ║
+║       10 │     0.280 │      4980 │     306.00             ║
+║       12 │     0.406 │      4148 │     368.00             ║
+║       14 │     0.574 │      3522 │     428.00             ║
+║       16 │     0.743 │      3099 │     486.00             ║
+║       18 │     0.956 │      2735 │     550.00             ║
+║       20 │     1.173 │      2478 │     608.00             ║
+╚════════════════════════════════════════════════════════════╝
+
+── ORSet Scaling ───────────────────────────────────────────
+  Replicas │    Ops │  Time (ms) │  ms/op │  Syncs │ Converged
+  ─────────┼────────┼────────────┼────────┼────────┼──────────
+
+╔════════════════════════════════════════════════════════════╗
+║                     ORSet Stress Test                     ║
+║  Replicas:   2 │ Ops/Replica:   100 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+[Phase 2/2] ✓ Completed
+         2 │    200 │     111.56 │ 0.5578 │     94 │        ✓
+
+╔════════════════════════════════════════════════════════════╗
+║                     ORSet Stress Test                     ║
+║  Replicas:   4 │ Ops/Replica:   200 │ Syncs:   400      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/400
+  Syncs completed: 200/400
+[Phase 2/2] ✓ Completed
+         4 │    800 │    1465.71 │ 1.8321 │    293 │        ✓
+
+╔════════════════════════════════════════════════════════════╗
+║                     ORSet Stress Test                     ║
+║  Replicas:   8 │ Ops/Replica:   400 │ Syncs:   800      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/800
+  Syncs completed: 200/800
+  Syncs completed: 300/800
+  Syncs completed: 400/800
+  Syncs completed: 500/800
+  Syncs completed: 600/800
+  Syncs completed: 700/800
+[Phase 2/2] ✓ Completed
+         8 │   3200 │   16584.41 │ 5.1826 │    703 │        ✓
+
+╔════════════════════════════════════════════════════════════╗
+║                     ORSet Stress Test                     ║
+║  Replicas:  16 │ Ops/Replica:   800 │ Syncs:  1600      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/1600
+  Syncs completed: 200/1600
+  Syncs completed: 300/1600
+  Syncs completed: 400/1600
+  Syncs completed: 500/1600
+  Syncs completed: 600/1600
+  Syncs completed: 700/1600
+  Syncs completed: 800/1600
+  Syncs completed: 900/1600
+  Syncs completed: 1000/1600
+  Syncs completed: 1100/1600
+  Syncs completed: 1200/1600
+  Syncs completed: 1300/1600
+  Syncs completed: 1400/1600
+  Syncs completed: 1500/1600
+[Phase 2/2] ✓ Completed
+        16 │  12800 │  161132.81 │ 12.5885 │   1509 │        ✓
+
+── RGA Text Scaling ────────────────────────────────────────
+  Replicas │    Ops │  Time (ms) │  ms/op │  Syncs │ Converged
+  ─────────┼────────┼────────────┼────────┼────────┼──────────
+
+╔════════════════════════════════════════════════════════════╗
+║  RGAText Collaborative Text Stress Test                    ║
+║  Replicas:   2 │ Ops/Replica:    50                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating concurrent text edits...
+  Replica 2/2 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 298 chars
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+         2 │    100 │      52.14 │ 0.5214 │      3 │        ✓
+
+╔════════════════════════════════════════════════════════════╗
+║  RGAText Collaborative Text Stress Test                    ║
+║  Replicas:   4 │ Ops/Replica:   100                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating concurrent text edits...
+  Replica 2/4 completed
+  Replica 4/4 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 1136 chars
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+         4 │    400 │     312.42 │ 0.7811 │     18 │        ✓
+
+╔════════════════════════════════════════════════════════════╗
+║  RGAText Collaborative Text Stress Test                    ║
+║  Replicas:   8 │ Ops/Replica:   200                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating concurrent text edits...
+  Replica 2/8 completed
+  Replica 4/8 completed
+  Replica 6/8 completed
+  Replica 8/8 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 5138 chars
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+         8 │   1600 │    3806.02 │ 2.3788 │     84 │        ✓
+
+── Rich Text Scaling ───────────────────────────────────────
+  Replicas │    Ops │  Time (ms) │  ms/op │  Syncs │ Converged
+  ─────────┼────────┼────────────┼────────┼────────┼──────────
+
+╔════════════════════════════════════════════════════════════╗
+║  RichText Formatting Stress Test                           ║
+║  Replicas:   2 │ Ops/Replica:    40                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating rich text edits with formatting...
+  Replica 2/2 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 212 chars
+  Total marks: 28
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+         2 │     80 │      25.48 │ 0.3185 │      3 │        ✓
+
+╔════════════════════════════════════════════════════════════╗
+║  RichText Formatting Stress Test                           ║
+║  Replicas:   4 │ Ops/Replica:    80                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating rich text edits with formatting...
+  Replica 2/4 completed
+  Replica 4/4 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 817 chars
+  Total marks: 112
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+         4 │    320 │     262.57 │ 0.8205 │     18 │        ✓
+
+╔════════════════════════════════════════════════════════════╗
+║  RichText Formatting Stress Test                           ║
+║  Replicas:   6 │ Ops/Replica:   120                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating rich text edits with formatting...
+  Replica 2/6 completed
+  Replica 4/6 completed
+  Replica 6/6 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 1933 chars
+  Total marks: 230
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+         6 │    720 │    1142.37 │ 1.5866 │     45 │        ✓
+
+── JSON CRDT Scaling ───────────────────────────────────────
+  Replicas │    Ops │  Time (ms) │  ms/op │  Syncs │ Converged
+  ─────────┼────────┼────────────┼────────┼────────┼──────────
+
+╔════════════════════════════════════════════════════════════╗
+║  JsonCrdt Nested Document Stress Test                      ║
+║  Replicas:   2 │ Ops/Replica:    40                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating JSON document edits...
+  Replica 2/2 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Top-level keys: 4
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+         2 │     80 │      12.57 │ 0.1571 │      3 │        ✓
+
+╔════════════════════════════════════════════════════════════╗
+║  JsonCrdt Nested Document Stress Test                      ║
+║  Replicas:   4 │ Ops/Replica:    80                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating JSON document edits...
+  Replica 2/4 completed
+  Replica 4/4 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Top-level keys: 4
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+         4 │    320 │      13.02 │ 0.0407 │     18 │        ✓
+
+╔════════════════════════════════════════════════════════════╗
+║  JsonCrdt Nested Document Stress Test                      ║
+║  Replicas:   6 │ Ops/Replica:   120                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating JSON document edits...
+  Replica 2/6 completed
+  Replica 4/6 completed
+  Replica 6/6 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Top-level keys: 4
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+         6 │    720 │      40.85 │ 0.0567 │     45 │        ✓
+
+✓ Scaling analysis completed!
+
+════════════════════════════════════════════════════════════
+                        SUMMARY
+════════════════════════════════════════════════════════════
+
+  ✓ All core CRDT tests passed
+  ✓ All database layer tests passed
+  ✓ Scaling analysis completed
+
+  All tests verify:
+    • Idempotence: join(a, a) = a
+    • Commutativity: join(a, b) = join(b, a)
+    • Associativity: join(join(a, b), c) = join(a, join(b, c))
+    • Convergence: all replicas reach identical state
+
+╔════════════════════════════════════════════════════════════╗
+║            ✓ FULL SUITE COMPLETED SUCCESSFULLY             ║
+╚════════════════════════════════════════════════════════════╝

@@ -1,0 +1,172 @@
+
+╔════════════════════════════════════════════════════════════╗
+║            QUICK SMOKE TESTS                               ║
+╚════════════════════════════════════════════════════════════╝
+
+── Core CRDTs ──────────────────────────────────────────────
+
+╔════════════════════════════════════════════════════════════╗
+║                      GSet Stress Test                     ║
+║  Replicas:   4 │ Ops/Replica:   100 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding elements to replicas...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                        GSet Results                       ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                        146 ║
+║  Total Time:                                      0.039s ║
+║  Avg Sync Time:                                   250µs ║
+║  Ops/Second:                                       14084 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                     ORSet Stress Test                     ║
+║  Replicas:   4 │ Ops/Replica:   100 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Adding and removing elements...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                       ORSet Results                       ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                        157 ║
+║  Total Time:                                      0.338s ║
+║  Avg Sync Time:                                  2124µs ║
+║  Ops/Second:                                        1648 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║                   PNCounter Stress Test                   ║
+║  Replicas:   4 │ Ops/Replica:   100 │ Syncs:   200      ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/2] Incrementing/decrementing counters...
+[Phase 1/2] ✓ Completed
+[Phase 2/2] Synchronizing replicas...
+  Syncs completed: 100/200
+  Final values: [36, 36, 36, 36]
+  Converged: true
+[Phase 2/2] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                     PNCounter Results                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             4 ║
+║  Ops/Replica:                                        100 ║
+║  Total Syncs:                                        149 ║
+║  Total Time:                                      0.004s ║
+║  Avg Sync Time:                                    10µs ║
+║  Ops/Second:                                      145917 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+── Database Layer ──────────────────────────────────────────
+
+╔════════════════════════════════════════════════════════════╗
+║  RGAText Collaborative Text Stress Test                    ║
+║  Replicas:   3 │ Ops/Replica:    50                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating concurrent text edits...
+  Replica 2/3 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 443 chars
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      RGAText Results                      ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             3 ║
+║  Ops/Replica:                                         50 ║
+║  Total Syncs:                                          9 ║
+║  Total Time:                                      0.068s ║
+║  Avg Sync Time:                                  2540µs ║
+║  Ops/Second:                                        2335 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║  RichText Formatting Stress Test                           ║
+║  Replicas:   3 │ Ops/Replica:    30                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating rich text edits with formatting...
+  Replica 2/3 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Final text length: 249 chars
+  Total marks: 30
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      RichText Results                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             3 ║
+║  Ops/Replica:                                         30 ║
+║  Total Syncs:                                          9 ║
+║  Total Time:                                      0.037s ║
+║  Avg Sync Time:                                  1618µs ║
+║  Ops/Second:                                        2681 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+╔════════════════════════════════════════════════════════════╗
+║  JsonCrdt Nested Document Stress Test                      ║
+║  Replicas:   3 │ Ops/Replica:    30                        ║
+╚════════════════════════════════════════════════════════════╝
+
+[Phase 1/3] Simulating JSON document edits...
+  Replica 2/3 completed
+[Phase 1/3] ✓ Completed
+[Phase 2/3] Merging replicas...
+  Merge round 1/3 completed
+  Merge round 2/3 completed
+  Merge round 3/3 completed
+[Phase 2/3] ✓ Completed
+[Phase 3/3] Verifying convergence...
+  Top-level keys: 4
+  All replicas identical: true
+[Phase 3/3] ✓ Completed
+
+╔════════════════════════════════════════════════════════════╗
+║                      JsonCrdt Results                     ║
+╠════════════════════════════════════════════════════════════╣
+║  Replicas:                                             3 ║
+║  Ops/Replica:                                         30 ║
+║  Total Syncs:                                          9 ║
+║  Total Time:                                      0.005s ║
+║  Avg Sync Time:                                   318µs ║
+║  Ops/Second:                                       19536 ║
+║  Converged:                                        ✓ Yes ║
+╚════════════════════════════════════════════════════════════╝
+
+✓ Quick tests completed successfully!
