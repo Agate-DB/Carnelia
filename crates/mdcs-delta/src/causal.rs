@@ -1005,13 +1005,21 @@ mod tests {
 
     #[test]
     fn test_pncounter_causal() {
-        let mut cluster: CausalCluster<PNCounter> = CausalCluster::new(2, 0.0);
+        let mut cluster: CausalCluster<PNCounter<String>> = CausalCluster::new(2, 0.0);
 
         // r0 increments
-        cluster.mutate(0, |s| s.increment("r0"));
+        cluster.mutate(0, |_s| {
+            let mut delta = PNCounter::new();
+            delta.increment("r0".to_string(), 1);
+            delta
+        });
 
         // r1 decrements
-        cluster.mutate(1, |s| s.decrement("r1"));
+        cluster.mutate(1, |_s| {
+            let mut delta = PNCounter::new();
+            delta.decrement("r1".to_string(), 1);
+            delta
+        });
 
         // Sync
         cluster.full_sync_round();

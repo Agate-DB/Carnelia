@@ -9,7 +9,7 @@ use mdcs_core::pncounter::PNCounter;
 use mdcs_core::lwwreg::LWWRegister;
 use mdcs_core::mvreg::MVRegister;
 use mdcs_delta::causal::{
-    CausalCluster, CausalReplica, DeltaInterval, DurableState, MemoryStorage, DurableStorage,
+    CausalCluster, CausalReplica, DeltaInterval, MemoryStorage, DurableStorage,
 };
 
 /// Test that delta-intervals maintain causal ordering
@@ -200,13 +200,17 @@ fn test_partition_and_heal() {
 /// Test that deltas are never skipped on recovery
 #[test]
 fn test_no_skip_on_recovery() {
-    let mut storage: MemoryStorage<PNCounter> = MemoryStorage::new();
+    let mut storage: MemoryStorage<PNCounter<String>> = MemoryStorage::new();
     
-    let mut replica: CausalReplica<PNCounter> = CausalReplica::new("no_skip");
+    let mut replica: CausalReplica<PNCounter<String>> = CausalReplica::new("no_skip");
     
-    // Perform increments
+    // Perform increments - clone state and add 1 so delta has new total
     for _ in 0..100 {
-        replica.mutate(|s| s.increment("no_skip"));
+        replica.mutate(|s| {
+            let mut delta = s.clone();
+            delta.increment("no_skip".to_string(), 1);
+            delta
+        });
     }
     
     // Persist
@@ -214,7 +218,7 @@ fn test_no_skip_on_recovery() {
     
     // Recover
     let durable = storage.load("no_skip").unwrap().unwrap();
-    let recovered = CausalReplica::restore(durable);
+    let recovered: CausalReplica<PNCounter<String>> = CausalReplica::restore(durable);
     
     // Counter should be exactly 100
     assert_eq!(recovered.counter(), 100);
@@ -264,44 +268,64 @@ fn test_orset_causal() {
     let mut cluster: CausalCluster<ORSet<String>> = CausalCluster::new(2, 0.0);
     
     // r0 adds elements
-    cluster.mutate(0, |s| s.insert("hello", "r0"));
-    cluster.mutate(0, |s| s.insert("world", "r0"));
+    cluster.mutate(0, |_s| {
+        let mut delta = ORSet::new();
+        delta.add("r0", "hello".to_string());
+        delta
+    });
+    cluster.mutate(0, |_s| {
+        let mut delta = ORSet::new();
+        delta.add("r0", "world".to_string());
+        delta
+    });
     
     // Sync
     cluster.full_sync_round();
     
-    // r1 removes "hello"
-    cluster.mutate(1, |s| s.remove(&"hello".to_string()));
+    // r1 removes "hello" - need to create a delta with the removal
+    cluster.mutate(1, |s| {
+        let mut delta = s.clone();
+        delta.remove(&"hello".to_string());
+        delta
+    });
     
     // Sync again
     cluster.full_sync_round();
     
     // Both should have only "world"
     assert!(cluster.is_converged());
-    assert!(!cluster.replica(0).state().lookup(&"hello".to_string()));
-    assert!(cluster.replica(0).state().lookup(&"world".to_string()));
+    assert!(!cluster.replica(0).state().contains(&"hello".to_string()));
+    assert!(cluster.replica(0).state().contains(&"world".to_string()));
 }
 
 /// Test LWWRegister with causal consistency
 #[test]
 fn test_lwwreg_causal() {
-    let mut cluster: CausalCluster<LWWRegister<String>> = CausalCluster::new(2, 0.0);
+    let mut cluster: CausalCluster<LWWRegister<String, String>> = CausalCluster::new(2, 0.0);
     
     // r0 sets value first
-    cluster.mutate(0, |_s| LWWRegister::with_value("first".to_string(), 1));
+    cluster.mutate(0, |_s| {
+        let mut delta = LWWRegister::new("r0".to_string());
+        delta.set("first".to_string(), 1, "r0".to_string());
+        delta
+    });
     
     // Sync
     cluster.full_sync_round();
     
     // r1 sets newer value
-    cluster.mutate(1, |_s| LWWRegister::with_value("second".to_string(), 2));
+    cluster.mutate(1, |_s| {
+        let mut delta = LWWRegister::new("r1".to_string());
+        delta.set("second".to_string(), 2, "r1".to_string());
+        delta
+    });
     
     // Sync
     cluster.full_sync_round();
     
     // Both should have "second" (higher timestamp wins)
     assert!(cluster.is_converged());
-    assert_eq!(cluster.replica(0).state().value(), Some(&"second".to_string()));
+    assert_eq!(cluster.replica(0).state().get(), Some(&"second".to_string()));
 }
 
 /// Test MVRegister with causal consistency (concurrent writes)
@@ -310,8 +334,16 @@ fn test_mvreg_causal_concurrent() {
     let mut cluster: CausalCluster<MVRegister<String>> = CausalCluster::new(2, 0.0);
     
     // Both replicas write concurrently without syncing
-    cluster.mutate(0, |_s| MVRegister::with_value("value_a".to_string(), "r0", 1));
-    cluster.mutate(1, |_s| MVRegister::with_value("value_b".to_string(), "r1", 1));
+    cluster.mutate(0, |_s| {
+        let mut delta = MVRegister::new();
+        delta.write("r0", "value_a".to_string());
+        delta
+    });
+    cluster.mutate(1, |_s| {
+        let mut delta = MVRegister::new();
+        delta.write("r1", "value_b".to_string());
+        delta
+    });
     
     // Sync
     for _ in 0..3 {
@@ -320,10 +352,10 @@ fn test_mvreg_causal_concurrent() {
     
     // Both values should be present (multi-value semantics)
     assert!(cluster.is_converged());
-    let values = cluster.replica(0).state().values();
+    let values: Vec<&String> = cluster.replica(0).state().read();
     assert_eq!(values.len(), 2);
-    assert!(values.contains(&"value_a".to_string()));
-    assert!(values.contains(&"value_b".to_string()));
+    assert!(values.contains(&&"value_a".to_string()));
+    assert!(values.contains(&&"value_b".to_string()));
 }
 
 /// Test idempotence of delta application
@@ -361,13 +393,17 @@ fn test_idempotent_delta_application() {
 /// Test high-frequency updates with message loss
 #[test]
 fn test_high_frequency_with_loss() {
-    let mut cluster: CausalCluster<PNCounter> = CausalCluster::new(3, 0.3);
+    let mut cluster: CausalCluster<PNCounter<String>> = CausalCluster::new(3, 0.3);
     
-    // Each replica does 50 increments
+    // Each replica does 50 increments - clone state and add 1 so delta has new total
     for replica_idx in 0..3 {
         for _ in 0..50 {
             let id = format!("r{}", replica_idx);
-            cluster.mutate(replica_idx, move |s| s.increment(&id));
+            cluster.mutate(replica_idx, move |s| {
+                let mut delta = s.clone();
+                delta.increment(id, 1);
+                delta
+            });
         }
     }
     
