@@ -1,0 +1,32 @@
+[package]
+name = "mdcs-sdk"
+version = "0.1.0"
+edition = "2021"
+description = "High-level SDK for building collaborative applications with MDCS"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+# Core MDCS crates
+mdcs-core = { path = "../mdcs-core" }
+mdcs-delta = { path = "../mdcs-delta" }
+mdcs-merkle = { path = "../mdcs-merkle" }
+mdcs-compaction = { path = "../mdcs-compaction" }
+mdcs-db = { path = "../mdcs-db" }
+
+# Async runtime
+tokio = { version = "1.35", features = ["full", "sync"] }
+async-trait = "0.1"
+futures = "0.3"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Utilities
+thiserror = "1.0"
+ulid = "1.1"
+tracing = "0.1"
+parking_lot = "0.12"
+
+[dev-dependencies]
+tokio-test = "0.4"
