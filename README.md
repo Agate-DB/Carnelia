@@ -453,6 +453,187 @@ The causal context grows monotonically, so a deleted item's dot remains "known" 
 
 ---
 
+## Database Layer (`mdcs-db`)
+
+The database layer provides high-level collaborative data structures for building real-time applications like Google Docs, Figma, or Notion.
+
+### RGA List (Replicated Growable Array)
+
+An ordered list CRDT with support for insert, delete, and move operations.
+
+```rust
+let mut list = RGAList::new("replica-1");
+list.push_back("Alice");
+list.push_back("Bob");
+list.insert(1, "Charlie");  // Insert at position 1
+
+// Result: ["Alice", "Charlie", "Bob"]
+```
+
+**Key features**:
+- Unique `ListId` identifiers with ULID-based ordering
+- Deterministic conflict resolution for concurrent inserts
+- Tombstone-based deletion (nodes marked deleted, not removed)
+- Delta-based replication support
+
+### RGA Text
+
+A text CRDT built on RGAList for collaborative text editing.
+
+```rust
+let mut text = RGAText::new("replica-1");
+text.insert(0, "Hello");
+text.insert(5, " World");
+text.delete(0, 6);  // Delete "Hello "
+
+// Result: "World"
+```
+
+**Features**:
+- Character-level operations
+- Position ↔ ID conversion for cursor synchronization
+- Efficient range operations (slice, delete range)
+- Lattice-based merge for concurrent edits
+
+### Rich Text
+
+Rich text with formatting marks that survive concurrent edits.
+
+```rust
+let mut doc = RichText::new("replica-1");
+doc.insert(0, "Hello World");
+doc.bold(0, 5);        // Bold "Hello"
+doc.italic(6, 11);     // Italic "World"
+doc.link(0, 5, "https://example.com");
+
+// Renders: <a href="..."><b>Hello</b></a> <i>World</i>
+```
+
+**Mark types**:
+- **Bold**, **Italic**, **Underline**, **Strikethrough**
+- **Links** with URL
+- **Comments** with author and content
+- **Custom attributes** for extensibility
+
+**Key design**:
+- Anchor-based positioning (marks reference text IDs, not positions)
+- Marks expand automatically when text is inserted within them
+- ULID-based conflict resolution for overlapping marks
+
+### JSON CRDT
+
+Automerge-like nested document CRDT with path-based operations.
+
+```rust
+let mut doc = JsonCrdt::new("replica-1");
+
+// Set nested values
+doc.set(&JsonPath::parse("user.name"), JsonValue::String("Alice".into()))?;
+doc.set(&JsonPath::parse("user.age"), JsonValue::Int(30))?;
+
+// Array operations
+let items_id = doc.set_array(&JsonPath::parse("items"))?;
+doc.array_push(&items_id, JsonValue::String("item1".into()))?;
+
+// Convert to JSON
+let json = doc.to_json();
+// {"user": {"name": "Alice", "age": 30}, "items": ["item1"]}
+```
+
+**Features**:
+- Path-based get/set operations
+- Nested objects and arrays
+- Multi-value registers for concurrent field writes (conflicts visible to app)
+- Shared causal context across the entire document tree
+
+### Document Store
+
+High-level API for managing collections of documents.
+
+```rust
+let mut store = DocumentStore::new("replica-1");
+
+// Create documents
+let doc_id = store.create_text("doc-1", "Meeting Notes")?;
+store.text_insert(&doc_id, 0, "# Agenda\n")?;
+store.text_insert(&doc_id, 9, "1. Review\n2. Planning")?;
+
+// Query documents
+let results = store.query(QueryOptions {
+    document_type: Some(DocumentType::Text),
+    title_prefix: Some("Meeting".into()),
+    limit: Some(10),
+    ..Default::default()
+})?;
+
+// Get changes for replication
+let changes = store.take_changes();
+```
+
+### Presence System
+
+Real-time cursor and user presence tracking for collaborative UIs.
+
+```rust
+let mut tracker = PresenceTracker::new(
+    UserId::new("user-1"),
+    UserInfo { name: "Alice".into(), avatar_url: None }
+);
+
+// Update cursor position
+tracker.set_cursor("doc-1", Cursor::new(42).with_selection(42, 50));
+
+// Track status
+tracker.set_status(UserStatus::Away);
+
+// Get all users in a document
+for (user_id, presence) in tracker.users_in_document("doc-1") {
+    let color = tracker.colors().get(&user_id);
+    // Render cursor with assigned color
+}
+```
+
+**Features**:
+- Cursor position and selection tracking
+- User status (Online, Away, Busy, Offline)
+- Automatic color assignment for visual distinction
+- Stale presence detection and cleanup
+- Delta-based sync for efficiency
+
+### Undo/Redo System
+
+Operation-based undo with causal grouping for collaborative editing.
+
+```rust
+let mut undo_manager = UndoManager::new("user-1");
+
+// Record operations
+undo_manager.record(UndoableOperation::TextInsert {
+    position: 0,
+    text: "Hello".into(),
+});
+
+// Group related operations
+undo_manager.start_group();
+undo_manager.record(UndoableOperation::TextDelete { position: 0, length: 5 });
+undo_manager.record(UndoableOperation::TextInsert { position: 0, text: "Hi".into() });
+undo_manager.end_group();
+
+// Undo (returns inverse operations to apply)
+let inverses = undo_manager.undo();
+
+// Redo
+let operations = undo_manager.redo();
+```
+
+**Features**:
+- Automatic inverse operation generation
+- Operation grouping for batch undo
+- Configurable history limits
+- Collaborative undo manager (per-user undo stacks)
+
+---
+
 ## Quick Reference
 
 ### Lattice Laws (must hold for correctness)
@@ -474,6 +655,12 @@ a ⊔ ⊥ = a                        // Bottom is identity
 | Single value, last wins | `LWWRegister` |
 | Single value, preserve conflicts | `MVRegister` |
 | Nested documents | `CRDTMap` |
+| Ordered list with move | `RGAList` |
+| Collaborative plain text | `RGAText` |
+| Collaborative rich text | `RichText` |
+| JSON-like documents | `JsonCrdt` |
+| Document collections | `DocumentStore` |
+| Real-time cursors | `PresenceTracker` |
 
 ---
 
@@ -522,13 +709,17 @@ mdcs/
 │   │   │   └── compactor.rs # High-level orchestration
 │   │   └── tests/
 │   │
-│   ├── mdcs-db/             # Phase 6: Database layer (planned)
+│   ├── mdcs-db/             # Phase 6: Database layer ✓
 │   │   ├── src/
 │   │   │   ├── lib.rs
-│   │   │   ├── document.rs  # Document model
-│   │   │   ├── api.rs       # Public API
-│   │   │   ├── storage.rs   # Storage backend trait
-│   │   │   └── index.rs     # Secondary indexes
+│   │   │   ├── error.rs     # Error types
+│   │   │   ├── rga_list.rs  # Replicated Growable Array
+│   │   │   ├── rga_text.rs  # Collaborative text CRDT
+│   │   │   ├── rich_text.rs # Rich text with formatting
+│   │   │   ├── json_crdt.rs # Automerge-like nested JSON
+│   │   │   ├── document.rs  # Document store API
+│   │   │   ├── presence.rs  # Cursor & presence tracking
+│   │   │   └── undo.rs      # Undo/redo system
 │   │   └── tests/
 │   │
 │   └── mdcs-sim/            # Testing infrastructure (planned)
@@ -560,6 +751,7 @@ cargo test -p mdcs-core
 cargo test -p mdcs-delta
 cargo test -p mdcs-merkle
 cargo test -p mdcs-compaction
+cargo test -p mdcs-db
 ```
 
 ---
@@ -568,10 +760,10 @@ cargo test -p mdcs-compaction
 
 | Phase | Component | Status | Tests |
 |-------|-----------|--------|-------|
-| 1 | CRDT Kernel (`mdcs-core`) | ✅ Complete | 21 passing |
-| 2-3 | Delta-State Layer (`mdcs-delta`) | ✅ Complete | 10 passing |
+| 1 | CRDT Kernel (`mdcs-core`) | ✅ Complete | 34 passing |
+| 2-3 | Delta-State Layer (`mdcs-delta`) | ✅ Complete | 67 passing |
 | 4 | Merkle-Clock (`mdcs-merkle`) | ✅ Complete | 45 passing |
 | 5 | Compaction (`mdcs-compaction`) | ✅ Complete | 46 passing |
-| 6 | Database Layer | 🔲 Planned | - |
+| 6 | Database Layer (`mdcs-db`) | ✅ Complete | 66 passing |
 | 7 | Benchmarks | 🔲 Planned | - |
 | 8 | Documentation | 🔲 Planned | - |
