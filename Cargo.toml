@@ -9,8 +9,8 @@ members = [
     "crates/mdcs-core",       # Core CRDT types and traits
     "crates/mdcs-delta",      # Delta-state machinery
     "crates/mdcs-merkle",     # Merkle-Clock and DAG
+    "crates/mdcs-compaction", # Compaction/GC subsystem
 #    "crates/mdcs-sync",      # Anti-entropy protocols
-#    "crates/mdcs-compact",   # Compaction/GC subsystem
 #    "crates/mdcs-db",        # Database API layer
 #    "crates/mdcs-sim",       # Network simulation for testing
 ]
@@ -19,6 +19,7 @@ members = [
 mdcs-core = { path = "crates/mdcs-core" }
 mdcs-delta = { path = "crates/mdcs-delta" }
 mdcs-merkle = { path = "crates/mdcs-merkle" }
+mdcs-compaction = { path = "crates/mdcs-compaction" }
 tokio = { version = "1.35", features = ["full"] }
 rand = "0.8"
 chrono = "0.4"
