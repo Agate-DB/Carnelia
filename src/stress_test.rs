@@ -4,6 +4,9 @@ use futures::stream::StreamExt;
 use mdcs_core::gset::GSet;
 use mdcs_core::lattice::Lattice;
 use mdcs_core::orset::ORSet;
+use mdcs_core::pncounter::PNCounter;
+use mdcs_core::lwwreg::LWWRegister;
+use mdcs_core::mvreg::MVRegister;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use std::sync::Arc;
@@ -65,12 +68,16 @@ async fn perform_sync<T>(
 
     let sync_start = Instant::now();
 
-    // Perform sync
+    // Perform sync by merging both replicas
     let replica_a = Arc::clone(&replicas[replica_a_idx]);
     let replica_b = Arc::clone(&replicas[replica_b_idx]);
 
-    let (set_a, set_b) = tokio::join!(replica_a.lock(), replica_b.lock());
-    let _merged = set_a.join(&*set_b);
+    let (mut set_a, mut set_b) = tokio::join!(replica_a.lock(), replica_b.lock());
+    
+    // Merge both replicas - each absorbs the other's state
+    let merged = set_a.join(&*set_b);
+    *set_a = merged.clone();
+    *set_b = merged;
 
     drop(set_a);
     drop(set_b);
@@ -571,4 +578,372 @@ pub async fn stress_test_delta_suite() {
     assert!(idempotent, "Idempotence property should hold");
 
     println!("\n✓ All delta stress tests completed successfully!");
+}
+
+// ============================================================================
+// PNCounter Stress Tests
+// ============================================================================
+
+/// Stress test for PNCounter with async synchronization
+pub async fn stress_test_pncounter(
+    num_replicas: usize,
+    ops_per_replica: usize,
+    num_syncs: usize,
+) -> StressTestStats {
+    println!("\n╔════════════════════════════════════════════════════════════╗");
+    println!("║        PNCounter Stress Test (Async)                       ║");
+    println!("║  Replicas: {} | Ops/Replica: {} | Syncs: {} ║",
+             num_replicas, ops_per_replica, num_syncs);
+    println!("╚════════════════════════════════════════════════════════════╝");
+
+    let start = Instant::now();
+
+    // Initialize replicas
+    let mut replicas: Vec<Arc<Mutex<PNCounter<String>>>> = Vec::with_capacity(num_replicas);
+    for _ in 0..num_replicas {
+        replicas.push(Arc::new(Mutex::new(PNCounter::new())));
+    }
+
+    println!("\n[Phase 1/2] Incrementing/decrementing counters...");
+
+    // Phase 1: Increment and decrement operations
+    let mut handles = vec![];
+    for (idx, replica) in replicas.iter().enumerate() {
+        let replica = Arc::clone(replica);
+        let replica_id = format!("replica_{}", idx);
+        let handle = tokio::spawn(async move {
+            let mut rng = StdRng::seed_from_u64(idx as u64);
+            for _ in 0..ops_per_replica {
+                let mut counter = replica.lock().await;
+                if rng.gen_bool(0.7) {
+                    // 70% increments
+                    counter.increment(replica_id.clone(), rng.gen_range(1..10));
+                } else {
+                    // 30% decrements
+                    counter.decrement(replica_id.clone(), rng.gen_range(1..5));
+                }
+                drop(counter);
+
+                if idx % 100 == 0 {
+                    tokio::task::yield_now().await;
+                }
+            }
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        let _ = handle.await;
+    }
+
+    println!("[Phase 1/2] ✓ Completed");
+    println!("[Phase 2/2] Synchronizing replicas...");
+
+    // Phase 2: Synchronization
+    let mut sync_times = vec![];
+    let mut sync_gen = Box::pin(replica_sync_generator(num_replicas, num_syncs));
+    let mut total_syncs = 0;
+
+    while let Some((replica_a_idx, replica_b_idx)) = sync_gen.next().await {
+        perform_sync(
+            &replicas,
+            replica_a_idx,
+            replica_b_idx,
+            num_syncs,
+            &mut sync_times,
+            &mut total_syncs,
+        ).await;
+    }
+
+    // Verify convergence
+    let mut values = Vec::new();
+    for replica in &replicas {
+        let counter = replica.lock().await;
+        values.push(counter.value());
+    }
+    let converged = values.iter().all(|v| *v == values[0]);
+    println!("  Final values: {:?}", values);
+    println!("  Converged: {}", converged);
+
+    let total_time = start.elapsed();
+    let avg_sync_time = if !sync_times.is_empty() {
+        sync_times.iter().sum::<Duration>() / sync_times.len() as u32
+    } else {
+        Duration::ZERO
+    };
+
+    let total_operations = (num_replicas * ops_per_replica) + total_syncs;
+    let ops_per_second = total_operations as f64 / total_time.as_secs_f64();
+
+    println!("[Phase 2/2] ✓ Completed");
+
+    StressTestStats {
+        num_replicas,
+        operations_per_replica: ops_per_replica,
+        total_syncs,
+        total_time,
+        avg_sync_time,
+        ops_per_second,
+    }
+}
+
+// ============================================================================
+// LWW Register Stress Tests
+// ============================================================================
+
+/// Stress test for LWWRegister with timestamp contention
+pub async fn stress_test_lwwreg(
+    num_replicas: usize,
+    ops_per_replica: usize,
+    num_syncs: usize,
+) -> StressTestStats {
+    println!("\n╔════════════════════════════════════════════════════════════╗");
+    println!("║        LWWRegister Stress Test (Async)                     ║");
+    println!("║  Replicas: {} | Ops/Replica: {} | Syncs: {} ║",
+             num_replicas, ops_per_replica, num_syncs);
+    println!("╚════════════════════════════════════════════════════════════╝");
+
+    let start = Instant::now();
+
+    // Initialize replicas
+    let mut replicas: Vec<Arc<Mutex<LWWRegister<i64, String>>>> = Vec::with_capacity(num_replicas);
+    for i in 0..num_replicas {
+        replicas.push(Arc::new(Mutex::new(LWWRegister::new(format!("replica_{}", i)))));
+    }
+
+    println!("\n[Phase 1/2] Setting values with competing timestamps...");
+
+    // Phase 1: Set operations with competing timestamps
+    let mut handles = vec![];
+    for (idx, replica) in replicas.iter().enumerate() {
+        let replica = Arc::clone(replica);
+        let replica_id = format!("replica_{}", idx);
+        let handle = tokio::spawn(async move {
+            let mut rng = StdRng::seed_from_u64(idx as u64);
+            for i in 0..ops_per_replica {
+                let mut reg = replica.lock().await;
+                let timestamp = (i as u64) * 10 + rng.gen_range(0..10);
+                let value = (idx as i64) * 1000 + (i as i64);
+                reg.set(value, timestamp, replica_id.clone());
+                drop(reg);
+
+                if i % 100 == 0 {
+                    tokio::task::yield_now().await;
+                }
+            }
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        let _ = handle.await;
+    }
+
+    println!("[Phase 1/2] ✓ Completed");
+    println!("[Phase 2/2] Synchronizing replicas...");
+
+    // Phase 2: Synchronization
+    let mut sync_times = vec![];
+    let mut sync_gen = Box::pin(replica_sync_generator(num_replicas, num_syncs));
+    let mut total_syncs = 0;
+
+    while let Some((replica_a_idx, replica_b_idx)) = sync_gen.next().await {
+        perform_sync(
+            &replicas,
+            replica_a_idx,
+            replica_b_idx,
+            num_syncs,
+            &mut sync_times,
+            &mut total_syncs,
+        ).await;
+    }
+
+    // Verify convergence
+    let mut final_values = Vec::new();
+    for replica in &replicas {
+        let reg = replica.lock().await;
+        final_values.push((reg.get().cloned(), reg.timestamp()));
+    }
+    let converged = final_values.iter().all(|v| *v == final_values[0]);
+    println!("  Final (value, timestamp): {:?}", final_values[0]);
+    println!("  Converged: {}", converged);
+
+    let total_time = start.elapsed();
+    let avg_sync_time = if !sync_times.is_empty() {
+        sync_times.iter().sum::<Duration>() / sync_times.len() as u32
+    } else {
+        Duration::ZERO
+    };
+
+    let total_operations = (num_replicas * ops_per_replica) + total_syncs;
+    let ops_per_second = total_operations as f64 / total_time.as_secs_f64();
+
+    println!("[Phase 2/2] ✓ Completed");
+
+    StressTestStats {
+        num_replicas,
+        operations_per_replica: ops_per_replica,
+        total_syncs,
+        total_time,
+        avg_sync_time,
+        ops_per_second,
+    }
+}
+
+// ============================================================================
+// MVRegister Stress Tests
+// ============================================================================
+
+/// Stress test for MVRegister with concurrent writes
+pub async fn stress_test_mvreg(
+    num_replicas: usize,
+    ops_per_replica: usize,
+    num_syncs: usize,
+) -> StressTestStats {
+    println!("\n╔════════════════════════════════════════════════════════════╗");
+    println!("║        MVRegister Stress Test (Async)                      ║");
+    println!("║  Replicas: {} | Ops/Replica: {} | Syncs: {} ║",
+             num_replicas, ops_per_replica, num_syncs);
+    println!("╚════════════════════════════════════════════════════════════╝");
+
+    let start = Instant::now();
+
+    // Initialize replicas
+    let mut replicas: Vec<Arc<Mutex<MVRegister<String>>>> = Vec::with_capacity(num_replicas);
+    for _ in 0..num_replicas {
+        replicas.push(Arc::new(Mutex::new(MVRegister::new())));
+    }
+
+    println!("\n[Phase 1/2] Writing concurrent values...");
+
+    // Phase 1: Concurrent writes
+    let mut handles = vec![];
+    for (idx, replica) in replicas.iter().enumerate() {
+        let replica = Arc::clone(replica);
+        let replica_id = format!("replica_{}", idx);
+        let handle = tokio::spawn(async move {
+            for i in 0..ops_per_replica {
+                let mut reg = replica.lock().await;
+                let value = format!("value_{}_{}", idx, i);
+                reg.write(&replica_id, value);
+                drop(reg);
+
+                if i % 100 == 0 {
+                    tokio::task::yield_now().await;
+                }
+            }
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        let _ = handle.await;
+    }
+
+    println!("[Phase 1/2] ✓ Completed");
+    println!("[Phase 2/2] Synchronizing replicas...");
+
+    // Phase 2: Synchronization
+    let mut sync_times = vec![];
+    let mut sync_gen = Box::pin(replica_sync_generator(num_replicas, num_syncs));
+    let mut total_syncs = 0;
+
+    while let Some((replica_a_idx, replica_b_idx)) = sync_gen.next().await {
+        perform_sync(
+            &replicas,
+            replica_a_idx,
+            replica_b_idx,
+            num_syncs,
+            &mut sync_times,
+            &mut total_syncs,
+        ).await;
+    }
+
+    // Check concurrent value count
+    let mut value_counts = Vec::new();
+    for replica in &replicas {
+        let reg = replica.lock().await;
+        value_counts.push(reg.len());
+    }
+    let converged = value_counts.iter().all(|c| *c == value_counts[0]);
+    println!("  Concurrent values per replica: {:?}", value_counts);
+    println!("  Converged: {}", converged);
+
+    let total_time = start.elapsed();
+    let avg_sync_time = if !sync_times.is_empty() {
+        sync_times.iter().sum::<Duration>() / sync_times.len() as u32
+    } else {
+        Duration::ZERO
+    };
+
+    let total_operations = (num_replicas * ops_per_replica) + total_syncs;
+    let ops_per_second = total_operations as f64 / total_time.as_secs_f64();
+
+    println!("[Phase 2/2] ✓ Completed");
+
+    StressTestStats {
+        num_replicas,
+        operations_per_replica: ops_per_replica,
+        total_syncs,
+        total_time,
+        avg_sync_time,
+        ops_per_second,
+    }
+}
+
+// ============================================================================
+// Comprehensive Benchmark Suite
+// ============================================================================
+
+/// Run comprehensive stress tests on all CRDT types
+pub async fn stress_test_all_crdts(
+    num_replicas: usize,
+    ops_per_replica: usize,
+    num_syncs: usize,
+) {
+    println!("\n");
+    println!("╔════════════════════════════════════════════════════════════════════╗");
+    println!("║           COMPREHENSIVE CRDT STRESS TEST SUITE                      ║");
+    println!("║  Testing: GSet, ORSet, PNCounter, LWWRegister, MVRegister           ║");
+    println!("╚════════════════════════════════════════════════════════════════════╝");
+
+    let mut results = Vec::new();
+
+    // GSet
+    let stats = stress_test_gset(num_replicas, ops_per_replica, num_syncs).await;
+    results.push(("GSet", stats));
+
+    // ORSet
+    let stats = stress_test_orset(num_replicas, ops_per_replica, num_syncs).await;
+    results.push(("ORSet", stats));
+
+    // PNCounter
+    let stats = stress_test_pncounter(num_replicas, ops_per_replica, num_syncs).await;
+    results.push(("PNCounter", stats));
+
+    // LWWRegister
+    let stats = stress_test_lwwreg(num_replicas, ops_per_replica, num_syncs).await;
+    results.push(("LWWRegister", stats));
+
+    // MVRegister
+    let stats = stress_test_mvreg(num_replicas, ops_per_replica, num_syncs).await;
+    results.push(("MVRegister", stats));
+
+    // Summary
+    println!("\n");
+    println!("╔════════════════════════════════════════════════════════════════════╗");
+    println!("║                    BENCHMARK SUMMARY                                ║");
+    println!("╠════════════════════════════════════════════════════════════════════╣");
+    println!("║  CRDT Type     │ Total Time │ Ops/Second │ Avg Sync (µs)           ║");
+    println!("╠════════════════════════════════════════════════════════════════════╣");
+    for (name, stats) in &results {
+        println!("║  {:12} │ {:>9.3}s │ {:>10.0} │ {:>10.2}               ║",
+                 name,
+                 stats.total_time.as_secs_f64(),
+                 stats.ops_per_second,
+                 stats.avg_sync_time.as_micros() as f64);
+    }
+    println!("╚════════════════════════════════════════════════════════════════════╝");
+
+    println!("\n✓ All CRDT stress tests completed!");
 }
