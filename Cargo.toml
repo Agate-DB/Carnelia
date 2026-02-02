@@ -11,6 +11,7 @@ members = [
     "crates/mdcs-merkle",     # Merkle-Clock and DAG
     "crates/mdcs-compaction", # Compaction/GC subsystem
     "crates/mdcs-db",         # Database API layer (Phase 6)
+    "crates/mdcs-sdk",        # High-level SDK for collaborative apps
 #    "crates/mdcs-sync",      # Anti-entropy protocols
 #    "crates/mdcs-sim",       # Network simulation for testing
 ]
@@ -21,6 +22,7 @@ mdcs-delta = { path = "crates/mdcs-delta" }
 mdcs-merkle = { path = "crates/mdcs-merkle" }
 mdcs-compaction = { path = "crates/mdcs-compaction" }
 mdcs-db = { path = "crates/mdcs-db" }
+mdcs-sdk = { path = "crates/mdcs-sdk" }
 tokio = { version = "1.35", features = ["full"] }
 rand = "0.8"
 chrono = "0.4"
@@ -34,4 +36,29 @@ path = "examples/mdcs-delta/delta_buffer_example.rs"
 [[example]]
 name = "causal_example"
 path = "examples/mdcs-delta/causal_example.rs"
+
+# MDCS SDK Examples
+[[example]]
+name = "collaborative_text"
+path = "examples/mdcs-sdk/collaborative_text.rs"
+
+[[example]]
+name = "rich_text_collab"
+path = "examples/mdcs-sdk/rich_text_collab.rs"
+
+[[example]]
+name = "json_collab"
+path = "examples/mdcs-sdk/json_collab.rs"
+
+[[example]]
+name = "presence_demo"
+path = "examples/mdcs-sdk/presence_demo.rs"
+
+[[example]]
+name = "network_simulation"
+path = "examples/mdcs-sdk/network_simulation.rs"
+
+[[example]]
+name = "offline_sync"
+path = "examples/mdcs-sdk/offline_sync.rs"
 
