@@ -193,7 +193,7 @@
 
 ## Phase 6 — Database Layer (Weeks 23–30)
 
-**Goal:** Expose a usable database API.
+**Goal:** Expose a usable database API with rich support for collaborative applications.
 
 ### Deliverables
 
@@ -206,20 +206,49 @@
    type Document = CRDTMap<Path, CRDTValue>;
    
    enum CRDTValue {
+       // Primitives
        Register(LWWRegister<Value>),
+       MVRegister(MVRegister<Value>),      // Multi-value for conflict visibility
        Counter(PNCounter<ReplicaId>),
        Set(ORSet<Value>),
+       
+       // Nested structures
        Map(CRDTMap<String, CRDTValue>),
+       List(RGAList<CRDTValue>),           // Ordered list with insert/delete
+       
+       // Collaborative text
+       Text(RGAText),                       // Plain text sequences
+       RichText(RichTextCRDT),             // Formatted text with annotations
+       
+       // Binary/Objects
+       Binary(LWWRegister<Vec<u8>>),       // Raw bytes (images, files)
+       Json(JsonCRDT),                      // Arbitrary JSON-like objects
    }
    ```
 
-3. **Implement API**
+3. **Implement Core API**
    ```rust
    trait DocumentStore {
+       // Basic operations
        fn put(&mut self, doc_id: &str, path: &str, value: CRDTValue);
        fn get(&self, doc_id: &str, path: &str) -> Option<&CRDTValue>;
-       fn increment(&mut self, doc_id: &str, path: &str, replica_id: K);
+       fn delete(&mut self, doc_id: &str, path: &str);
+       
+       // Counter operations
+       fn increment(&mut self, doc_id: &str, path: &str, replica_id: K, amount: u64);
+       fn decrement(&mut self, doc_id: &str, path: &str, replica_id: K, amount: u64);
+       fn get_counter(&self, doc_id: &str, path: &str) -> Option<i64>;
+       
+       // Set operations
        fn add_to_set(&mut self, doc_id: &str, path: &str, value: V);
+       fn remove_from_set(&mut self, doc_id: &str, path: &str, value: V);
+       fn set_contains(&self, doc_id: &str, path: &str, value: &V) -> bool;
+       
+       // List operations
+       fn list_insert(&mut self, doc_id: &str, path: &str, index: usize, value: CRDTValue);
+       fn list_delete(&mut self, doc_id: &str, path: &str, index: usize);
+       fn list_move(&mut self, doc_id: &str, path: &str, from: usize, to: usize);
+       fn list_get(&self, doc_id: &str, path: &str) -> Option<Vec<&CRDTValue>>;
    }
    ```
 
@@ -227,10 +256,384 @@
    - Key-path lookups
    - Prefix scans within documents
    - Iterator over document keys
+   - Range queries on lists
 
 5. **Optional: Materialized views**
    - CRDT-derived indexes as secondary views
    - Auto-update on state change
+
+---
+
+### 6.1 — Collaborative Text Support (Google Docs-like)
+
+**Goal:** Enable real-time collaborative text editing with proper conflict resolution.
+
+#### Text CRDT Implementation
+**File:** `crates/mdcs-core/src/text.rs`
+
+```rust
+/// RGA (Replicated Growable Array) for text sequences
+struct RGAText {
+    nodes: HashMap<TextId, TextNode>,
+    head: Option<TextId>,
+    context: CausalContext,
+}
+
+struct TextNode {
+    id: TextId,              // (replica_id, sequence)
+    char: char,
+    deleted: bool,           // Tombstone flag
+    left: Option<TextId>,    // Left neighbor at insertion time
+    right: Option<TextId>,   // Computed link
+}
+
+struct TextId {
+    replica: ReplicaId,
+    seq: u64,
+}
+```
+
+#### Text API
+```rust
+trait CollaborativeText {
+    // Core editing
+    fn insert(&mut self, position: usize, text: &str, replica_id: K);
+    fn delete(&mut self, position: usize, length: usize, replica_id: K);
+    
+    // Bulk operations
+    fn replace(&mut self, start: usize, end: usize, text: &str, replica_id: K);
+    fn splice(&mut self, position: usize, delete_count: usize, insert: &str, replica_id: K);
+    
+    // Read operations
+    fn to_string(&self) -> String;
+    fn len(&self) -> usize;
+    fn char_at(&self, position: usize) -> Option<char>;
+    fn slice(&self, start: usize, end: usize) -> String;
+    
+    // Position mapping (for cursor sync)
+    fn id_to_position(&self, id: &TextId) -> Option<usize>;
+    fn position_to_id(&self, position: usize) -> Option<TextId>;
+}
+```
+
+#### Rich Text / Formatting Support
+**File:** `crates/mdcs-core/src/richtext.rs`
+
+```rust
+/// Rich text with inline formatting (like Peritext)
+struct RichTextCRDT {
+    text: RGAText,
+    marks: MarkSet,          // Formatting annotations
+}
+
+/// A mark is a formatting span
+struct Mark {
+    id: MarkId,
+    mark_type: MarkType,
+    start: TextId,           // Anchor to text position
+    end: TextId,
+    attrs: HashMap<String, Value>,
+}
+
+enum MarkType {
+    // Inline formatting
+    Bold,
+    Italic,
+    Underline,
+    Strikethrough,
+    Code,
+    
+    // Links and references
+    Link { url: String },
+    Mention { user_id: String },
+    
+    // Semantic
+    Highlight { color: String },
+    Comment { thread_id: String },
+    
+    // Custom
+    Custom(String),
+}
+
+trait RichTextEditor {
+    // Formatting operations
+    fn add_mark(&mut self, start: usize, end: usize, mark_type: MarkType, replica_id: K);
+    fn remove_mark(&mut self, start: usize, end: usize, mark_type: MarkType, replica_id: K);
+    fn toggle_mark(&mut self, start: usize, end: usize, mark_type: MarkType, replica_id: K);
+    
+    // Query formatting
+    fn marks_at(&self, position: usize) -> Vec<&Mark>;
+    fn marks_in_range(&self, start: usize, end: usize) -> Vec<&Mark>;
+    
+    // Export
+    fn to_html(&self) -> String;
+    fn to_markdown(&self) -> String;
+    fn to_json(&self) -> serde_json::Value;  // Portable format
+}
+```
+
+---
+
+### 6.2 — Presence & Awareness (Real-time Collaboration)
+
+**Goal:** Track who's online, where their cursors are, and what they're doing.
+
+**File:** `crates/mdcs-db/src/presence.rs`
+
+```rust
+/// Ephemeral presence state (not persisted, uses last-write-wins)
+struct PresenceState {
+    user_id: String,
+    cursor: Option<CursorPosition>,
+    selection: Option<Selection>,
+    status: UserStatus,
+    last_active: u64,
+    custom: HashMap<String, Value>,  // App-specific data
+}
+
+struct CursorPosition {
+    doc_id: String,
+    path: String,               // Path within document
+    position: usize,            // For text: character offset
+    anchor_id: Option<TextId>,  // Stable anchor for text CRDTs
+}
+
+struct Selection {
+    start: CursorPosition,
+    end: CursorPosition,
+}
+
+enum UserStatus {
+    Active,
+    Idle,
+    Away,
+    Editing { field: String },
+    Viewing,
+}
+
+trait PresenceManager {
+    // Local updates
+    fn update_cursor(&mut self, position: CursorPosition);
+    fn update_selection(&mut self, selection: Selection);
+    fn update_status(&mut self, status: UserStatus);
+    fn set_custom(&mut self, key: &str, value: Value);
+    
+    // Remote awareness
+    fn get_peers(&self) -> Vec<&PresenceState>;
+    fn get_peer(&self, user_id: &str) -> Option<&PresenceState>;
+    fn subscribe<F: Fn(PresenceEvent)>(&mut self, callback: F);
+    
+    // Cleanup
+    fn gc_stale(&mut self, timeout: Duration);
+}
+
+enum PresenceEvent {
+    PeerJoined(String),
+    PeerLeft(String),
+    CursorMoved { user_id: String, position: CursorPosition },
+    SelectionChanged { user_id: String, selection: Selection },
+    StatusChanged { user_id: String, status: UserStatus },
+}
+```
+
+---
+
+### 6.3 — JSON/Object CRDT (Automerge-like)
+
+**Goal:** Support arbitrary nested JSON-like objects with CRDT semantics.
+
+**File:** `crates/mdcs-core/src/json.rs`
+
+```rust
+/// A JSON-compatible CRDT value
+enum JsonCRDT {
+    Null,
+    Bool(bool),
+    Number(f64),
+    String(String),
+    Text(RGAText),            // Collaborative string
+    Array(RGAList<JsonCRDT>), // Ordered with insert/delete
+    Object(CRDTMap<String, JsonCRDT>),
+}
+
+/// Operations on JSON CRDTs
+trait JsonDocument {
+    // Path-based access (like JSON pointer)
+    fn get_path(&self, path: &[PathSegment]) -> Option<&JsonCRDT>;
+    fn set_path(&mut self, path: &[PathSegment], value: JsonCRDT, replica_id: K);
+    fn delete_path(&mut self, path: &[PathSegment], replica_id: K);
+    
+    // Type-specific operations at path
+    fn increment_path(&mut self, path: &[PathSegment], amount: f64, replica_id: K);
+    fn decrement_path(&mut self, path: &[PathSegment], amount: f64, replica_id: K);
+    fn push_path(&mut self, path: &[PathSegment], value: JsonCRDT, replica_id: K);
+    fn insert_path(&mut self, path: &[PathSegment], index: usize, value: JsonCRDT, replica_id: K);
+    fn text_insert_path(&mut self, path: &[PathSegment], pos: usize, text: &str, replica_id: K);
+    
+    // Conversion
+    fn from_json(json: serde_json::Value) -> Self;
+    fn to_json(&self) -> serde_json::Value;
+    
+    // Diff/patch
+    fn diff(&self, other: &Self) -> Vec<JsonPatch>;
+    fn apply_patch(&mut self, patch: JsonPatch, replica_id: K);
+}
+
+enum PathSegment {
+    Key(String),      // Object key
+    Index(usize),     // Array index
+}
+
+struct JsonPatch {
+    path: Vec<PathSegment>,
+    op: JsonOp,
+}
+
+enum JsonOp {
+    Set(JsonCRDT),
+    Delete,
+    Increment(f64),
+    Decrement(f64),
+    TextInsert { pos: usize, text: String },
+    TextDelete { pos: usize, len: usize },
+    ArrayInsert { index: usize, value: JsonCRDT },
+    ArrayDelete { index: usize },
+    ArrayMove { from: usize, to: usize },
+}
+```
+
+---
+
+### 6.4 — Undo/Redo Support
+
+**Goal:** Enable local undo/redo while preserving CRDT convergence.
+
+**File:** `crates/mdcs-db/src/undo.rs`
+
+```rust
+/// Per-replica undo stack
+struct UndoManager {
+    replica_id: ReplicaId,
+    undo_stack: Vec<UndoGroup>,
+    redo_stack: Vec<UndoGroup>,
+    capture_timeout: Duration,  // Group rapid edits
+}
+
+struct UndoGroup {
+    operations: Vec<InverseOp>,
+    timestamp: u64,
+}
+
+trait Undoable {
+    fn undo(&mut self, manager: &mut UndoManager) -> bool;
+    fn redo(&mut self, manager: &mut UndoManager) -> bool;
+    fn can_undo(&self, manager: &UndoManager) -> bool;
+    fn can_redo(&self, manager: &UndoManager) -> bool;
+    
+    // Capture current operation for undo
+    fn begin_capture(&mut self, manager: &mut UndoManager);
+    fn end_capture(&mut self, manager: &mut UndoManager);
+}
+```
+
+---
+
+### 6.5 — Use Case Examples
+
+#### Google Docs Clone
+```rust
+// Document structure
+let doc = json!({
+    "title": Text("Untitled Document"),
+    "body": RichText::new(),
+    "comments": Map::new(),
+    "metadata": {
+        "created_at": timestamp,
+        "authors": Set::new(),
+        "word_count": Counter::new(),
+    }
+});
+
+// Collaborative editing
+doc.text_insert_path(&["body"], 0, "Hello ", replica_a);
+doc.text_insert_path(&["body"], 6, "World!", replica_b);
+// Result: "Hello World!" regardless of arrival order
+
+// Formatting
+doc.rich_text_at(&["body"]).add_mark(0, 5, Bold, replica_a);
+
+// Presence
+presence.update_cursor(CursorPosition { 
+    doc_id: "doc_1", 
+    path: "body", 
+    position: 6 
+});
+```
+
+#### Figma/Whiteboard Clone
+```rust
+// Canvas with objects
+let canvas = json!({
+    "objects": Map<ObjectId, {
+        "type": "rectangle" | "ellipse" | "text" | "image",
+        "x": Counter,  // Position as counters for smooth collab
+        "y": Counter,
+        "width": Register,
+        "height": Register,
+        "rotation": Register,
+        "fill": Register,
+        "z_index": Counter,  // Layer ordering
+        "locked": Register<bool>,
+    }>,
+    "selection": Map<UserId, Set<ObjectId>>,  // Per-user selection
+});
+
+// Move object (using counters for position)
+canvas.increment_path(&["objects", obj_id, "x"], delta_x, replica);
+canvas.increment_path(&["objects", obj_id, "y"], delta_y, replica);
+```
+
+#### Trello/Kanban Clone
+```rust
+let board = json!({
+    "columns": RGAList<{
+        "id": String,
+        "title": Text,
+        "cards": RGAList<CardId>,
+    }>,
+    "cards": Map<CardId, {
+        "title": Text,
+        "description": RichText,
+        "labels": Set<LabelId>,
+        "assignees": Set<UserId>,
+        "due_date": Register<Option<Timestamp>>,
+        "checklist": RGAList<{
+            "text": Text,
+            "done": Register<bool>,
+        }>,
+        "comments": RGAList<Comment>,
+    }>,
+});
+
+// Move card between columns
+board.list_delete(&["columns", 0, "cards"], card_index, replica);
+board.list_insert(&["columns", 1, "cards"], new_index, card_id, replica);
+```
+
+---
+
+### 6.6 — Phase 6 Feature Summary
+
+| Feature | Description | Use Cases |
+|---------|-------------|-----------|
+| **Decrements** | Full `increment`/`decrement` with amounts on `PNCounter` | Likes, inventory, scores |
+| **RGAText** | Collaborative plain text (insert/delete at position) | Notes, code editors |
+| **RichTextCRDT** | Formatted text with marks (bold, italic, links, comments) | Google Docs, Notion |
+| **Presence** | Cursor tracking, selection sync, user status | Any real-time collab |
+| **JsonCRDT** | Automerge-like arbitrary nested objects | Flexible schemas |
+| **RGAList** | Ordered lists with insert/delete/move | Kanban, todos, playlists |
+| **Undo/Redo** | Per-replica undo stacks | Any editing application |
+| **Binary** | Raw bytes storage | Images, files, attachments |
 
 ---
 
