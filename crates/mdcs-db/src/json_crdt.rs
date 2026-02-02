@@ -251,6 +251,7 @@ impl ObjectField {
         self.values.insert(id, value);
     }
 
+    #[allow(dead_code)]
     fn get(&self) -> Vec<&JsonValue> {
         self.values.values().collect()
     }
@@ -307,6 +308,7 @@ impl JsonObject {
         self.fields.get(key)?.get_winner()
     }
 
+    #[allow(dead_code)]
     fn get_all(&self, key: &str) -> Vec<&JsonValue> {
         self.fields.get(key).map(|f| f.get()).unwrap_or_default()
     }
@@ -354,6 +356,7 @@ impl JsonArray {
         }
     }
 
+    #[allow(dead_code)]
     fn get(&self, index: usize) -> Option<&JsonValue> {
         self.list.get(index)
     }
@@ -652,12 +655,14 @@ impl JsonCrdt {
         Ok(arr_id)
     }
 
-    /// Get an array by ID.
-    pub fn get_array(&self, id: &ArrayId) -> Option<&JsonArray> {
+    /// Get an array by ID (internal use).
+    #[allow(dead_code)]
+    fn get_array(&self, id: &ArrayId) -> Option<&JsonArray> {
         self.arrays.get(id)
     }
 
     /// Get a mutable array by ID.
+    #[allow(dead_code)]
     fn get_array_mut(&mut self, id: &ArrayId) -> Option<&mut JsonArray> {
         self.arrays.get_mut(id)
     }
