@@ -273,6 +273,186 @@ The protocol handles:
 
 ---
 
+## Merkle-Clock DAG (`mdcs-merkle`)
+
+The **Merkle-Clock** is a content-addressed DAG that provides verifiable, tamper-proof causal history for CRDT updates.
+
+### Why Merkle-DAGs for Causality?
+
+Traditional Vector Clocks have critical limitations in open-membership systems:
+
+| Problem | Vector Clocks | Merkle-Clock |
+|---------|--------------|---------------|
+| **Metadata overhead** | Grows with replica count | Independent of replica count |
+| **Byzantine tolerance** | Vulnerable to ID reuse | Hash-based, tamper-proof |
+| **Verification** | Requires trust | Cryptographically verifiable |
+
+### Structure
+
+Each node in the Merkle-DAG contains:
+
+```rust
+struct MerkleNode {
+    parents: Vec<Hash>,      // Links to predecessor nodes
+    payload: Payload,        // Delta, snapshot, or genesis
+    timestamp: u64,          // Logical timestamp
+    creator: String,         // Replica that created this node
+    signature: Option<Vec<u8>>,  // Optional cryptographic signature
+}
+```
+
+The node's **Content Identifier (CID)** is the cryptographic hash of its contents:
+
+$$\text{CID} = H(\text{parents} \| \text{payload} \| \text{timestamp} \| \text{creator})$$
+
+### Causal Ordering
+
+The DAG structure explicitly encodes the **happens-before** relationship:
+
+```
+       [Genesis]
+           │
+        [Op A]  ← Replica 1
+        /    \
+    [Op B]  [Op C]  ← Concurrent (Replica 1, Replica 2)
+        \    /
+        [Merge]  ← Joins concurrent branches
+```
+
+- **A → B** means A is an ancestor of B (A happened before B)
+- **B ∥ C** means B and C are concurrent (neither is ancestor of the other)
+
+### DAG-Syncer Protocol
+
+Synchronization follows a **gossip + pull** pattern:
+
+```
+1. Broadcaster: gossip current head CIDs to peers
+2. On receiving unknown CID:
+   - Traverse backwards via parent links
+   - Fetch missing nodes from peers
+   - Stop at common ancestor (already have)
+3. Apply deltas in topological order
+```
+
+| Property | Guarantee |
+|----------|----------|
+| **Consistency** | Same heads → same history |
+| **Integrity** | CID = hash of contents |
+| **Convergence** | Eventually all replicas sync |
+
+---
+
+## Compaction & Stability (`mdcs-compaction`)
+
+The compaction subsystem bounds metadata growth while preserving correctness.
+
+### The Problem: Unbounded Growth
+
+Without compaction, the Merkle-DAG grows forever:
+- Every operation adds a node
+- Old tombstones accumulate
+- Bootstrap time increases
+
+### The Solution: Safe Pruning
+
+MDCS uses a **stability-based compaction** strategy:
+
+#### 1. Version Vectors
+
+Compact representation of causal context:
+
+```rust
+VersionVector {
+    entries: BTreeMap<ReplicaId, SequenceNumber>
+}
+```
+
+Operations:
+- **Dominates**: $VV_1 \geq VV_2$ iff $\forall r: VV_1[r] \geq VV_2[r]$
+- **Concurrent**: Neither dominates the other
+- **Merge**: Component-wise max (LUB)
+
+#### 2. Stability Monitor
+
+Tracks the **stable frontier** — updates that all replicas have received:
+
+```rust
+struct StabilityMonitor {
+    local_frontier: VersionVector,
+    peer_frontiers: HashMap<ReplicaId, VersionVector>,
+}
+```
+
+**Stable Frontier** = min of all known frontiers:
+
+$$\text{stable}[r] = \min_{p \in \text{peers}} \text{frontier}_p[r]$$
+
+An update is **stable** when it's below the stable frontier — all replicas have it.
+
+#### 3. Snapshots
+
+Periodic snapshots capture full CRDT state:
+
+```rust
+struct Snapshot {
+    version_vector: VersionVector,  // State coverage
+    superseded_roots: Vec<Hash>,    // DAG heads at snapshot time
+    state_data: Vec<u8>,            // Serialized CRDT state
+    created_at: u64,
+    creator: String,
+}
+```
+
+Snapshots enable:
+- **Fast bootstrap**: New replicas start from snapshot, not genesis
+- **Safe pruning**: History before snapshot can be garbage collected
+
+#### 4. Pruning Policy
+
+```rust
+struct PruningPolicy {
+    min_node_age: u64,        // Don't prune recent nodes
+    preserve_depth: usize,    // Keep N ancestors of heads
+    max_nodes_per_prune: usize,
+    preserve_genesis_path: bool,
+}
+```
+
+**Safety Invariant**: Only prune nodes that are:
+1. Ancestors of the snapshot's superseded roots
+2. Older than `min_node_age`
+3. Beyond `preserve_depth` from current heads
+
+### No-Resurrection Guarantee
+
+**Critical invariant**: Deleted items must stay deleted after compaction.
+
+Achieved via **tombstone-free removal**:
+
+| Component | Contents |
+|-----------|----------|
+| **Causal Context** | All dots (event IDs) ever created |
+| **Dot Store** | Only dots for "live" data |
+
+$$\text{deleted}(x) \iff \text{dot}(x) \in \text{context} \land \text{dot}(x) \notin \text{store}$$
+
+The causal context grows monotonically, so a deleted item's dot remains "known" even after the item is gone. This prevents resurrection from late-arriving adds.
+
+### Compaction Workflow
+
+```
+1. Track peer frontiers via gossip
+2. Compute stable frontier (min of all)
+3. When stable frontier advances:
+   a. Create snapshot at stable point
+   b. Identify prunable nodes (ancestors of snapshot)
+   c. Verify no-resurrection invariant
+   d. Execute pruning
+```
+
+---
+
 ## Quick Reference
 
 ### Lattice Laws (must hold for correctness)
@@ -302,7 +482,7 @@ a ⊔ ⊥ = a                        // Bottom is identity
 ```txt
 mdcs/
 ├── crates/
-│   ├── mdcs-core/           # Phase 1: CRDT kernel
+│   ├── mdcs-core/           # Phase 1: CRDT kernel ✓
 │   │   ├── src/
 │   │   │   ├── lib.rs
 │   │   │   ├── lattice.rs   # Join-semilattice trait
@@ -314,7 +494,7 @@ mdcs/
 │   │   │   └── map.rs       # CRDT Map composition
 │   │   └── tests/
 │   │
-│   ├── mdcs-delta/          # Phase 2-3: Delta-state layer
+│   ├── mdcs-delta/          # Phase 2-3: Delta-state layer ✓
 │   │   ├── src/
 │   │   │   ├── lib.rs
 │   │   │   ├── mutators.rs  # Delta-mutators for each type
@@ -322,32 +502,27 @@ mdcs/
 │   │   │   └── anti_entropy.rs  # Sync protocol
 │   │   └── tests/
 │   │
-│   ├── mdcs-merkle/         # Phase 4: Merkle-Clock
+│   ├── mdcs-merkle/         # Phase 4: Merkle-Clock ✓
 │   │   ├── src/
 │   │   │   ├── lib.rs
-│   │   │   ├── clock.rs     # Merkle-Clock implementation
+│   │   │   ├── hash.rs      # Content-addressed hashing
 │   │   │   ├── node.rs      # DAG node structure
-│   │   │   ├── dag.rs       # DAG operations
-│   │   │   └── syncer.rs    # DAGSyncer abstraction
+│   │   │   ├── store.rs     # DAG storage & operations
+│   │   │   ├── syncer.rs    # DAGSyncer reconciliation
+│   │   │   └── broadcaster.rs  # Gossip protocol
 │   │   └── tests/
 │   │
-│   ├── mdcs-sync/           # Phase 4:  Sync protocols
+│   ├── mdcs-compaction/     # Phase 5: Compaction & Stability ✓
 │   │   ├── src/
 │   │   │   ├── lib.rs
-│   │   │   ├── antientry.rs # Anti-entropy algorithms
-│   │   │   ├── broadcast.rs # Broadcaster abstraction
-│   │   │   └── protocol.rs  # Wire protocol
+│   │   │   ├── version_vector.rs  # Compact causal context
+│   │   │   ├── stability.rs # Stability monitoring
+│   │   │   ├── snapshot.rs  # Snapshot management
+│   │   │   ├── pruning.rs   # Safe DAG pruning
+│   │   │   └── compactor.rs # High-level orchestration
 │   │   └── tests/
 │   │
-│   ├── mdcs-compact/        # Phase 5: Compaction
-│   │   ├── src/
-│   │   │   ├── lib. rs
-│   │   │   ├── stability.rs # Causal stability tracking
-│   │   │   ├── gc.rs        # Garbage collection
-│   │   │   └── snapshot.rs  # Snapshot management
-│   │   └── tests/
-│   │
-│   ├── mdcs-db/             # Phase 6: Database layer
+│   ├── mdcs-db/             # Phase 6: Database layer (planned)
 │   │   ├── src/
 │   │   │   ├── lib.rs
 │   │   │   ├── document.rs  # Document model
@@ -356,7 +531,7 @@ mdcs/
 │   │   │   └── index.rs     # Secondary indexes
 │   │   └── tests/
 │   │
-│   └── mdcs-sim/            # Testing infrastructure
+│   └── mdcs-sim/            # Testing infrastructure (planned)
 │       ├── src/
 │       │   ├── lib.rs
 │       │   ├── network.rs   # Simulated network
@@ -383,4 +558,20 @@ cargo test --workspace -- --nocapture
 # Run specific crate tests
 cargo test -p mdcs-core
 cargo test -p mdcs-delta
+cargo test -p mdcs-merkle
+cargo test -p mdcs-compaction
 ```
+
+---
+
+## Implementation Status
+
+| Phase | Component | Status | Tests |
+|-------|-----------|--------|-------|
+| 1 | CRDT Kernel (`mdcs-core`) | ✅ Complete | 21 passing |
+| 2-3 | Delta-State Layer (`mdcs-delta`) | ✅ Complete | 10 passing |
+| 4 | Merkle-Clock (`mdcs-merkle`) | ✅ Complete | 45 passing |
+| 5 | Compaction (`mdcs-compaction`) | ✅ Complete | 46 passing |
+| 6 | Database Layer | 🔲 Planned | - |
+| 7 | Benchmarks | 🔲 Planned | - |
+| 8 | Documentation | 🔲 Planned | - |
