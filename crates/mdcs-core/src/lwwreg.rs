@@ -88,14 +88,28 @@ impl<T: Ord + Clone, K: Ord + Clone + Default> Lattice for LWWRegister<T, K> {
     }
 
     /// Join operation: keep the value with the highest timestamp
-    /// Tie-break on replica_id (higher wins)
+    /// Tie-break on replica_id (higher wins), then on value (higher wins)
     fn join(&self, other: &Self) -> Self {
-        if other.timestamp > self.timestamp
-            || (other.timestamp == self.timestamp && other.replica_id > self.replica_id)
-        {
-            other.clone()
-        } else {
+        // Compare by (timestamp, replica_id, value) tuple
+        let self_wins = match self.timestamp.cmp(&other.timestamp) {
+            std::cmp::Ordering::Greater => true,
+            std::cmp::Ordering::Less => false,
+            std::cmp::Ordering::Equal => {
+                match self.replica_id.cmp(&other.replica_id) {
+                    std::cmp::Ordering::Greater => true,
+                    std::cmp::Ordering::Less => false,
+                    std::cmp::Ordering::Equal => {
+                        // Same timestamp and replica_id: compare values for determinism
+                        self.value >= other.value
+                    }
+                }
+            }
+        };
+        
+        if self_wins {
             self.clone()
+        } else {
+            other.clone()
         }
     }
 }
