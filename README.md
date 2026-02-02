@@ -6,6 +6,30 @@ that systematically addresses the gaps in existing CRDT systems.
 
 ---
 
+## Table of Contents
+
+- [Core Concepts](#core-concepts)
+- [Mathematical Foundation](#mathematical-foundation-the-lattice)
+- [CRDT Types](#crdt-types-in-mdcs-core)
+  - [GSet](#1-gset-grow-only-set)
+  - [ORSet](#2-orset-observed-remove-set)
+  - [PNCounter](#3-pncounter-positive-negative-counter)
+  - [LWWRegister](#4-lwwregister-last-writer-wins-register)
+  - [MVRegister](#5-mvregister-multi-value-register)
+  - [CRDTMap](#6-crdtmap-composable-document-container)
+- [Delta-State CRDTs](#delta-state-crdts-mdcs-delta)
+- [Anti-Entropy Protocol](#anti-entropy-protocol)
+- [Merkle-Clock DAG](#merkle-clock-dag-mdcs-merkle)
+- [Compaction & Stability](#compaction--stability-mdcs-compaction)
+- [Database Layer](#database-layer-mdcs-db)
+- [**SDK & Examples**](#sdk--examples-mdcs-sdk) ← Start here for practical usage!
+- [Quick Reference](#quick-reference)
+- [Project Structure](#project-structure-overview)
+- [Running Tests](#running-tests)
+- [Implementation Status](#implementation-status)
+
+---
+
 ## Core Concepts
 
 ### What is a CRDT?
@@ -634,6 +658,211 @@ let operations = undo_manager.redo();
 
 ---
 
+## SDK & Examples (`mdcs-sdk`)
+
+The **MDCS SDK** provides a high-level, easy-to-use API for building collaborative applications. It abstracts away the complexity of CRDTs, delta synchronization, and presence tracking.
+
+### Quick Start
+
+```rust
+use mdcs_sdk::{Client, quick};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create two connected clients instantly
+    let (client_a, client_b) = quick::create_collaborative_clients();
+    
+    // Create sessions
+    let session_a = client_a.create_session("room-1").await?;
+    let session_b = client_b.create_session("room-1").await?;
+    
+    // Open text documents
+    let doc_a = session_a.open_text_doc("shared-doc")?;
+    let doc_b = session_b.open_text_doc("shared-doc")?;
+    
+    // Concurrent edits - CRDT handles conflicts automatically!
+    doc_a.write().insert(0, "Hello ");
+    doc_b.write().insert(0, "World!");
+    
+    // Both documents converge to the same state
+    Ok(())
+}
+```
+
+### SDK Modules
+
+| Module | Purpose |
+|--------|---------|
+| `client` | Entry point with `quick::create_collaborative_clients()` helper |
+| `session` | Session management for organizing editing sessions |
+| `document` | Document wrappers: `TextDoc`, `RichTextDoc`, `JsonDoc` |
+| `presence` | User awareness (cursors, selections, status) |
+| `network` | Pluggable network transport (includes in-memory for testing) |
+| `sync` | Synchronization configuration |
+| `error` | SDK error types |
+
+### Document Types
+
+#### TextDoc - Simple Text Editing
+
+```rust
+let doc = session.open_text_doc("notes")?;
+{
+    let mut d = doc.write();
+    d.insert(0, "Hello World");
+    d.delete(0, 6);  // Delete "Hello "
+}
+println!("{}", doc.read().get_text());  // "World"
+```
+
+#### RichTextDoc - Formatted Text
+
+```rust
+use mdcs_sdk::MarkType;
+
+let doc = session.open_rich_text_doc("article")?;
+{
+    let mut d = doc.write();
+    d.insert(0, "Hello World");
+    d.format(0, 5, MarkType::Bold);     // Bold "Hello"
+    d.format(6, 11, MarkType::Italic);  // Italic "World"
+}
+```
+
+#### JsonDoc - Structured Data
+
+```rust
+use mdcs_sdk::JsonValue;
+
+let doc = session.open_json_doc("config")?;
+{
+    let mut d = doc.write();
+    d.set("theme", JsonValue::String("dark".into()));
+    d.set("fontSize", JsonValue::Float(14.0));
+}
+if let Some(theme) = doc.read().get("theme") {
+    println!("Theme: {:?}", theme);
+}
+```
+
+### Presence & Awareness
+
+Track user cursors and status in real-time:
+
+```rust
+use mdcs_sdk::{UserStatus, CursorInfo};
+
+// Set user info
+session.awareness().set_user_name("Alice");
+session.awareness().set_status(UserStatus::Online);
+
+// Track cursor position
+session.awareness().set_cursor(CursorInfo {
+    position: 42,
+    document_id: "doc-1".to_string(),
+});
+
+// Track text selection
+session.awareness().set_selection(10, 50, "doc-1");
+
+// Get all users in the session
+for user in session.awareness().get_users() {
+    println!("{}: {:?}", user.user_id, user.status);
+}
+```
+
+### Examples
+
+Run the examples to see the SDK in action:
+
+| Example | Description | Command |
+|---------|-------------|---------|
+| `collaborative_text` | Multi-user text editing (Alice, Bob, Charlie) | `cargo run --example collaborative_text` |
+| `rich_text_collab` | Formatted text with bold/italic | `cargo run --example rich_text_collab` |
+| `json_collab` | Structured JSON document editing | `cargo run --example json_collab` |
+| `presence_demo` | Cursor tracking and user status | `cargo run --example presence_demo` |
+| `network_simulation` | Network layer and message passing | `cargo run --example network_simulation` |
+| `offline_sync` | Offline editing and reconnection | `cargo run --example offline_sync` |
+
+#### Example: Collaborative Text
+
+```bash
+$ cargo run --example collaborative_text
+
+=== Collaborative Text Editing Example ===
+
+Connected clients:
+  - Alice (replica-0)
+  - Bob (replica-1)
+  - Charlie (replica-2)
+
+All clients open the same document...
+
+Alice types: "Hello from Alice!"
+Current content: "Hello from Alice!"
+
+Bob types at position 0: "Hi Bob here. "
+Alice's view: "Hi Bob here. Hello from Alice!"
+Bob's view: "Hi Bob here. Hello from Alice!"
+
+Charlie adds at the end: " Charlie says hi!"
+Final document: "Hi Bob here. Hello from Alice! Charlie says hi!"
+
+=== CRDT Magic ===
+All three clients now have identical content,
+despite concurrent edits with no coordination!
+```
+
+#### Example: Presence Demo
+
+```bash
+$ cargo run --example presence_demo
+
+=== Presence and Awareness Demo ===
+
+Connected users:
+  - Alice (color: #0066cc)
+  - Bob (color: #0066cc)
+  - Charlie (color: #0066cc)
+  - Diana (color: #0066cc)
+
+=== User Activities ===
+
+Alice: Typing at position 0
+Bob: Selecting text (positions 7-38)
+Charlie: Idle at end of document
+Diana: Away
+```
+
+### Network Transport
+
+The SDK uses a pluggable network transport. The built-in `MemoryTransport` is perfect for testing:
+
+```rust
+use mdcs_sdk::network::{create_network, Message, PeerId};
+
+// Create 4 fully-connected peers
+let transports = create_network(4);
+
+// Send messages
+let target = PeerId::new("peer-1");
+transports[0].send(&target, Message::Update {
+    document_id: "doc".into(),
+    delta: vec![1, 2, 3],
+    version: 1,
+}).await?;
+
+// Receive messages
+let mut rx = transports[1].subscribe();
+while let Some((from, msg)) = rx.recv().await {
+    println!("From {}: {:?}", from, msg);
+}
+```
+
+For production, implement the `NetworkTransport` trait with your preferred transport (WebSocket, WebRTC, libp2p, etc.).
+
+---
+
 ## Quick Reference
 
 ### Lattice Laws (must hold for correctness)
@@ -722,6 +951,18 @@ mdcs/
 │   │   │   └── undo.rs      # Undo/redo system
 │   │   └── tests/
 │   │
+│   ├── mdcs-sdk/            # High-level SDK ✓
+│   │   ├── src/
+│   │   │   ├── lib.rs
+│   │   │   ├── client.rs    # Client entry point
+│   │   │   ├── session.rs   # Session management
+│   │   │   ├── document.rs  # TextDoc, RichTextDoc, JsonDoc
+│   │   │   ├── presence.rs  # Awareness system
+│   │   │   ├── network.rs   # Network transport
+│   │   │   ├── sync.rs      # Sync configuration
+│   │   │   └── error.rs     # SDK errors
+│   │   └── README.md
+│   │
 │   └── mdcs-sim/            # Testing infrastructure (planned)
 │       ├── src/
 │       │   ├── lib.rs
@@ -752,6 +993,15 @@ cargo test -p mdcs-delta
 cargo test -p mdcs-merkle
 cargo test -p mdcs-compaction
 cargo test -p mdcs-db
+cargo test -p mdcs-sdk
+
+# Run SDK examples
+cargo run --example collaborative_text
+cargo run --example rich_text_collab
+cargo run --example json_collab
+cargo run --example presence_demo
+cargo run --example network_simulation
+cargo run --example offline_sync
 ```
 
 ---
@@ -765,5 +1015,6 @@ cargo test -p mdcs-db
 | 4 | Merkle-Clock (`mdcs-merkle`) | ✅ Complete | 45 passing |
 | 5 | Compaction (`mdcs-compaction`) | ✅ Complete | 46 passing |
 | 6 | Database Layer (`mdcs-db`) | ✅ Complete | 66 passing |
+| — | SDK (`mdcs-sdk`) | ✅ Complete | 17 passing |
 | 7 | Benchmarks | 🔲 Planned | - |
 | 8 | Documentation | 🔲 Planned | - |
