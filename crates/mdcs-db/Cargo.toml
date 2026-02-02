@@ -1,0 +1,19 @@
+# File: `crates/mdcs-db/Cargo.toml`
+[package]
+name = "mdcs-db"
+version = "0.1.0"
+edition = "2021"
+description = "Database layer for MDCS - Document API with collaborative features"
+
+[dependencies]
+mdcs-core = { path = "../mdcs-core" }
+mdcs-delta = { path = "../mdcs-delta" }
+mdcs-merkle = { path = "../mdcs-merkle" }
+mdcs-compaction = { path = "../mdcs-compaction" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+ulid = { version = "1.1", features = ["serde"] }
+thiserror = "1.0"
+
+[dev-dependencies]
+proptest = "1.0"
