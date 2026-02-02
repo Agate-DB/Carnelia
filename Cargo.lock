@@ -90,6 +90,7 @@ dependencies = [
  "futures",
  "mdcs-compaction",
  "mdcs-core",
+ "mdcs-db",
  "mdcs-delta",
  "mdcs-merkle",
  "rand 0.8.5",
@@ -396,6 +397,21 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "ulid",
+]
+
+[[package]]
+name = "mdcs-db"
+version = "0.1.0"
+dependencies = [
+ "mdcs-compaction",
+ "mdcs-core",
+ "mdcs-delta",
+ "mdcs-merkle",
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror",
  "ulid",
 ]
 
