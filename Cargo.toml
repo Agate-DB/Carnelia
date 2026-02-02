@@ -28,3 +28,7 @@ futures = "0.3"
 name = "delta_buffer_example"
 path = "examples/mdcs-delta/delta_buffer_example.rs"
 
+[[example]]
+name = "causal_example"
+path = "examples/mdcs-delta/causal_example.rs"
+

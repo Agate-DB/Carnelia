@@ -4,6 +4,7 @@
 //! - Delta buffers for grouping and batching
 //! - Delta-mutators for each CRDT type
 //! - Anti-entropy Algorithm 1 (convergence mode)
+//! - Anti-entropy Algorithm 2 (causal consistency mode)
 //!
 //! # δ-CRDT Framework
 //!
@@ -18,6 +19,8 @@
 //!
 //! ## Algorithm 1: Convergence Mode
 //!
+//! Guarantees eventual convergence without causal ordering.
+//!
 //! ```text
 //! On local mutation m:
 //!   d = mδ(X)     // compute delta
@@ -30,6 +33,32 @@
 //! On receive delta d from peer i:
 //!   X = X ⊔ d     // apply (idempotent!)
 //!   send ack(seq) to i
+//! ```
+//!
+//! ## Algorithm 2: Causal Consistency Mode
+//!
+//! Guarantees causal ordering of delta delivery using delta-intervals.
+//!
+//! ```text
+//! Durable state: (Xᵢ, cᵢ)  - survives crashes
+//! Volatile state: (Dᵢ, Aᵢ) - lost on crash
+//!
+//! On local mutation m:
+//!   cᵢ := cᵢ + 1
+//!   d := mδ(Xᵢ)
+//!   Xᵢ := Xᵢ ⊔ d
+//!   ∀j: Dᵢ[j] := Dᵢ[j] ⊔ d
+//!
+//! On send to peer j:
+//!   send ⟨Dᵢ[j], Aᵢ[j]+1, cᵢ⟩ to j
+//!
+//! On receive ⟨d, n, m⟩ from peer j:
+//!   if n = Aᵢ[j] + 1 then   // causally ready
+//!     Xᵢ := Xᵢ ⊔ d
+//!     Aᵢ[j] := m
+//!     send ack(m) to j
+//!   else
+//!     buffer for later
 //! ```
 //!
 //! # Example
@@ -53,6 +82,7 @@
 pub mod buffer;
 pub mod mutators;
 pub mod anti_entropy;
+pub mod causal;
 
 // Re-export main types for convenience
 pub use buffer::{
@@ -71,8 +101,22 @@ pub use anti_entropy::{
     NetworkConfig
 };
 
+pub use causal::{
+    CausalReplica,
+    CausalCluster,
+    CausalMessage,
+    DeltaInterval,
+    IntervalAck,
+    DurableState,
+    VolatileState,
+    PeerDeltaBuffer,
+    DurableStorage,
+    MemoryStorage,
+    StorageError,
+    CausalNetworkSimulator,
+};
+
 pub use mutators::{
     gset as gset_mutators,
     orset as orset_mutators,
 };
-
