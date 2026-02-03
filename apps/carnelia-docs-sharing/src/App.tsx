@@ -67,7 +67,7 @@ function App() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-700">Loading Carnelia Editor...</h2>
@@ -100,30 +100,28 @@ function App() {
   if (isEditing && docId) {
     return (
       <div className="min-h-screen bg-white flex flex-col">
-        <header className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 flex items-center justify-between shadow-lg">
+        <header className="bg-[#1E1E1E] text-white px-6 py-3 flex items-center justify-between shadow-lg">
+          <button
+            onClick={() => {
+              setIsEditing(false);
+              setDocId('');
+              window.history.pushState({}, '', window.location.pathname);
+            }}
+            className="px-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition"
+          >
+            ←
+          </button>
           <div className="flex items-center gap-3">
-            <span className="text-2xl">📝</span>
             <h1 className="text-xl font-bold">Carnelia Docs</h1>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
-                alert('Link copied to clipboard!');
               }}
               className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition"
             >
-              📋 Share Link
-            </button>
-            <button
-              onClick={() => {
-                setIsEditing(false);
-                setDocId('');
-                window.history.pushState({}, '', window.location.pathname);
-              }}
-              className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition"
-            >
-              ← Back
+              Copy Link
             </button>
           </div>
         </header>
@@ -137,7 +135,7 @@ function App() {
 
   // Landing page
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-16">
         {/* Hero */}
         <div className="text-center mb-16">

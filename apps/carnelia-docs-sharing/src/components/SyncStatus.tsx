@@ -37,7 +37,6 @@ export function SyncStatus({
       
       {/* User count */}
       <div className="flex items-center gap-1">
-        <span>👥</span>
         <span>{userCount} {userCount === 1 ? 'user' : 'users'}</span>
       </div>
       

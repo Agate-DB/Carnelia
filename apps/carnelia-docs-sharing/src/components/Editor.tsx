@@ -178,37 +178,6 @@ export function Editor({ docId, userName = 'Anonymous' }: EditorProps) {
     syncPresence(start, end);
   }, [updateCursor, updateSelection, syncPresence]);
 
-  // Handle keyboard input
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    // Handle keyboard shortcuts
-    if (e.ctrlKey || e.metaKey) {
-      switch (e.key.toLowerCase()) {
-        case 'b':
-          e.preventDefault();
-          if (selection && selection.start !== selection.end) {
-            applyBold(selection.start, selection.end);
-          }
-          break;
-        case 'i':
-          e.preventDefault();
-          if (selection && selection.start !== selection.end) {
-            applyItalic(selection.start, selection.end);
-          }
-          break;
-        case 'u':
-          e.preventDefault();
-          if (selection && selection.start !== selection.end) {
-            applyUnderline(selection.start, selection.end);
-          }
-          break;
-        case 'k':
-          e.preventDefault();
-          handleLinkInsert();
-          break;
-      }
-    }
-  }, [selection, applyBold, applyItalic, applyUnderline]);
-
   // Get cursor position in contentEditable
   const getCursorPosition = useCallback((): number => {
     const sel = window.getSelection();
@@ -452,12 +421,12 @@ export function Editor({ docId, userName = 'Anonymous' }: EditorProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">
-            Document: {docId}
+            {docId}
           </h2>
           <p className="text-sm text-gray-500">
             Version {version} • {text.length} characters
@@ -488,7 +457,7 @@ export function Editor({ docId, userName = 'Anonymous' }: EditorProps) {
       />
       
       {/* Editor area */}
-      <div className="flex-1 relative overflow-auto">
+      <div className="flex-1 relative my-12 mx-12 md:mx-16 lg:mx-24 xl:mx-32 border border-gray-200 shadow-xl shadow-bg-gray-400  min-h-screen overflow-none">
         <RemoteCursors users={remoteUsers} textLength={text.length} />
         
         <div
@@ -496,14 +465,13 @@ export function Editor({ docId, userName = 'Anonymous' }: EditorProps) {
           className="min-h-full p-6 outline-none prose prose-sm max-w-none whitespace-pre-wrap"
           contentEditable
           suppressContentEditableWarning
-          onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          dangerouslySetInnerHTML={{ __html: html || '<p>Start typing...</p>' }}
+          dangerouslySetInnerHTML={{ __html: html }}
         />
       </div>
       
       {/* Footer */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+      <div className="flex fixed bottom-0 items-center justify-between px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
         <span>
           User ID: {userId.slice(0, 8)}...
         </span>
