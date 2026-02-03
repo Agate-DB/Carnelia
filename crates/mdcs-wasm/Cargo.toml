@@ -29,7 +29,7 @@ serde-wasm-bindgen = "0.6"
 serde_json = "1.0"
 
 # Random number generation in WASM
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
 
 # Better panic messages in browser console
 console_error_panic_hook = { version = "0.1", optional = true }
