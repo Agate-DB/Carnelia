@@ -12,6 +12,7 @@ members = [
     "crates/mdcs-compaction", # Compaction/GC subsystem
     "crates/mdcs-db",         # Database API layer (Phase 6)
     "crates/mdcs-sdk",        # High-level SDK for collaborative apps
+    "crates/mdcs-wasm",       # WebAssembly bindings for browser use
 #    "crates/mdcs-sync",      # Anti-entropy protocols
 #    "crates/mdcs-sim",       # Network simulation for testing
 ]
@@ -62,3 +63,7 @@ path = "examples/mdcs-sdk/network_simulation.rs"
 name = "offline_sync"
 path = "examples/mdcs-sdk/offline_sync.rs"
 
+# Profile settings for WASM builds (affects mdcs-wasm crate)
+[profile.release]
+opt-level = "s"
+lto = true
