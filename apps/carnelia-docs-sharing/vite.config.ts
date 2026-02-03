@@ -5,10 +5,17 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler', tailwindcss()]],
-      },
-    }),
+    react(),
+    tailwindcss(),
   ],
+  // Support WASM files
+  optimizeDeps: {
+    exclude: ['mdcs_wasm'],
+  },
+  server: {
+    fs: {
+      // Allow serving WASM files from src directory
+      allow: ['..'],
+    },
+  },
 })
