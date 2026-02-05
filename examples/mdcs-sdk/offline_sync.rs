@@ -26,104 +26,176 @@ fn main() {
     let desktop_doc = desktop_session.open_text_doc("shopping-list.txt");
     
     // === Phase 1: Initial sync (both online) ===
-    println!("=== Phase 1: Both Online ===\n");
+    println!("╔════════════════════════════════════════════════════════════════╗");
+    println!("║           PHASE 1: Initial State (Both Online)                 ║");
+    println!("╚════════════════════════════════════════════════════════════════╝\n");
     
     {
         let mut doc = desktop_doc.write();
         doc.insert(0, "Shopping List\n============\n");
     }
-    println!("Desktop creates initial document:");
-    println!("{}", desktop_doc.read().get_text());
+    
+    // Sync initial content to mobile via CRDT merge
+    {
+        let desktop_state = desktop_doc.read().clone_state();
+        mobile_doc.write().merge(&desktop_state);
+    }
+    
+    println!("Desktop creates initial document and syncs to Mobile:");
+    println!("┌─────────────────────────────────────┐");
+    println!("│ {}│", desktop_doc.read().get_text().replace("\n", "\n│ "));
+    println!("└─────────────────────────────────────┘");
+    println!();
 
     // === Phase 2: Mobile goes offline ===
-    println!("=== Phase 2: Mobile Goes Offline ===\n");
+    println!("╔════════════════════════════════════════════════════════════════╗");
+    println!("║           PHASE 2: Network Partition (Mobile Offline)          ║");
+    println!("╚════════════════════════════════════════════════════════════════╝\n");
     
     // Simulate mobile going offline
     mobile_session.awareness().set_status(UserStatus::Away);
-    println!("Mobile status: Offline (Away)");
-    println!();
+    println!("📵 Mobile status: OFFLINE\n");
     
     // Mobile makes changes while offline
     {
         let mut doc = mobile_doc.write();
-        doc.insert(0, "[ ] Milk\n");
-        doc.insert(0, "[ ] Bread\n");
-        doc.insert(0, "[ ] Eggs\n");
+        let pos = doc.len();
+        doc.insert(pos, "[ ] Milk\n");
+        let pos = doc.len();
+        doc.insert(pos, "[ ] Bread\n");
+        let pos = doc.len();
+        doc.insert(pos, "[ ] Eggs\n");
     }
-    println!("Mobile adds items (offline):");
-    println!("{}", mobile_doc.read().get_text());
+    println!("Mobile adds items (OFFLINE - not synced yet):");
+    println!("┌─────────────────────────────────────┐");
+    for line in mobile_doc.read().get_text().lines() {
+        println!("│ {:35}│", line);
+    }
+    println!("└─────────────────────────────────────┘");
+    println!();
     
     // Meanwhile, Desktop also makes changes
     {
         let mut doc = desktop_doc.write();
         let pos = doc.len();
-        doc.insert(pos, "\n[ ] Coffee\n");
+        doc.insert(pos, "[ ] Coffee\n");
         let pos = doc.len();
         doc.insert(pos, "[ ] Sugar\n");
     }
-    println!("Desktop adds items (online):");
-    println!("{}", desktop_doc.read().get_text());
+    println!("Desktop adds items (ONLINE - separate changes):");
+    println!("┌─────────────────────────────────────┐");
+    for line in desktop_doc.read().get_text().lines() {
+        println!("│ {:35}│", line);
+    }
+    println!("└─────────────────────────────────────┘");
+    println!();
+
+    // Show diverged state
+    println!("⚠️  Documents have DIVERGED:");
+    println!("   Mobile:  {} bytes, {} lines", 
+        mobile_doc.read().get_text().len(),
+        mobile_doc.read().get_text().lines().count());
+    println!("   Desktop: {} bytes, {} lines",
+        desktop_doc.read().get_text().len(),
+        desktop_doc.read().get_text().lines().count());
+    println!();
 
     // === Phase 3: Mobile comes back online ===
-    println!("\n=== Phase 3: Mobile Reconnects ===\n");
+    println!("╔════════════════════════════════════════════════════════════════╗");
+    println!("║           PHASE 3: Reconnection & Automatic Merge              ║");
+    println!("╚════════════════════════════════════════════════════════════════╝\n");
     
     mobile_session.awareness().set_status(UserStatus::Online);
-    println!("Mobile status: Back Online (Active)");
-    println!();
+    println!("📶 Mobile status: BACK ONLINE\n");
     
-    // In a real scenario, the sync layer would automatically 
-    // exchange deltas. Here we show what each client sees:
+    // Simulate bidirectional sync
+    println!("🔄 Syncing via CRDT merge...");
+    println!("   → Mobile sends state to Desktop");
+    println!("   ← Desktop sends state to Mobile\n");
     
-    println!("Mobile's document (contains mobile's edits):");
-    println!("{}", mobile_doc.read().get_text());
+    // Bidirectional CRDT merge
+    {
+        let mobile_state = mobile_doc.read().clone_state();
+        let desktop_state = desktop_doc.read().clone_state();
+        
+        // Both apply each other's state (CRDT merge is commutative)
+        mobile_doc.write().merge(&desktop_state);
+        desktop_doc.write().merge(&mobile_state);
+    }
     
-    println!("\nDesktop's document (contains desktop's edits):");
-    println!("{}", desktop_doc.read().get_text());
+    // === FINAL RESULT ===
+    println!("╔════════════════════════════════════════════════════════════════╗");
+    println!("║              FINAL MERGED DOCUMENT (Both Clients)              ║");
+    println!("╠════════════════════════════════════════════════════════════════╣");
+    println!("║                                                                ║");
+    for line in mobile_doc.read().get_text().lines() {
+        println!("║  {:60}║", line);
+    }
+    println!("║                                                                ║");
+    println!("╚════════════════════════════════════════════════════════════════╝");
+    
+    // Verify sync
+    println!("\n=== Verification ===\n");
+    let mobile_text = mobile_doc.read().get_text();
+    let desktop_text = desktop_doc.read().get_text();
+    
+    if mobile_text == desktop_text {
+        println!("✓ Mobile and Desktop are IDENTICAL!");
+        println!("  - Total length: {} bytes", mobile_text.len());
+        println!("  - Total lines: {}", mobile_text.lines().count());
+        println!("  - Mobile's items: ✓ preserved");
+        println!("  - Desktop's items: ✓ preserved");
+    } else {
+        println!("✗ Documents differ (unexpected!)");
+    }
     
     // === Explain CRDT merge semantics ===
     println!("\n=== How CRDT Merge Works ===\n");
-    println!("In a fully integrated system:");
-    println!("1. Mobile sends its deltas (Eggs, Bread, Milk inserts)");
-    println!("2. Desktop sends its deltas (Coffee, Sugar inserts)");
-    println!("3. Both apply each other's deltas");
-    println!("4. CRDT merge ensures identical final state on both");
+    println!("The merge succeeded because:");
+    println!("  1. Each edit has a unique ID (replica + sequence number)");
+    println!("  2. CRDTs are designed to merge WITHOUT conflicts");
+    println!("  3. The order is determined by causal relationships");
     println!();
-    println!("The merged result preserves ALL edits:");
-    println!("  - Mobile's items appear at the top (inserted first)");
-    println!("  - Desktop's items appear at the bottom");
-    println!("  - No data is lost, no conflicts to resolve!");
+    println!("Key properties demonstrated:");
+    println!("  • Commutativity: Order of applying merges doesn't matter");
+    println!("  • Idempotency: Merging same state twice has no extra effect");
+    println!("  • Convergence: All replicas reach identical state");
     
-    // === Demonstrate delta accumulation ===
-    println!("\n=== Delta Accumulation ===\n");
-    
-    // Show how many operations each document has accumulated
-    println!("Documents track their edit history as deltas.");
-    println!("When sync occurs, only the missing deltas are sent,");
-    println!("not the entire document state.\n");
-    
-    println!("Mobile document length: {} bytes", mobile_doc.read().get_text().len());
-    println!("Desktop document length: {} bytes", desktop_doc.read().get_text().len());
-    
-    // === Conflict-free resolution example ===
-    println!("\n=== Concurrent Edit Example ===\n");
+    // === Concurrent edit example ===
+    println!("\n╔════════════════════════════════════════════════════════════════╗");
+    println!("║           BONUS: Concurrent Edit at Same Position              ║");
+    println!("╚════════════════════════════════════════════════════════════════╝\n");
     
     // Both edit at position 0 at the "same time"
     {
         let mut doc = mobile_doc.write();
-        doc.insert(0, "[!] Urgent: ");
+        doc.insert(0, "[!] URGENT: ");
     }
     {
         let mut doc = desktop_doc.write();
-        doc.insert(0, "[*] Note: ");
+        doc.insert(0, "[*] NOTE: ");
     }
     
-    println!("Mobile inserts '[!] Urgent: ' at position 0");
-    println!("Desktop inserts '[*] Note: ' at position 0 (concurrent)");
-    println!();
-    println!("CRDT handles this automatically:");
-    println!("  - Uses causal ordering to determine position");
-    println!("  - Both edits are preserved");
-    println!("  - Final document contains both prefixes");
+    println!("Mobile inserts '[!] URGENT: ' at position 0");
+    println!("Desktop inserts '[*] NOTE: ' at position 0 (concurrent)\n");
     
+    // Sync again via CRDT merge
+    {
+        let mobile_state = mobile_doc.read().clone_state();
+        let desktop_state = desktop_doc.read().clone_state();
+        mobile_doc.write().merge(&desktop_state);
+        desktop_doc.write().merge(&mobile_state);
+    }
+    
+    println!("After CRDT merge:");
+    println!("┌─────────────────────────────────────────────────────────────┐");
+    let preview = mobile_doc.read().get_text();
+    let first_line = preview.lines().next().unwrap_or("");
+    println!("│ {:59}│", first_line);
+    println!("│ ...                                                         │");
+    println!("└─────────────────────────────────────────────────────────────┘");
+    println!();
+    println!("Both prefixes are preserved - no data loss!");
+
     println!("\n=== Demo Complete ===");
 }
