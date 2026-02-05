@@ -5,6 +5,7 @@ use mdcs_db::{
     rga_text::RGAText,
     rich_text::{MarkType, RichText},
 };
+use mdcs_core::lattice::Lattice;
 use tokio::sync::broadcast;
 
 /// Events emitted when a document changes.
@@ -37,10 +38,12 @@ pub trait CollaborativeDoc {
 }
 
 /// A collaborative plain text document.
+#[derive(Clone)]
 pub struct TextDoc {
     id: String,
     replica_id: String,
     text: RGAText,
+    #[allow(dead_code)]
     event_tx: broadcast::Sender<DocEvent>,
     pending_deltas: Vec<Vec<u8>>,
 }
@@ -67,7 +70,6 @@ impl TextDoc {
             position,
             text: text.to_string(),
         });
-        // Note: In a real implementation, we'd serialize the delta here
     }
     
     /// Delete text at position.
@@ -89,6 +91,24 @@ impl TextDoc {
     /// Check if the document is empty.
     pub fn is_empty(&self) -> bool {
         self.text.is_empty()
+    }
+    
+    /// Merge another document's state into this one (CRDT merge).
+    /// This applies changes from the other document while preserving local changes.
+    pub fn merge(&mut self, other: &TextDoc) {
+        self.text = self.text.join(&other.text);
+        let _ = self.event_tx.send(DocEvent::RemoteUpdate);
+    }
+    
+    /// Clone this document's state for syncing to another replica.
+    pub fn clone_state(&self) -> TextDoc {
+        TextDoc {
+            id: self.id.clone(),
+            replica_id: self.replica_id.clone(),
+            text: self.text.clone(),
+            event_tx: self.event_tx.clone(),
+            pending_deltas: Vec::new(),
+        }
     }
 }
 
@@ -116,10 +136,12 @@ impl CollaborativeDoc for TextDoc {
 }
 
 /// A collaborative rich text document with formatting.
+#[derive(Clone)]
 pub struct RichTextDoc {
     id: String,
     replica_id: String,
     text: RichText,
+    #[allow(dead_code)]
     event_tx: broadcast::Sender<DocEvent>,
     pending_deltas: Vec<Vec<u8>>,
 }
@@ -184,6 +206,24 @@ impl RichTextDoc {
     pub fn is_empty(&self) -> bool {
         self.text.is_empty()
     }
+    
+    /// Merge another document's state into this one (CRDT merge).
+    /// This applies changes from the other document while preserving local changes.
+    pub fn merge(&mut self, other: &RichTextDoc) {
+        self.text = self.text.join(&other.text);
+        let _ = self.event_tx.send(DocEvent::RemoteUpdate);
+    }
+    
+    /// Clone this document's state for syncing to another replica.
+    pub fn clone_state(&self) -> RichTextDoc {
+        RichTextDoc {
+            id: self.id.clone(),
+            replica_id: self.replica_id.clone(),
+            text: self.text.clone(),
+            event_tx: self.event_tx.clone(),
+            pending_deltas: Vec::new(),
+        }
+    }
 }
 
 impl CollaborativeDoc for RichTextDoc {
@@ -209,10 +249,12 @@ impl CollaborativeDoc for RichTextDoc {
 }
 
 /// A collaborative JSON document.
+#[derive(Clone)]
 pub struct JsonDoc {
     id: String,
     replica_id: String,
     doc: JsonCrdt,
+    #[allow(dead_code)]
     event_tx: broadcast::Sender<DocEvent>,
     pending_deltas: Vec<Vec<u8>>,
 }
@@ -258,6 +300,24 @@ impl JsonDoc {
     /// Get keys at a path.
     pub fn keys(&self) -> Vec<String> {
         self.doc.keys()
+    }
+    
+    /// Merge another document's state into this one (CRDT merge).
+    /// This applies changes from the other document while preserving local changes.
+    pub fn merge(&mut self, other: &JsonDoc) {
+        self.doc = self.doc.join(&other.doc);
+        let _ = self.event_tx.send(DocEvent::RemoteUpdate);
+    }
+    
+    /// Clone this document's state for syncing to another replica.
+    pub fn clone_state(&self) -> JsonDoc {
+        JsonDoc {
+            id: self.id.clone(),
+            replica_id: self.replica_id.clone(),
+            doc: self.doc.clone(),
+            event_tx: self.event_tx.clone(),
+            pending_deltas: Vec::new(),
+        }
     }
 }
 
