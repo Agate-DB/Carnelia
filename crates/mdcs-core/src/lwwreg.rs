@@ -105,7 +105,7 @@ impl<T: Ord + Clone, K: Ord + Clone + Default> Lattice for LWWRegister<T, K> {
                 }
             }
         };
-        
+
         if self_wins {
             self.clone()
         } else {

@@ -295,8 +295,7 @@ impl Compactor {
     where
         F: FnOnce() -> Result<Vec<u8>, String>,
     {
-        let state_data = state_serializer()
-            .map_err(|e| CompactionError::SerializationFailed(e))?;
+        let state_data = state_serializer().map_err(|e| CompactionError::SerializationFailed(e))?;
 
         let snapshot = Snapshot::new(
             self.stability.local_frontier().clone(),
@@ -359,7 +358,9 @@ impl Compactor {
         // Prune if we have a stable snapshot
         if let Some(snapshot) = self.snapshots.latest() {
             if self.stability.is_stable(&snapshot.version_vector) {
-                let prune_result = self.pruner.execute_prune(store, snapshot, self.current_time);
+                let prune_result = self
+                    .pruner
+                    .execute_prune(store, snapshot, self.current_time);
                 result.nodes_pruned = prune_result.nodes_pruned;
                 result.pruning_result = Some(prune_result);
                 self.stats.nodes_pruned += result.nodes_pruned as u64;

@@ -91,7 +91,7 @@ fn main() {
     println!("╔══════════════════════════════════════════════════════════════╗");
     println!("║              FINAL SYNCHRONIZED DOCUMENT                     ║");
     println!("╠══════════════════════════════════════════════════════════════╣");
-    
+
     let final_text = docs[0].read().get_text();
     println!("║");
     for line in final_text.lines() {
@@ -99,7 +99,7 @@ fn main() {
     }
     println!("║");
     println!("╚══════════════════════════════════════════════════════════════╝");
-    
+
     // Verify all clients have identical state
     println!("\n=== Verification: All Clients Synchronized ===\n");
     let reference = docs[0].read().get_text();
@@ -114,24 +114,29 @@ fn main() {
             all_match = false;
         }
     }
-    
+
     if all_match {
-        println!("\n  ✓ All {} clients have identical document state!", docs.len());
+        println!(
+            "\n  ✓ All {} clients have identical document state!",
+            docs.len()
+        );
     } else {
         println!("\n  ✗ Warning: Documents are not synchronized!");
     }
 
     // Demonstrate presence awareness
     println!("\n=== Presence Awareness ===\n");
-    
+
     // Alice sets her cursor position
     sessions[0].awareness().set_cursor("meeting-notes.txt", 10);
     println!("  Alice's cursor at position 10");
-    
+
     // Bob sets a selection
-    sessions[1].awareness().set_selection("meeting-notes.txt", 5, 15);
+    sessions[1]
+        .awareness()
+        .set_selection("meeting-notes.txt", 5, 15);
     println!("  Bob selected text from 5 to 15");
-    
+
     // Charlie checks who's in the document
     let users = sessions[2].awareness().get_users();
     println!("\n  Charlie sees {} user(s) in the session:", users.len());

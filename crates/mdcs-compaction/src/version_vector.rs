@@ -104,7 +104,7 @@ impl VersionVector {
     /// This represents the "stable" point that all replicas have seen.
     pub fn min_with(&self, other: &VersionVector) -> VersionVector {
         let mut result = VersionVector::new();
-        
+
         // Get all replica IDs from both vectors
         let all_replicas: std::collections::BTreeSet<_> = self
             .entries
@@ -257,10 +257,7 @@ mod tests {
 
     #[test]
     fn test_version_vector_serialization() {
-        let vv = VersionVector::from_entries([
-            ("r1".to_string(), 5),
-            ("r2".to_string(), 10),
-        ]);
+        let vv = VersionVector::from_entries([("r1".to_string(), 5), ("r2".to_string(), 10)]);
 
         let json = serde_json::to_string(&vv).unwrap();
         let deserialized: VersionVector = serde_json::from_str(&json).unwrap();

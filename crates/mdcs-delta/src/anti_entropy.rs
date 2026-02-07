@@ -31,9 +31,18 @@ use std::collections::VecDeque;
 #[derive(Debug, Clone)]
 pub enum AntiEntropyMessage<D> {
     /// Delta message: contains delta, source, destination and sequence number
-    Delta { from: ReplicaId, to: ReplicaId, delta: D, seq: SeqNo },
+    Delta {
+        from: ReplicaId,
+        to: ReplicaId,
+        delta: D,
+        seq: SeqNo,
+    },
     /// Acknowledgment message: from -> to acknowledges seq
-    Ack { from: ReplicaId, to: ReplicaId, seq: SeqNo },
+    Ack {
+        from: ReplicaId,
+        to: ReplicaId,
+        seq: SeqNo,
+    },
 }
 
 /// A network simulator for testing anti-entropy under various conditions
@@ -238,7 +247,12 @@ impl<S: Lattice + Clone> AntiEntropyCluster<S> {
     pub fn process_one(&mut self) -> bool {
         if let Some(msg) = self.network.receive() {
             match msg {
-                AntiEntropyMessage::Delta { from, to, delta, seq } => {
+                AntiEntropyMessage::Delta {
+                    from,
+                    to,
+                    delta,
+                    seq,
+                } => {
                     // Deliver delta to the intended recipient only
                     for replica in &mut self.replicas {
                         if replica.id == to {
@@ -479,7 +493,9 @@ mod tests {
                     let val = (j * 10 + k) as i32;
                     assert!(
                         cluster.replica(i).state().contains(&val),
-                        "Replica {} missing value {}", i, val
+                        "Replica {} missing value {}",
+                        i,
+                        val
                     );
                 }
             }
@@ -517,4 +533,3 @@ mod tests {
         assert_ne!(initial_state, after_one);
     }
 }
-

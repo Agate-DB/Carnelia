@@ -14,11 +14,11 @@ use serde::{Deserialize, Serialize};
 pub enum Payload {
     /// Genesis node - the root of the DAG.
     Genesis,
-    
+
     /// A delta-group containing incremental state changes.
     /// The bytes are a serialized delta from the δ-CRDT layer.
     Delta(Vec<u8>),
-    
+
     /// A snapshot of the full state at a point in time.
     /// Used for compaction and bootstrapping new replicas.
     Snapshot(Vec<u8>),
@@ -83,17 +83,17 @@ pub struct MerkleNode {
     /// Content identifier - SHA-256 hash of the node's contents.
     /// This is computed when the node is built.
     pub cid: Hash,
-    
+
     /// Hashes of parent nodes (causal predecessors).
     /// Empty for genesis nodes.
     pub parents: Vec<Hash>,
-    
+
     /// The payload carried by this node.
     pub payload: Payload,
-    
+
     /// Logical timestamp (monotonically increasing per replica).
     pub timestamp: u64,
-    
+
     /// The replica that created this node.
     pub creator: String,
 }
@@ -119,33 +119,34 @@ impl MerkleNode {
     /// This is used by the builder to generate the CID.
     fn compute_cid(parents: &[Hash], payload: &Payload, timestamp: u64, creator: &str) -> Hash {
         let mut hasher = Hasher::new();
-        
+
         // Hash the number of parents
         hasher.update(&(parents.len() as u64).to_le_bytes());
-        
+
         // Hash each parent CID (sorted for determinism)
         let mut sorted_parents = parents.to_vec();
         sorted_parents.sort();
         for parent in &sorted_parents {
             hasher.update(parent.as_bytes());
         }
-        
+
         // Hash the payload type and data
         hasher.update(&[payload.type_byte()]);
         hasher.update(payload.as_bytes());
-        
+
         // Hash the timestamp
         hasher.update(&timestamp.to_le_bytes());
-        
+
         // Hash the creator
         hasher.update(creator.as_bytes());
-        
+
         hasher.finalize()
     }
 
     /// Verify that the CID matches the node's contents.
     pub fn verify(&self) -> bool {
-        let computed = Self::compute_cid(&self.parents, &self.payload, self.timestamp, &self.creator);
+        let computed =
+            Self::compute_cid(&self.parents, &self.payload, self.timestamp, &self.creator);
         computed == self.cid
     }
 }
@@ -204,7 +205,7 @@ impl NodeBuilder {
     pub fn build(self) -> MerkleNode {
         let payload = self.payload.unwrap_or(Payload::Genesis);
         let cid = MerkleNode::compute_cid(&self.parents, &payload, self.timestamp, &self.creator);
-        
+
         MerkleNode {
             cid,
             parents: self.parents,
@@ -240,14 +241,14 @@ mod tests {
     #[test]
     fn test_delta_node() {
         let genesis = NodeBuilder::genesis("replica_1");
-        
+
         let delta = NodeBuilder::new()
             .with_parent(genesis.cid)
             .with_payload(Payload::delta(vec![1, 2, 3]))
             .with_timestamp(1)
             .with_creator("replica_1")
             .build();
-        
+
         assert!(!delta.is_genesis());
         assert!(delta.has_parent(&genesis.cid));
         assert!(delta.payload.is_delta());
@@ -261,13 +262,13 @@ mod tests {
             .with_timestamp(42)
             .with_creator("test")
             .build();
-        
+
         let node2 = NodeBuilder::new()
             .with_payload(Payload::delta(vec![1, 2, 3]))
             .with_timestamp(42)
             .with_creator("test")
             .build();
-        
+
         assert_eq!(node1.cid, node2.cid);
     }
 
@@ -278,20 +279,20 @@ mod tests {
             .with_timestamp(42)
             .with_creator("test")
             .build();
-        
+
         let node2 = NodeBuilder::new()
             .with_payload(Payload::delta(vec![4, 5, 6]))
             .with_timestamp(42)
             .with_creator("test")
             .build();
-        
+
         assert_ne!(node1.cid, node2.cid);
     }
 
     #[test]
     fn test_concurrent_parents() {
         let genesis = NodeBuilder::genesis("replica_1");
-        
+
         // Two concurrent branches
         let branch_a = NodeBuilder::new()
             .with_parent(genesis.cid)
@@ -299,14 +300,14 @@ mod tests {
             .with_timestamp(1)
             .with_creator("replica_1")
             .build();
-        
+
         let branch_b = NodeBuilder::new()
             .with_parent(genesis.cid)
             .with_payload(Payload::delta(b"branch_b".to_vec()))
             .with_timestamp(1)
             .with_creator("replica_2")
             .build();
-        
+
         // Merge node with multiple parents
         let merge = NodeBuilder::new()
             .with_parents(vec![branch_a.cid, branch_b.cid])
@@ -314,7 +315,7 @@ mod tests {
             .with_timestamp(2)
             .with_creator("replica_1")
             .build();
-        
+
         assert_eq!(merge.parent_count(), 2);
         assert!(merge.has_parent(&branch_a.cid));
         assert!(merge.has_parent(&branch_b.cid));
@@ -324,14 +325,14 @@ mod tests {
     #[test]
     fn test_snapshot_node() {
         let genesis = NodeBuilder::genesis("replica_1");
-        
+
         let snapshot = NodeBuilder::new()
             .with_parent(genesis.cid)
             .with_payload(Payload::snapshot(b"full state".to_vec()))
             .with_timestamp(100)
             .with_creator("replica_1")
             .build();
-        
+
         assert!(snapshot.payload.is_snapshot());
         assert!(snapshot.verify());
     }
@@ -343,10 +344,10 @@ mod tests {
             .with_timestamp(42)
             .with_creator("test")
             .build();
-        
+
         // Tamper with the payload
         node.payload = Payload::delta(vec![9, 9, 9]);
-        
+
         // Verification should fail
         assert!(!node.verify());
     }

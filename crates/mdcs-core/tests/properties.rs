@@ -6,66 +6,61 @@
 //!  - Idempotence:  a ⊔ a = a
 //!  - Bottom is identity: a ⊔ ⊥ = a
 
-use proptest::prelude::*;
-use mdcs_core::lattice::{Lattice, DeltaCRDT};
 use mdcs_core::gset::GSet;
-use mdcs_core::orset::ORSet;
-use mdcs_core::pncounter::PNCounter;
+use mdcs_core::lattice::{DeltaCRDT, Lattice};
 use mdcs_core::lwwreg::LWWRegister;
 use mdcs_core::mvreg::MVRegister;
+use mdcs_core::orset::ORSet;
+use mdcs_core::pncounter::PNCounter;
+use proptest::prelude::*;
 
 /// Generate strategies for prop-testing
 
 fn gset_i32_strategy() -> impl Strategy<Value = GSet<i32>> {
-    prop::collection::btree_set(0i32..100, 0..20)
-        .prop_map(|elements| {
-            let mut set = GSet::new();
-            for e in elements {
-                set.insert(e);
-            }
-            set
-        })
+    prop::collection::btree_set(0i32..100, 0..20).prop_map(|elements| {
+        let mut set = GSet::new();
+        for e in elements {
+            set.insert(e);
+        }
+        set
+    })
 }
 
 fn orset_string_strategy() -> impl Strategy<Value = ORSet<String>> {
-    prop::collection::vec("[a-z]{1,5}", 0..10)
-        .prop_map(|elements| {
-            let mut set = ORSet::new();
-            for (i, e) in elements.iter().enumerate() {
-                set.add(&format!("replica{}", i % 3), e.clone());
-            }
-            // Clear pending delta so equality comparisons work correctly
-            let _ = set.split_delta();
-            set
-        })
+    prop::collection::vec("[a-z]{1,5}", 0..10).prop_map(|elements| {
+        let mut set = ORSet::new();
+        for (i, e) in elements.iter().enumerate() {
+            set.add(&format!("replica{}", i % 3), e.clone());
+        }
+        // Clear pending delta so equality comparisons work correctly
+        let _ = set.split_delta();
+        set
+    })
 }
 
 fn pncounter_strategy() -> impl Strategy<Value = PNCounter<String>> {
-    (0u64..100, 0u64..50)
-        .prop_map(|(inc, dec)| {
-            let mut counter = PNCounter::new();
-            counter.increment("replica1".to_string(), inc);
-            counter.decrement("replica2".to_string(), dec);
-            counter
-        })
+    (0u64..100, 0u64..50).prop_map(|(inc, dec)| {
+        let mut counter = PNCounter::new();
+        counter.increment("replica1".to_string(), inc);
+        counter.decrement("replica2".to_string(), dec);
+        counter
+    })
 }
 
 fn lwwreg_strategy() -> impl Strategy<Value = LWWRegister<i32, String>> {
-    (0i32..100, 0u64..1000)
-        .prop_map(|(value, timestamp)| {
-            let mut reg = LWWRegister::new("replica1".to_string());
-            reg.set(value, timestamp, "replica1".to_string());
-            reg
-        })
+    (0i32..100, 0u64..1000).prop_map(|(value, timestamp)| {
+        let mut reg = LWWRegister::new("replica1".to_string());
+        reg.set(value, timestamp, "replica1".to_string());
+        reg
+    })
 }
 
 fn mvreg_strategy() -> impl Strategy<Value = MVRegister<i32>> {
-    (0i32..100)
-        .prop_map(|value| {
-            let mut reg = MVRegister::new();
-            reg.write("replica1", value);
-            reg
-        })
+    (0i32..100).prop_map(|value| {
+        let mut reg = MVRegister::new();
+        reg.write("replica1", value);
+        reg
+    })
 }
 
 // ============================================================================

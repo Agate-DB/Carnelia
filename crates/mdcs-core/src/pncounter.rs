@@ -223,13 +223,7 @@ mod tests {
         let deserialized: PNCounter<String> = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(deserialized.value(), counter.value());
-        assert_eq!(
-            deserialized.get_increment(&"replica1".to_string()),
-            100
-        );
-        assert_eq!(
-            deserialized.get_decrement(&"replica2".to_string()),
-            25
-        );
+        assert_eq!(deserialized.get_increment(&"replica1".to_string()), 100);
+        assert_eq!(deserialized.get_decrement(&"replica2".to_string()), 25);
     }
 }

@@ -79,44 +79,20 @@
 //! assert!(replica.state().contains(&42));
 //! ```
 
-pub mod buffer;
-pub mod mutators;
 pub mod anti_entropy;
+pub mod buffer;
 pub mod causal;
+pub mod mutators;
 
 // Re-export main types for convenience
-pub use buffer::{
-    DeltaBuffer,
-    DeltaReplica,
-    AckTracker,
-    TaggedDelta,
-    SeqNo,
-    ReplicaId
-};
+pub use buffer::{AckTracker, DeltaBuffer, DeltaReplica, ReplicaId, SeqNo, TaggedDelta};
 
-pub use anti_entropy::{
-    AntiEntropyCluster,
-    AntiEntropyMessage,
-    NetworkSimulator,
-    NetworkConfig
-};
+pub use anti_entropy::{AntiEntropyCluster, AntiEntropyMessage, NetworkConfig, NetworkSimulator};
 
 pub use causal::{
-    CausalReplica,
-    CausalCluster,
-    CausalMessage,
-    DeltaInterval,
-    IntervalAck,
-    DurableState,
+    CausalCluster, CausalMessage, CausalNetworkSimulator, CausalReplica, DeltaInterval,
+    DurableState, DurableStorage, IntervalAck, MemoryStorage, PeerDeltaBuffer, StorageError,
     VolatileState,
-    PeerDeltaBuffer,
-    DurableStorage,
-    MemoryStorage,
-    StorageError,
-    CausalNetworkSimulator,
 };
 
-pub use mutators::{
-    gset as gset_mutators,
-    orset as orset_mutators,
-};
+pub use mutators::{gset as gset_mutators, orset as orset_mutators};

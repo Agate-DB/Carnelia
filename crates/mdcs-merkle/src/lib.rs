@@ -41,14 +41,14 @@
 //! assert_eq!(store.heads(), vec![child_cid]);
 //! ```
 
+mod broadcaster;
 mod hash;
 mod node;
 mod store;
 mod syncer;
-mod broadcaster;
 
+pub use broadcaster::{BroadcastConfig, BroadcastMessage, BroadcastNetwork, Broadcaster};
 pub use hash::{Hash, Hasher};
-pub use node::{MerkleNode, Payload, NodeBuilder};
-pub use store::{DAGStore, MemoryDAGStore, DAGError};
-pub use syncer::{DAGSyncer, SyncRequest, SyncResponse, SyncError, SyncSimulator};
-pub use broadcaster::{Broadcaster, BroadcastConfig, BroadcastMessage, BroadcastNetwork};
+pub use node::{MerkleNode, NodeBuilder, Payload};
+pub use store::{DAGError, DAGStore, MemoryDAGStore};
+pub use syncer::{DAGSyncer, SyncError, SyncRequest, SyncResponse, SyncSimulator};

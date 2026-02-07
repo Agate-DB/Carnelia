@@ -21,13 +21,13 @@ impl Tag {
     pub fn new(replica_id: impl Into<String>) -> Self {
         Self {
             replica_id: replica_id.into(),
-            unique_id:  Ulid::new(),
+            unique_id: Ulid::new(),
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ORSet<T:  Ord + Clone> {
+pub struct ORSet<T: Ord + Clone> {
     /// Maps elements to their active tags
     entries: BTreeMap<T, BTreeSet<Tag>>,
     /// Tombstones:  tags that have been removed
@@ -44,11 +44,11 @@ pub struct ORSetDelta<T: Ord + Clone> {
     pub removals: BTreeSet<Tag>,
 }
 
-impl<T:  Ord + Clone> ORSet<T> {
+impl<T: Ord + Clone> ORSet<T> {
     pub fn new() -> Self {
         Self {
             entries: BTreeMap::new(),
-            tombstones: BTreeSet:: new(),
+            tombstones: BTreeSet::new(),
             pending_delta: None,
         }
     }
@@ -58,9 +58,9 @@ impl<T:  Ord + Clone> ORSet<T> {
         let tag = Tag::new(replica_id);
 
         self.entries
-            .entry(value. clone())
+            .entry(value.clone())
             .or_default()
-            .insert(tag. clone());
+            .insert(tag.clone());
 
         // Record in delta
         let delta = self.pending_delta.get_or_insert_with(|| ORSetDelta {
@@ -74,8 +74,8 @@ impl<T:  Ord + Clone> ORSet<T> {
     pub fn remove(&mut self, value: &T) {
         if let Some(tags) = self.entries.remove(value) {
             // Move tags to tombstones
-            for tag in tags. iter() {
-                self.tombstones. insert(tag. clone());
+            for tag in tags.iter() {
+                self.tombstones.insert(tag.clone());
             }
 
             // Record in delta
@@ -88,7 +88,9 @@ impl<T:  Ord + Clone> ORSet<T> {
     }
 
     pub fn contains(&self, value: &T) -> bool {
-        self.entries.get(value).map_or(false, |tags| !tags. is_empty())
+        self.entries
+            .get(value)
+            .map_or(false, |tags| !tags.is_empty())
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &T> {
@@ -106,7 +108,7 @@ impl<T: Ord + Clone> Default for ORSet<T> {
     }
 }
 
-impl<T:  Ord + Clone> Lattice for ORSet<T> {
+impl<T: Ord + Clone> Lattice for ORSet<T> {
     fn bottom() -> Self {
         Self::new()
     }
@@ -115,25 +117,27 @@ impl<T:  Ord + Clone> Lattice for ORSet<T> {
         let mut result = Self::new();
 
         // Merge tombstones first
-        result.tombstones = self.tombstones.union(&other. tombstones).cloned().collect();
+        result.tombstones = self.tombstones.union(&other.tombstones).cloned().collect();
 
         // Merge entries, filtering out tombstoned tags
-        let all_keys: BTreeSet<_> = self.entries. keys()
+        let all_keys: BTreeSet<_> = self
+            .entries
+            .keys()
             .chain(other.entries.keys())
             .cloned()
             .collect();
 
         for key in all_keys {
-            let self_tags = self. entries.get(&key).cloned().unwrap_or_default();
-            let other_tags = other.entries. get(&key).cloned().unwrap_or_default();
+            let self_tags = self.entries.get(&key).cloned().unwrap_or_default();
+            let other_tags = other.entries.get(&key).cloned().unwrap_or_default();
 
-            let merged_tags:  BTreeSet<Tag> = self_tags
+            let merged_tags: BTreeSet<Tag> = self_tags
                 .union(&other_tags)
-                .filter(|tag| !result.tombstones. contains(tag))
+                .filter(|tag| !result.tombstones.contains(tag))
                 .cloned()
                 .collect();
 
-            if !merged_tags. is_empty() {
+            if !merged_tags.is_empty() {
                 result.entries.insert(key, merged_tags);
             }
         }
@@ -158,7 +162,7 @@ impl<T: Ord + Clone> Lattice for ORSetDelta<T> {
 
         Self {
             additions,
-            removals:  self.removals. union(&other.removals).cloned().collect(),
+            removals: self.removals.union(&other.removals).cloned().collect(),
         }
     }
 }
@@ -167,12 +171,12 @@ impl<T: Ord + Clone> DeltaCRDT for ORSet<T> {
     type Delta = ORSetDelta<T>;
 
     fn split_delta(&mut self) -> Option<Self::Delta> {
-        self.pending_delta. take()
+        self.pending_delta.take()
     }
 
-    fn apply_delta(&mut self, delta: &Self:: Delta) {
+    fn apply_delta(&mut self, delta: &Self::Delta) {
         // Apply removals to tombstones
-        self.tombstones.extend(delta.removals. iter().cloned());
+        self.tombstones.extend(delta.removals.iter().cloned());
 
         // Apply additions, filtering tombstones
         for (value, tags) in &delta.additions {

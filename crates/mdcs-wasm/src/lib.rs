@@ -135,7 +135,13 @@ impl CollaborativeDocument {
         let s = start.min(self.text.len());
         let e = end.min(self.text.len());
         if s < e {
-            self.text.add_mark(s, e, MarkType::Link { url: url.to_string() });
+            self.text.add_mark(
+                s,
+                e,
+                MarkType::Link {
+                    url: url.to_string(),
+                },
+            );
             self.version += 1;
         }
     }
@@ -194,7 +200,7 @@ impl CollaborativeDocument {
         // Use serde_wasm_bindgen which handles HashMap with non-string keys
         let js_value = serde_wasm_bindgen::to_value(&self.text)
             .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))?;
-        
+
         // Convert JsValue to JSON string using js_sys
         js_sys::JSON::stringify(&js_value)
             .map(|s| s.into())
@@ -213,11 +219,11 @@ impl CollaborativeDocument {
         // Parse the JSON string back to JsValue
         let js_value = js_sys::JSON::parse(remote_state)
             .map_err(|e| JsValue::from_str(&format!("JSON parse error: {:?}", e)))?;
-        
+
         // Deserialize using serde_wasm_bindgen
         let remote: RichText = serde_wasm_bindgen::from_value(js_value)
             .map_err(|e| JsValue::from_str(&format!("Deserialization error: {}", e)))?;
-        
+
         self.text = self.text.join(&remote);
         self.version += 1;
         Ok(())
@@ -233,15 +239,14 @@ impl CollaborativeDocument {
         let state_str: String = js_sys::JSON::stringify(&state_js)
             .map(|s| s.into())
             .map_err(|e| JsValue::from_str(&format!("JSON stringify error: {:?}", e)))?;
-        
+
         let snapshot = DocumentSnapshot {
             doc_id: self.id.clone(),
             replica_id: self.replica_id.clone(),
             version: self.version,
             state: state_str,
         };
-        serde_wasm_bindgen::to_value(&snapshot)
-            .map_err(|e| JsValue::from_str(&e.to_string()))
+        serde_wasm_bindgen::to_value(&snapshot).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     /// Restore from a snapshot.
@@ -249,14 +254,14 @@ impl CollaborativeDocument {
     pub fn restore(snapshot_js: JsValue) -> Result<CollaborativeDocument, JsValue> {
         let snapshot: DocumentSnapshot = serde_wasm_bindgen::from_value(snapshot_js)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        
+
         // Parse the state JSON string
         let state_js = js_sys::JSON::parse(&snapshot.state)
             .map_err(|e| JsValue::from_str(&format!("JSON parse error: {:?}", e)))?;
-        
+
         let text: RichText = serde_wasm_bindgen::from_value(state_js)
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        
+
         Ok(Self {
             id: snapshot.doc_id,
             replica_id: snapshot.replica_id,
@@ -400,16 +405,15 @@ impl UserPresence {
             selection_start: self.selection_start,
             selection_end: self.selection_end,
         };
-        serde_wasm_bindgen::to_value(&data)
-            .map_err(|e| JsValue::from_str(&e.to_string()))
+        serde_wasm_bindgen::to_value(&data).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     /// Deserialize from JSON.
     #[wasm_bindgen]
     pub fn from_json(js: JsValue) -> Result<UserPresence, JsValue> {
-        let data: PresenceData = serde_wasm_bindgen::from_value(js)
-            .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        
+        let data: PresenceData =
+            serde_wasm_bindgen::from_value(js).map_err(|e| JsValue::from_str(&e.to_string()))?;
+
         Ok(Self {
             user_id: data.user_id,
             user_name: data.user_name,
@@ -449,10 +453,8 @@ pub fn generate_replica_id() -> String {
 #[wasm_bindgen]
 pub fn generate_user_color() -> String {
     let colors = [
-        "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4",
-        "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F",
-        "#E74C3C", "#3498DB", "#2ECC71", "#9B59B6",
-        "#1ABC9C", "#F39C12", "#E91E63", "#00BCD4",
+        "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F",
+        "#E74C3C", "#3498DB", "#2ECC71", "#9B59B6", "#1ABC9C", "#F39C12", "#E91E63", "#00BCD4",
     ];
     let idx = (js_sys::Math::random() * colors.len() as f64) as usize;
     colors[idx % colors.len()].to_string()
@@ -484,11 +486,11 @@ mod tests {
     #[test]
     fn test_insert_and_delete() {
         let mut doc = CollaborativeDocument::new("doc-1", "replica-1");
-        
+
         doc.insert(0, "Hello, World!");
         assert_eq!(doc.get_text(), "Hello, World!");
         assert_eq!(doc.len(), 13);
-        
+
         doc.delete(5, 2); // Delete ", "
         assert_eq!(doc.get_text(), "HelloWorld!");
     }
@@ -496,11 +498,11 @@ mod tests {
     #[test]
     fn test_formatting() {
         let mut doc = CollaborativeDocument::new("doc-1", "replica-1");
-        
+
         doc.insert(0, "Hello World");
         doc.apply_bold(0, 5);
         doc.apply_italic(6, 11);
-        
+
         let html = doc.get_html();
         assert!(html.contains("<b>") || html.contains("<strong>"));
         assert!(html.contains("<i>") || html.contains("<em>"));
@@ -509,23 +511,23 @@ mod tests {
     // Note: serialize/merge tests require WASM environment
     // Use wasm-bindgen-test for full integration testing
     // The RichText serialization uses HashMap<MarkId, Mark> which needs special handling
-    
+
     #[test]
     fn test_crdt_merge_convergence() {
         // Test the underlying CRDT merge via Lattice trait
         let mut doc1 = CollaborativeDocument::new("doc-1", "replica-1");
         let mut doc2 = CollaborativeDocument::new("doc-1", "replica-2");
-        
+
         doc1.insert(0, "Hello");
         doc2.insert(0, "World");
-        
+
         // Use the Lattice join directly (no JSON serialization needed)
         let text1_clone = doc1.text.clone();
         let text2_clone = doc2.text.clone();
-        
+
         doc1.text = doc1.text.join(&text2_clone);
         doc2.text = doc2.text.join(&text1_clone);
-        
+
         // Both should converge to the same state
         assert_eq!(doc1.get_text(), doc2.get_text());
         // Content should include both insertions
@@ -536,15 +538,15 @@ mod tests {
     #[test]
     fn test_user_presence() {
         let mut presence = UserPresence::new("user-1", "Alice", "#FF6B6B");
-        
+
         assert_eq!(presence.user_id(), "user-1");
         assert_eq!(presence.user_name(), "Alice");
         assert!(!presence.has_selection());
-        
+
         presence.set_cursor(10);
         assert_eq!(presence.cursor(), Some(10));
         assert!(!presence.has_selection());
-        
+
         presence.set_selection(5, 15);
         assert!(presence.has_selection());
         assert_eq!(presence.selection_start(), Some(5));

@@ -35,7 +35,8 @@ impl JsonPath {
         if path.is_empty() {
             return Self::root();
         }
-        let segments = path.split('.')
+        let segments = path
+            .split('.')
             .map(|s| {
                 if let Ok(idx) = s.parse::<usize>() {
                     PathSegment::Index(idx)
@@ -62,7 +63,7 @@ impl JsonPath {
         if self.0.is_empty() {
             None
         } else {
-            Some(Self(self.0[..self.0.len()-1].to_vec()))
+            Some(Self(self.0[..self.0.len() - 1].to_vec()))
         }
     }
 
@@ -241,7 +242,9 @@ impl ObjectField {
 
     fn set(&mut self, id: ValueId, value: JsonValue) {
         // Setting a new value obsoletes previous values from this replica
-        let to_delete: Vec<_> = self.values.keys()
+        let to_delete: Vec<_> = self
+            .values
+            .keys()
             .filter(|k| k.replica == id.replica)
             .cloned()
             .collect();
@@ -258,10 +261,9 @@ impl ObjectField {
 
     fn get_winner(&self) -> Option<&JsonValue> {
         // Return the value with the highest ValueId (LWW semantics)
-        self.values.iter()
-            .max_by(|(a, _), (b, _)| {
-                a.seq.cmp(&b.seq).then_with(|| a.replica.cmp(&b.replica))
-            })
+        self.values
+            .iter()
+            .max_by(|(a, _), (b, _)| a.seq.cmp(&b.seq).then_with(|| a.replica.cmp(&b.replica)))
             .map(|(_, v)| v)
     }
 
@@ -272,7 +274,9 @@ impl ObjectField {
     fn merge(&mut self, other: &ObjectField) {
         for (id, value) in &other.values {
             if !self.deleted.contains(id) {
-                self.values.entry(id.clone()).or_insert_with(|| value.clone());
+                self.values
+                    .entry(id.clone())
+                    .or_insert_with(|| value.clone());
             }
         }
         self.deleted.extend(other.deleted.iter().cloned());
@@ -299,7 +303,8 @@ impl JsonObject {
     }
 
     fn set(&mut self, key: String, value_id: ValueId, value: JsonValue) {
-        self.fields.entry(key)
+        self.fields
+            .entry(key)
             .or_insert_with(ObjectField::new)
             .set(value_id, value);
     }
@@ -314,7 +319,8 @@ impl JsonObject {
     }
 
     fn keys(&self) -> impl Iterator<Item = &String> + '_ {
-        self.fields.iter()
+        self.fields
+            .iter()
             .filter(|(_, f)| !f.is_deleted())
             .map(|(k, _)| k)
     }
@@ -334,7 +340,8 @@ impl JsonObject {
 
     fn merge(&mut self, other: &JsonObject) {
         for (key, field) in &other.fields {
-            self.fields.entry(key.clone())
+            self.fields
+                .entry(key.clone())
                 .or_insert_with(ObjectField::new)
                 .merge(field);
         }
@@ -424,10 +431,10 @@ impl JsonCrdtDelta {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.object_changes.is_empty() && 
-        self.array_changes.is_empty() &&
-        self.new_objects.is_empty() &&
-        self.new_arrays.is_empty()
+        self.object_changes.is_empty()
+            && self.array_changes.is_empty()
+            && self.new_objects.is_empty()
+            && self.new_arrays.is_empty()
     }
 }
 
@@ -464,10 +471,10 @@ impl JsonCrdt {
         let replica_id = replica_id.into();
         let root_id = ObjectId::root();
         let root = JsonObject::new(root_id.clone());
-        
+
         let mut objects = HashMap::new();
         objects.insert(root_id.clone(), root);
-        
+
         Self {
             replica_id,
             seq: 0,
@@ -493,19 +500,19 @@ impl JsonCrdt {
     pub fn get(&self, path: &JsonPath) -> Option<&JsonValue> {
         let mut current_obj_id = &self.root_id;
         let segments = path.segments();
-        
+
         for (i, segment) in segments.iter().enumerate() {
             let is_last = i == segments.len() - 1;
-            
+
             match segment {
                 PathSegment::Key(key) => {
                     let obj = self.objects.get(current_obj_id)?;
                     let value = obj.get(key)?;
-                    
+
                     if is_last {
                         return Some(value);
                     }
-                    
+
                     match value {
                         JsonValue::Object(id) => current_obj_id = id,
                         JsonValue::Array(_) if !is_last => {
@@ -524,7 +531,7 @@ impl JsonCrdt {
                 }
             }
         }
-        
+
         // Root path returns None - use to_json() instead
         None
     }
@@ -536,15 +543,15 @@ impl JsonCrdt {
         }
 
         let parent_path = path.parent().unwrap_or(JsonPath::root());
-        let last_segment = path.last().ok_or_else(|| {
-            DbError::InvalidPath("Empty path".to_string())
-        })?;
+        let last_segment = path
+            .last()
+            .ok_or_else(|| DbError::InvalidPath("Empty path".to_string()))?;
 
         // Ensure parent exists and is an object
         let parent_obj_id = self.ensure_object_at(&parent_path)?;
 
         let value_id = self.next_value_id();
-        
+
         match last_segment {
             PathSegment::Key(key) => {
                 // Handle nested object/array creation
@@ -552,11 +559,11 @@ impl JsonCrdt {
                     JsonValue::Object(_) | JsonValue::Array(_) => value,
                     _ => value,
                 };
-                
+
                 if let Some(obj) = self.objects.get_mut(&parent_obj_id) {
                     obj.set(key.clone(), value_id.clone(), actual_value.clone());
                 }
-                
+
                 // Record delta
                 let delta = self.pending_delta.get_or_insert_with(JsonCrdtDelta::new);
                 delta.object_changes.push(ObjectChange {
@@ -568,7 +575,7 @@ impl JsonCrdt {
             }
             PathSegment::Index(_) => {
                 return Err(DbError::UnsupportedOperation(
-                    "Set by index not supported; use array_insert".to_string()
+                    "Set by index not supported; use array_insert".to_string(),
                 ));
             }
         }
@@ -583,11 +590,12 @@ impl JsonCrdt {
         }
 
         let parent_path = path.parent().unwrap_or(JsonPath::root());
-        let last_segment = path.last().ok_or_else(|| {
-            DbError::InvalidPath("Empty path".to_string())
-        })?;
+        let last_segment = path
+            .last()
+            .ok_or_else(|| DbError::InvalidPath("Empty path".to_string()))?;
 
-        let parent_obj_id = self.get_object_id_at(&parent_path)
+        let parent_obj_id = self
+            .get_object_id_at(&parent_path)
             .ok_or_else(|| DbError::PathNotFound(parent_path.to_string()))?;
 
         let value_id = self.next_value_id();
@@ -597,7 +605,7 @@ impl JsonCrdt {
                 if let Some(obj) = self.objects.get_mut(&parent_obj_id) {
                     obj.remove(key, value_id.clone());
                 }
-                
+
                 // Record delta
                 let delta = self.pending_delta.get_or_insert_with(JsonCrdtDelta::new);
                 delta.object_changes.push(ObjectChange {
@@ -609,7 +617,7 @@ impl JsonCrdt {
             }
             PathSegment::Index(_) => {
                 return Err(DbError::UnsupportedOperation(
-                    "Delete by index not supported; use array_remove".to_string()
+                    "Delete by index not supported; use array_remove".to_string(),
                 ));
             }
         }
@@ -622,10 +630,10 @@ impl JsonCrdt {
         let id = ObjectId::new();
         let obj = JsonObject::new(id.clone());
         self.objects.insert(id.clone(), obj);
-        
+
         let delta = self.pending_delta.get_or_insert_with(JsonCrdtDelta::new);
         delta.new_objects.push(id.clone());
-        
+
         id
     }
 
@@ -634,10 +642,10 @@ impl JsonCrdt {
         let id = ArrayId::new();
         let arr = JsonArray::new(id.clone(), &self.replica_id);
         self.arrays.insert(id.clone(), arr);
-        
+
         let delta = self.pending_delta.get_or_insert_with(JsonCrdtDelta::new);
         delta.new_arrays.push(id.clone());
-        
+
         id
     }
 
@@ -668,12 +676,19 @@ impl JsonCrdt {
     }
 
     /// Insert into an array.
-    pub fn array_insert(&mut self, array_id: &ArrayId, index: usize, value: JsonValue) -> Result<(), DbError> {
-        let arr = self.arrays.get_mut(array_id)
+    pub fn array_insert(
+        &mut self,
+        array_id: &ArrayId,
+        index: usize,
+        value: JsonValue,
+    ) -> Result<(), DbError> {
+        let arr = self
+            .arrays
+            .get_mut(array_id)
             .ok_or_else(|| DbError::PathNotFound(format!("Array {:?}", array_id)))?;
-        
+
         arr.insert(index, value);
-        
+
         if let Some(delta) = arr.list.take_delta() {
             let doc_delta = self.pending_delta.get_or_insert_with(JsonCrdtDelta::new);
             doc_delta.array_changes.push(ArrayChange {
@@ -681,17 +696,19 @@ impl JsonCrdt {
                 delta,
             });
         }
-        
+
         Ok(())
     }
 
     /// Push to an array.
     pub fn array_push(&mut self, array_id: &ArrayId, value: JsonValue) -> Result<(), DbError> {
-        let arr = self.arrays.get_mut(array_id)
+        let arr = self
+            .arrays
+            .get_mut(array_id)
             .ok_or_else(|| DbError::PathNotFound(format!("Array {:?}", array_id)))?;
-        
+
         arr.push(value);
-        
+
         if let Some(delta) = arr.list.take_delta() {
             let doc_delta = self.pending_delta.get_or_insert_with(JsonCrdtDelta::new);
             doc_delta.array_changes.push(ArrayChange {
@@ -699,19 +716,23 @@ impl JsonCrdt {
                 delta,
             });
         }
-        
+
         Ok(())
     }
 
     /// Remove from an array.
     pub fn array_remove(&mut self, array_id: &ArrayId, index: usize) -> Result<JsonValue, DbError> {
-        let arr = self.arrays.get_mut(array_id)
+        let arr = self
+            .arrays
+            .get_mut(array_id)
             .ok_or_else(|| DbError::PathNotFound(format!("Array {:?}", array_id)))?;
-        
+
         let arr_len = arr.len();
-        let value = arr.remove(index)
-            .ok_or(DbError::IndexOutOfBounds { index, length: arr_len })?;
-        
+        let value = arr.remove(index).ok_or(DbError::IndexOutOfBounds {
+            index,
+            length: arr_len,
+        })?;
+
         if let Some(delta) = arr.list.take_delta() {
             let doc_delta = self.pending_delta.get_or_insert_with(JsonCrdtDelta::new);
             doc_delta.array_changes.push(ArrayChange {
@@ -719,7 +740,7 @@ impl JsonCrdt {
                 delta,
             });
         }
-        
+
         Ok(value)
     }
 
@@ -730,14 +751,16 @@ impl JsonCrdt {
 
     /// Get all keys in the root object.
     pub fn keys(&self) -> Vec<String> {
-        self.objects.get(&self.root_id)
+        self.objects
+            .get(&self.root_id)
             .map(|obj| obj.keys().cloned().collect())
             .unwrap_or_default()
     }
 
     /// Check if a key exists in the root object.
     pub fn contains_key(&self, key: &str) -> bool {
-        self.objects.get(&self.root_id)
+        self.objects
+            .get(&self.root_id)
             .map(|obj| obj.get(key).is_some())
             .unwrap_or(false)
     }
@@ -748,7 +771,7 @@ impl JsonCrdt {
         if path.is_root() {
             return Some(self.root_id.clone());
         }
-        
+
         let value = self.get(path)?;
         match value {
             JsonValue::Object(id) => Some(id.clone()),
@@ -781,23 +804,29 @@ impl JsonCrdt {
     pub fn apply_delta(&mut self, delta: &JsonCrdtDelta) {
         // Create new objects
         for obj_id in &delta.new_objects {
-            self.objects.entry(obj_id.clone())
+            self.objects
+                .entry(obj_id.clone())
                 .or_insert_with(|| JsonObject::new(obj_id.clone()));
         }
-        
+
         // Create new arrays
         for arr_id in &delta.new_arrays {
-            self.arrays.entry(arr_id.clone())
+            self.arrays
+                .entry(arr_id.clone())
                 .or_insert_with(|| JsonArray::new(arr_id.clone(), &self.replica_id));
         }
-        
+
         // Apply object changes
         for change in &delta.object_changes {
             if let Some(obj) = self.objects.get_mut(&change.object_id) {
-                obj.set(change.key.clone(), change.value_id.clone(), change.value.clone());
+                obj.set(
+                    change.key.clone(),
+                    change.value_id.clone(),
+                    change.value.clone(),
+                );
             }
         }
-        
+
         // Apply array changes
         for change in &delta.array_changes {
             if let Some(arr) = self.arrays.get_mut(&change.array_id) {
@@ -818,7 +847,7 @@ impl JsonCrdt {
             Some(o) => o,
             None => return serde_json::Value::Null,
         };
-        
+
         let mut map = serde_json::Map::new();
         for key in obj.keys() {
             if let Some(value) = obj.get(key) {
@@ -833,10 +862,8 @@ impl JsonCrdt {
             Some(a) => a,
             None => return serde_json::Value::Array(vec![]),
         };
-        
-        let values: Vec<_> = arr.iter()
-            .map(|v| self.value_to_json(v))
-            .collect();
+
+        let values: Vec<_> = arr.iter().map(|v| self.value_to_json(v)).collect();
         serde_json::Value::Array(values)
     }
 
@@ -845,11 +872,9 @@ impl JsonCrdt {
             JsonValue::Null => serde_json::Value::Null,
             JsonValue::Bool(b) => serde_json::Value::Bool(*b),
             JsonValue::Int(i) => serde_json::Value::Number((*i).into()),
-            JsonValue::Float(f) => {
-                serde_json::Number::from_f64(*f)
-                    .map(serde_json::Value::Number)
-                    .unwrap_or(serde_json::Value::Null)
-            }
+            JsonValue::Float(f) => serde_json::Number::from_f64(*f)
+                .map(serde_json::Value::Number)
+                .unwrap_or(serde_json::Value::Null),
             JsonValue::String(s) => serde_json::Value::String(s.clone()),
             JsonValue::Object(id) => self.object_to_json(id),
             JsonValue::Array(id) => self.array_to_json(id),
@@ -864,21 +889,25 @@ impl Lattice for JsonCrdt {
 
     fn join(&self, other: &Self) -> Self {
         let mut result = self.clone();
-        
+
         // Merge objects
         for (id, other_obj) in &other.objects {
-            result.objects.entry(id.clone())
+            result
+                .objects
+                .entry(id.clone())
                 .and_modify(|obj| obj.merge(other_obj))
                 .or_insert_with(|| other_obj.clone());
         }
-        
+
         // Merge arrays
         for (id, other_arr) in &other.arrays {
-            result.arrays.entry(id.clone())
+            result
+                .arrays
+                .entry(id.clone())
                 .and_modify(|arr| arr.merge(other_arr))
                 .or_insert_with(|| other_arr.clone());
         }
-        
+
         result
     }
 }
@@ -896,13 +925,18 @@ mod tests {
     #[test]
     fn test_basic_set_get() {
         let mut doc = JsonCrdt::new("r1");
-        
-        doc.set(&JsonPath::parse("name"), JsonValue::String("Alice".to_string())).unwrap();
-        doc.set(&JsonPath::parse("age"), JsonValue::Int(30)).unwrap();
-        
+
+        doc.set(
+            &JsonPath::parse("name"),
+            JsonValue::String("Alice".to_string()),
+        )
+        .unwrap();
+        doc.set(&JsonPath::parse("age"), JsonValue::Int(30))
+            .unwrap();
+
         let name = doc.get(&JsonPath::parse("name")).unwrap();
         assert_eq!(name.as_str(), Some("Alice"));
-        
+
         let age = doc.get(&JsonPath::parse("age")).unwrap();
         assert_eq!(age.as_int(), Some(30));
     }
@@ -910,12 +944,16 @@ mod tests {
     #[test]
     fn test_nested_object() {
         let mut doc = JsonCrdt::new("r1");
-        
+
         let user_id = doc.set_object(&JsonPath::parse("user")).unwrap();
-        doc.set(&JsonPath::parse("user.name"), JsonValue::String("Bob".to_string())).unwrap();
-        
+        doc.set(
+            &JsonPath::parse("user.name"),
+            JsonValue::String("Bob".to_string()),
+        )
+        .unwrap();
+
         assert!(doc.contains_key("user"));
-        
+
         // The path-based get for nested objects needs the value to be Object type
         let user_value = doc.get(&JsonPath::parse("user"));
         assert!(user_value.is_some());
@@ -924,16 +962,20 @@ mod tests {
     #[test]
     fn test_array_operations() {
         let mut doc = JsonCrdt::new("r1");
-        
+
         let arr_id = doc.create_array();
-        doc.set(&JsonPath::parse("items"), JsonValue::Array(arr_id.clone())).unwrap();
-        
-        doc.array_push(&arr_id, JsonValue::String("one".to_string())).unwrap();
-        doc.array_push(&arr_id, JsonValue::String("two".to_string())).unwrap();
-        doc.array_push(&arr_id, JsonValue::String("three".to_string())).unwrap();
-        
+        doc.set(&JsonPath::parse("items"), JsonValue::Array(arr_id.clone()))
+            .unwrap();
+
+        doc.array_push(&arr_id, JsonValue::String("one".to_string()))
+            .unwrap();
+        doc.array_push(&arr_id, JsonValue::String("two".to_string()))
+            .unwrap();
+        doc.array_push(&arr_id, JsonValue::String("three".to_string()))
+            .unwrap();
+
         assert_eq!(doc.array_len(&arr_id), Some(3));
-        
+
         let removed = doc.array_remove(&arr_id, 1).unwrap();
         assert_eq!(removed.as_str(), Some("two"));
         assert_eq!(doc.array_len(&arr_id), Some(2));
@@ -942,10 +984,14 @@ mod tests {
     #[test]
     fn test_delete() {
         let mut doc = JsonCrdt::new("r1");
-        
-        doc.set(&JsonPath::parse("temp"), JsonValue::String("value".to_string())).unwrap();
+
+        doc.set(
+            &JsonPath::parse("temp"),
+            JsonValue::String("value".to_string()),
+        )
+        .unwrap();
         assert!(doc.contains_key("temp"));
-        
+
         doc.delete(&JsonPath::parse("temp")).unwrap();
         // After delete, the key may still exist but with null value
     }
@@ -954,18 +1000,26 @@ mod tests {
     fn test_concurrent_sets() {
         let mut doc1 = JsonCrdt::new("r1");
         let mut doc2 = JsonCrdt::new("r2");
-        
+
         // Both set same key concurrently
-        doc1.set(&JsonPath::parse("value"), JsonValue::String("from_r1".to_string())).unwrap();
-        doc2.set(&JsonPath::parse("value"), JsonValue::String("from_r2".to_string())).unwrap();
-        
+        doc1.set(
+            &JsonPath::parse("value"),
+            JsonValue::String("from_r1".to_string()),
+        )
+        .unwrap();
+        doc2.set(
+            &JsonPath::parse("value"),
+            JsonValue::String("from_r2".to_string()),
+        )
+        .unwrap();
+
         // Exchange deltas
         let delta1 = doc1.take_delta().unwrap();
         let delta2 = doc2.take_delta().unwrap();
-        
+
         doc1.apply_delta(&delta2);
         doc2.apply_delta(&delta1);
-        
+
         // Both should converge to same value (LWW by replica+seq)
         let json1 = doc1.to_json();
         let json2 = doc2.to_json();
@@ -975,11 +1029,17 @@ mod tests {
     #[test]
     fn test_to_json() {
         let mut doc = JsonCrdt::new("r1");
-        
-        doc.set(&JsonPath::parse("name"), JsonValue::String("Test".to_string())).unwrap();
-        doc.set(&JsonPath::parse("count"), JsonValue::Int(42)).unwrap();
-        doc.set(&JsonPath::parse("active"), JsonValue::Bool(true)).unwrap();
-        
+
+        doc.set(
+            &JsonPath::parse("name"),
+            JsonValue::String("Test".to_string()),
+        )
+        .unwrap();
+        doc.set(&JsonPath::parse("count"), JsonValue::Int(42))
+            .unwrap();
+        doc.set(&JsonPath::parse("active"), JsonValue::Bool(true))
+            .unwrap();
+
         let json = doc.to_json();
         assert!(json.is_object());
         assert_eq!(json["name"], "Test");
@@ -991,22 +1051,33 @@ mod tests {
     fn test_path_parsing() {
         let path = JsonPath::parse("user.profile.name");
         assert_eq!(path.segments().len(), 3);
-        
+
         let path_with_index = JsonPath::parse("items.0.value");
         assert_eq!(path_with_index.segments().len(), 3);
-        assert!(matches!(path_with_index.segments()[1], PathSegment::Index(0)));
+        assert!(matches!(
+            path_with_index.segments()[1],
+            PathSegment::Index(0)
+        ));
     }
 
     #[test]
     fn test_lattice_join() {
         let mut doc1 = JsonCrdt::new("r1");
         let mut doc2 = JsonCrdt::new("r2");
-        
-        doc1.set(&JsonPath::parse("a"), JsonValue::String("from_r1".to_string())).unwrap();
-        doc2.set(&JsonPath::parse("b"), JsonValue::String("from_r2".to_string())).unwrap();
-        
+
+        doc1.set(
+            &JsonPath::parse("a"),
+            JsonValue::String("from_r1".to_string()),
+        )
+        .unwrap();
+        doc2.set(
+            &JsonPath::parse("b"),
+            JsonValue::String("from_r2".to_string()),
+        )
+        .unwrap();
+
         let merged = doc1.join(&doc2);
-        
+
         // Should have both keys
         assert!(merged.contains_key("a"));
         assert!(merged.contains_key("b"));
@@ -1015,11 +1086,11 @@ mod tests {
     #[test]
     fn test_keys() {
         let mut doc = JsonCrdt::new("r1");
-        
+
         doc.set(&JsonPath::parse("x"), JsonValue::Int(1)).unwrap();
         doc.set(&JsonPath::parse("y"), JsonValue::Int(2)).unwrap();
         doc.set(&JsonPath::parse("z"), JsonValue::Int(3)).unwrap();
-        
+
         let keys = doc.keys();
         assert_eq!(keys.len(), 3);
         assert!(keys.contains(&"x".to_string()));

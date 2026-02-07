@@ -4,29 +4,29 @@
 //! stress tests and benchmarks for the MDCS crate family.
 
 use stress_test::{
+    stress_test_all_core_crdts,
+    stress_test_all_db_crdts,
+    stress_test_document_store,
     // Core CRDT stress tests (async, 3 args)
-    stress_test_gset, 
-    stress_test_orset, 
-    stress_test_pncounter,
+    stress_test_gset,
+    stress_test_json_crdt,
     stress_test_lwwreg,
     stress_test_mvreg,
-    stress_test_scaling,
-    stress_test_all_core_crdts,
+    stress_test_orset,
+    stress_test_pncounter,
     // Database layer stress tests (sync, 2 args)
     stress_test_rga_text,
     stress_test_rich_text,
-    stress_test_json_crdt,
-    stress_test_document_store,
-    stress_test_all_db_crdts,
+    stress_test_scaling,
 };
 pub mod stress_test;
 
 fn main() {
     let rt = tokio::runtime::Runtime::new().unwrap();
-    
+
     // Parse command line args for test selection
     let args: Vec<String> = std::env::args().collect();
-    
+
     if args.len() > 1 {
         match args[1].as_str() {
             "core" => rt.block_on(run_core_tests()),
@@ -79,7 +79,7 @@ async fn run_quick_tests() {
     println!("── Core CRDTs ──────────────────────────────────────────────");
     let stats = stress_test_gset(4, 100, 200).await;
     stats.print();
-    
+
     let stats = stress_test_orset(4, 100, 200).await;
     stats.print();
 
@@ -109,7 +109,7 @@ async fn run_core_tests() {
     println!("── Small Scale (4 replicas, 100 ops) ─────────────────────────");
     let stats = stress_test_gset(4, 100, 200).await;
     stats.print();
-    
+
     let stats = stress_test_orset(4, 100, 200).await;
     stats.print();
 
@@ -126,7 +126,7 @@ async fn run_core_tests() {
     println!("\n── Medium Scale (10 replicas, 500 ops) ─────────────────────");
     let stats = stress_test_gset(10, 500, 1000).await;
     stats.print();
-    
+
     let stats = stress_test_orset(10, 500, 1000).await;
     stats.print();
 
@@ -153,7 +153,7 @@ fn run_db_tests() {
     let stats = stress_test_rga_text(8, 300);
     stats.print();
 
-    // Rich Text tests  
+    // Rich Text tests
     println!("\n── Rich Text ───────────────────────────────────────────────");
     let stats = stress_test_rich_text(4, 100);
     stats.print();
@@ -200,7 +200,8 @@ async fn run_scaling_analysis() {
         let syncs = ops * 2;
         let stats = stress_test_orset(num_replicas, ops, syncs).await;
         let total_ops = stats.num_replicas * stats.operations_per_replica;
-        println!("  {:>8} │ {:>6} │ {:>10.2} │ {:>6.4} │ {:>6} │ {:>8}", 
+        println!(
+            "  {:>8} │ {:>6} │ {:>10.2} │ {:>6.4} │ {:>6} │ {:>8}",
             stats.num_replicas,
             total_ops,
             stats.total_time.as_secs_f64() * 1000.0,
@@ -217,7 +218,8 @@ async fn run_scaling_analysis() {
         let ops = num_replicas * 25;
         let stats = stress_test_rga_text(num_replicas, ops);
         let total_ops = stats.num_replicas * stats.operations_per_replica;
-        println!("  {:>8} │ {:>6} │ {:>10.2} │ {:>6.4} │ {:>6} │ {:>8}", 
+        println!(
+            "  {:>8} │ {:>6} │ {:>10.2} │ {:>6.4} │ {:>6} │ {:>8}",
             stats.num_replicas,
             total_ops,
             stats.total_time.as_secs_f64() * 1000.0,
@@ -234,7 +236,8 @@ async fn run_scaling_analysis() {
         let ops = num_replicas * 20;
         let stats = stress_test_rich_text(num_replicas, ops);
         let total_ops = stats.num_replicas * stats.operations_per_replica;
-        println!("  {:>8} │ {:>6} │ {:>10.2} │ {:>6.4} │ {:>6} │ {:>8}", 
+        println!(
+            "  {:>8} │ {:>6} │ {:>10.2} │ {:>6.4} │ {:>6} │ {:>8}",
             stats.num_replicas,
             total_ops,
             stats.total_time.as_secs_f64() * 1000.0,
@@ -251,7 +254,8 @@ async fn run_scaling_analysis() {
         let ops = num_replicas * 20;
         let stats = stress_test_json_crdt(num_replicas, ops);
         let total_ops = stats.num_replicas * stats.operations_per_replica;
-        println!("  {:>8} │ {:>6} │ {:>10.2} │ {:>6.4} │ {:>6} │ {:>8}", 
+        println!(
+            "  {:>8} │ {:>6} │ {:>10.2} │ {:>6.4} │ {:>6} │ {:>8}",
             stats.num_replicas,
             total_ops,
             stats.total_time.as_secs_f64() * 1000.0,
@@ -268,7 +272,7 @@ async fn run_full_suite() {
     println!("\n╔════════════════════════════════════════════════════════════╗");
     println!("║            FULL BENCHMARK SUITE                            ║");
     println!("╚════════════════════════════════════════════════════════════╝\n");
-    
+
     println!("This will run all tests - this may take several minutes...\n");
 
     // Core CRDT tests

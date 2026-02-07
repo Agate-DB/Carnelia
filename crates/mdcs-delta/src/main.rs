@@ -5,13 +5,13 @@
 //! - Delta-mutators for each CRDT type
 //! - Anti-entropy Algorithm 1 (convergence mode)
 
+pub mod anti_entropy;
 pub mod buffer;
 pub mod mutators;
-pub mod anti_entropy;
 
 // Re-export main types
-pub use buffer::{DeltaBuffer, DeltaReplica, AckTracker, TaggedDelta, SeqNo, ReplicaId};
-pub use anti_entropy::{AntiEntropyCluster, AntiEntropyMessage, NetworkSimulator, NetworkConfig};
+pub use anti_entropy::{AntiEntropyCluster, AntiEntropyMessage, NetworkConfig, NetworkSimulator};
+pub use buffer::{AckTracker, DeltaBuffer, DeltaReplica, ReplicaId, SeqNo, TaggedDelta};
 
 fn main() {
     println!("╔════════════════════════════════════════════════════════════╗");
@@ -24,8 +24,8 @@ fn main() {
 }
 
 fn demo_delta_buffer() {
-    use mdcs_core::gset::GSet;
     use buffer::DeltaReplica;
+    use mdcs_core::gset::GSet;
 
     println!("╔══════════════════════════════════════════════════════════════╗");
     println!("║  Demo 1: Delta Buffer with GSet                              ║");
@@ -62,8 +62,8 @@ fn demo_delta_buffer() {
 }
 
 fn demo_anti_entropy() {
-    use mdcs_core::gset::GSet;
     use anti_entropy::{AntiEntropyCluster, NetworkConfig};
+    use mdcs_core::gset::GSet;
 
     println!("\n╔══════════════════════════════════════════════════════════════╗");
     println!("║  Demo 2: Anti-Entropy Algorithm 1 (Convergence)              ║");
@@ -104,7 +104,11 @@ fn demo_anti_entropy() {
 
     println!("\nBefore sync:");
     for i in 0..3 {
-        println!("  Replica {}: {:?}", i, cluster.replica(i).state().iter().collect::<Vec<_>>());
+        println!(
+            "  Replica {}: {:?}",
+            i,
+            cluster.replica(i).state().iter().collect::<Vec<_>>()
+        );
     }
     println!("Converged: {}", cluster.is_converged());
 
@@ -114,7 +118,11 @@ fn demo_anti_entropy() {
 
     println!("\nAfter sync:");
     for i in 0..3 {
-        println!("  Replica {}: {:?}", i, cluster.replica(i).state().iter().collect::<Vec<_>>());
+        println!(
+            "  Replica {}: {:?}",
+            i,
+            cluster.replica(i).state().iter().collect::<Vec<_>>()
+        );
     }
     println!("Converged: {}", cluster.is_converged());
 
@@ -149,8 +157,10 @@ fn demo_anti_entropy() {
     }
 
     println!("Converged after {} rounds", rounds);
-    println!("Final state: {:?}", lossy_cluster.replica(0).state().iter().collect::<Vec<_>>());
+    println!(
+        "Final state: {:?}",
+        lossy_cluster.replica(0).state().iter().collect::<Vec<_>>()
+    );
 
     println!("\n✓ All demos complete!");
 }
-

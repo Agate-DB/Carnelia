@@ -233,7 +233,7 @@ impl RichText {
     /// Insert plain text at a position.
     pub fn insert(&mut self, position: usize, text: &str) {
         self.text.insert(position, text);
-        
+
         // Capture text delta
         if let Some(text_delta) = self.text.take_delta() {
             let delta = self.pending_delta.get_or_insert_with(RichTextDelta::new);
@@ -244,7 +244,7 @@ impl RichText {
     /// Delete text range.
     pub fn delete(&mut self, start: usize, length: usize) {
         self.text.delete(start, length);
-        
+
         // Capture text delta
         if let Some(text_delta) = self.text.take_delta() {
             let delta = self.pending_delta.get_or_insert_with(RichTextDelta::new);
@@ -255,7 +255,7 @@ impl RichText {
     /// Replace text range.
     pub fn replace(&mut self, start: usize, end: usize, text: &str) {
         self.text.replace(start, end, text);
-        
+
         // Capture text delta
         if let Some(text_delta) = self.text.take_delta() {
             let delta = self.pending_delta.get_or_insert_with(RichTextDelta::new);
@@ -268,32 +268,34 @@ impl RichText {
     /// Add a formatting mark to a range.
     pub fn add_mark(&mut self, start: usize, end: usize, mark_type: MarkType) -> MarkId {
         let id = MarkId::new(&self.replica_id);
-        
+
         // Convert positions to anchors
         let start_anchor = if start == 0 {
             Anchor::Start
         } else {
-            self.text.position_to_id(start.saturating_sub(1))
+            self.text
+                .position_to_id(start.saturating_sub(1))
                 .map(|id| Anchor::After(id))
                 .unwrap_or(Anchor::Start)
         };
-        
+
         let end_anchor = if end >= self.text.len() {
             Anchor::End
         } else {
-            self.text.position_to_id(end)
+            self.text
+                .position_to_id(end)
                 .map(|id| Anchor::Before(id))
                 .unwrap_or(Anchor::End)
         };
-        
+
         let mark = Mark::new(id.clone(), mark_type, start_anchor, end_anchor);
-        
+
         self.marks.insert(id.clone(), mark.clone());
-        
+
         // Record delta
         let delta = self.pending_delta.get_or_insert_with(RichTextDelta::new);
         delta.add_marks.push(mark);
-        
+
         id
     }
 
@@ -318,27 +320,43 @@ impl RichText {
     }
 
     /// Add a comment/annotation.
-    pub fn comment(&mut self, start: usize, end: usize, author: impl Into<String>, content: impl Into<String>) -> MarkId {
-        self.add_mark(start, end, MarkType::Comment {
-            author: author.into(),
-            content: content.into(),
-        })
+    pub fn comment(
+        &mut self,
+        start: usize,
+        end: usize,
+        author: impl Into<String>,
+        content: impl Into<String>,
+    ) -> MarkId {
+        self.add_mark(
+            start,
+            end,
+            MarkType::Comment {
+                author: author.into(),
+                content: content.into(),
+            },
+        )
     }
 
     /// Add a highlight.
     pub fn highlight(&mut self, start: usize, end: usize, color: impl Into<String>) -> MarkId {
-        self.add_mark(start, end, MarkType::Highlight { color: color.into() })
+        self.add_mark(
+            start,
+            end,
+            MarkType::Highlight {
+                color: color.into(),
+            },
+        )
     }
 
     /// Remove a mark by ID.
     pub fn remove_mark(&mut self, id: &MarkId) -> bool {
         if let Some(mark) = self.marks.get_mut(id) {
             mark.deleted = true;
-            
+
             // Record delta
             let delta = self.pending_delta.get_or_insert_with(RichTextDelta::new);
             delta.remove_marks.push(id.clone());
-            
+
             true
         } else {
             false
@@ -347,7 +365,9 @@ impl RichText {
 
     /// Remove all marks of a type from a range.
     pub fn remove_marks_in_range(&mut self, start: usize, end: usize, mark_type: &MarkType) {
-        let to_remove: Vec<_> = self.marks.iter()
+        let to_remove: Vec<_> = self
+            .marks
+            .iter()
             .filter(|(_, mark)| {
                 if mark.deleted || &mark.mark_type != mark_type {
                     return false;
@@ -361,7 +381,7 @@ impl RichText {
             })
             .map(|(id, _)| id.clone())
             .collect();
-        
+
         for id in to_remove {
             self.remove_mark(&id);
         }
@@ -369,14 +389,16 @@ impl RichText {
 
     /// Get all marks at a position.
     pub fn marks_at(&self, position: usize) -> Vec<&Mark> {
-        self.marks.values()
+        self.marks
+            .values()
             .filter(|m| m.covers(&self.text, position))
             .collect()
     }
 
     /// Get all marks in a range.
     pub fn marks_in_range(&self, start: usize, end: usize) -> Vec<&Mark> {
-        self.marks.values()
+        self.marks
+            .values()
             .filter(|mark| {
                 if mark.deleted {
                     return false;
@@ -392,7 +414,9 @@ impl RichText {
 
     /// Check if a position has a specific mark type.
     pub fn has_mark(&self, position: usize, mark_type: &MarkType) -> bool {
-        self.marks_at(position).iter().any(|m| &m.mark_type == mark_type)
+        self.marks_at(position)
+            .iter()
+            .any(|m| &m.mark_type == mark_type)
     }
 
     /// Get all marks (including deleted for debugging).
@@ -418,10 +442,11 @@ impl RichText {
         if let Some(text_delta) = &delta.text_delta {
             self.text.apply_delta(text_delta);
         }
-        
+
         // Apply mark additions
         for mark in &delta.add_marks {
-            self.marks.entry(mark.id.clone())
+            self.marks
+                .entry(mark.id.clone())
                 .and_modify(|m| {
                     if mark.deleted {
                         m.deleted = true;
@@ -429,7 +454,7 @@ impl RichText {
                 })
                 .or_insert_with(|| mark.clone());
         }
-        
+
         // Apply mark removals
         for id in &delta.remove_marks {
             if let Some(mark) = self.marks.get_mut(id) {
@@ -501,7 +526,10 @@ fn mark_open_tag(mark_type: &MarkType) -> String {
         MarkType::Strikethrough => "<s>".to_string(),
         MarkType::Code => "<code>".to_string(),
         MarkType::Link { url } => format!("<a href=\"{}\">", url),
-        MarkType::Comment { author, content } => format!("<span data-comment-author=\"{}\" data-comment=\"{}\">", author, content),
+        MarkType::Comment { author, content } => format!(
+            "<span data-comment-author=\"{}\" data-comment=\"{}\">",
+            author, content
+        ),
         MarkType::Highlight { color } => format!("<mark style=\"background-color:{}\">", color),
         MarkType::Custom { name, value } => format!("<span data-{}=\"{}\">", name, value),
     }
@@ -529,8 +557,7 @@ impl std::fmt::Display for RichText {
 
 impl PartialEq for RichText {
     fn eq(&self, other: &Self) -> bool {
-        self.to_string() == other.to_string() && 
-        self.marks.len() == other.marks.len()
+        self.to_string() == other.to_string() && self.marks.len() == other.marks.len()
     }
 }
 
@@ -543,13 +570,15 @@ impl Lattice for RichText {
 
     fn join(&self, other: &Self) -> Self {
         let mut result = self.clone();
-        
+
         // Merge text
         result.text = self.text.join(&other.text);
-        
+
         // Merge marks
         for (id, mark) in &other.marks {
-            result.marks.entry(id.clone())
+            result
+                .marks
+                .entry(id.clone())
                 .and_modify(|m| {
                     if mark.deleted {
                         m.deleted = true;
@@ -557,7 +586,7 @@ impl Lattice for RichText {
                 })
                 .or_insert_with(|| mark.clone());
         }
-        
+
         result
     }
 }
@@ -577,7 +606,7 @@ mod tests {
         let mut doc = RichText::new("r1");
         doc.insert(0, "Hello World");
         doc.bold(0, 5);
-        
+
         assert_eq!(doc.to_string(), "Hello World");
         assert!(doc.has_mark(2, &MarkType::Bold));
         assert!(!doc.has_mark(6, &MarkType::Bold));
@@ -589,11 +618,11 @@ mod tests {
         doc.insert(0, "Hello World");
         doc.bold(0, 5);
         doc.italic(6, 11);
-        
+
         let marks_at_2 = doc.marks_at(2);
         assert_eq!(marks_at_2.len(), 1);
         assert_eq!(marks_at_2[0].mark_type, MarkType::Bold);
-        
+
         let marks_at_8 = doc.marks_at(8);
         assert_eq!(marks_at_8.len(), 1);
         assert_eq!(marks_at_8[0].mark_type, MarkType::Italic);
@@ -605,7 +634,7 @@ mod tests {
         doc.insert(0, "Hello World");
         doc.bold(0, 8);
         doc.italic(4, 11);
-        
+
         // Position 5 should have both
         let marks = doc.marks_at(5);
         assert_eq!(marks.len(), 2);
@@ -617,9 +646,17 @@ mod tests {
         doc.insert(0, "Check this out");
         doc.link(6, 10, "https://example.com");
         doc.comment(0, 14, "Alice", "Needs review");
-        
-        assert!(doc.has_mark(7, &MarkType::Link { url: "https://example.com".to_string() }));
-        assert!(doc.marks_at(0).iter().any(|m| matches!(&m.mark_type, MarkType::Comment { .. })));
+
+        assert!(doc.has_mark(
+            7,
+            &MarkType::Link {
+                url: "https://example.com".to_string()
+            }
+        ));
+        assert!(doc
+            .marks_at(0)
+            .iter()
+            .any(|m| matches!(&m.mark_type, MarkType::Comment { .. })));
     }
 
     #[test]
@@ -627,11 +664,11 @@ mod tests {
         let mut doc = RichText::new("r1");
         doc.insert(0, "Hello World");
         let mark_id = doc.bold(0, 5);
-        
+
         assert!(doc.has_mark(2, &MarkType::Bold));
-        
+
         doc.remove_mark(&mark_id);
-        
+
         assert!(!doc.has_mark(2, &MarkType::Bold));
     }
 
@@ -639,22 +676,22 @@ mod tests {
     fn test_concurrent_formatting() {
         let mut doc1 = RichText::new("r1");
         let mut doc2 = RichText::new("r2");
-        
+
         // Setup
         doc1.insert(0, "Hello World");
         doc2.apply_delta(&doc1.take_delta().unwrap());
-        
+
         // Concurrent formatting
         doc1.bold(0, 5);
         doc2.italic(6, 11);
-        
+
         // Exchange deltas
         let delta1 = doc1.take_delta().unwrap();
         let delta2 = doc2.take_delta().unwrap();
-        
+
         doc1.apply_delta(&delta2);
         doc2.apply_delta(&delta1);
-        
+
         // Both should have both marks
         assert!(doc1.has_mark(2, &MarkType::Bold));
         assert!(doc1.has_mark(8, &MarkType::Italic));
@@ -667,7 +704,7 @@ mod tests {
         let mut doc = RichText::new("r1");
         doc.insert(0, "Hello World");
         doc.bold(0, 5);
-        
+
         let html = doc.to_html();
         assert!(html.contains("<strong>Hello</strong>"));
         assert!(html.contains("World"));
@@ -678,13 +715,13 @@ mod tests {
         let mut doc = RichText::new("r1");
         doc.insert(0, "AB");
         doc.bold(0, 2); // Bold "AB"
-        
+
         // Insert "X" in the middle
         doc.insert(1, "X");
-        
+
         // Text should be "AXB"
         assert_eq!(doc.to_string(), "AXB");
-        
+
         // The mark anchor system means the mark covers A and B,
         // but X was inserted after A so may or may not be covered
         // depending on anchor resolution
@@ -694,15 +731,15 @@ mod tests {
     fn test_lattice_join() {
         let mut doc1 = RichText::new("r1");
         let mut doc2 = RichText::new("r2");
-        
+
         doc1.insert(0, "Hello");
         doc1.bold(0, 5);
-        
+
         doc2.insert(0, "World");
         doc2.italic(0, 5);
-        
+
         let merged = doc1.join(&doc2);
-        
+
         // Should have marks from both
         assert!(merged.active_marks().count() >= 2);
     }
@@ -714,7 +751,7 @@ mod tests {
         doc.bold(0, 5);
         doc.italic(6, 11);
         doc.underline(12, 16);
-        
+
         let marks = doc.marks_in_range(4, 13);
         // Should include Bold (ends at 5), Italic (6-11), and Underline (starts at 12)
         assert!(marks.len() >= 2);

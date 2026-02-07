@@ -163,7 +163,7 @@ impl Document {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_millis() as u64;
-        
+
         Self {
             id,
             title: title.into(),
@@ -180,7 +180,7 @@ impl Document {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_millis() as u64;
-        
+
         Self {
             id,
             title: title.into(),
@@ -197,7 +197,7 @@ impl Document {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_millis() as u64;
-        
+
         Self {
             id,
             title: title.into(),
@@ -284,9 +284,7 @@ pub enum StoreChange {
         delta: DocumentDelta,
     },
     /// A document was deleted.
-    Delete {
-        id: DocumentId,
-    },
+    Delete { id: DocumentId },
     /// Document metadata changed.
     MetadataChange {
         id: DocumentId,
@@ -318,16 +316,16 @@ impl DocumentStore {
         let id = DocumentId::new();
         let title = title.into();
         let doc = Document::new_text(id.clone(), &title, &self.replica_id);
-        
+
         self.title_index.insert(title.clone(), id.clone());
         self.documents.insert(id.clone(), doc);
-        
+
         self.pending_changes.push(StoreChange::Create {
             id: id.clone(),
             doc_type: DocumentType::Text,
             title,
         });
-        
+
         id
     }
 
@@ -336,16 +334,16 @@ impl DocumentStore {
         let id = DocumentId::new();
         let title = title.into();
         let doc = Document::new_rich_text(id.clone(), &title, &self.replica_id);
-        
+
         self.title_index.insert(title.clone(), id.clone());
         self.documents.insert(id.clone(), doc);
-        
+
         self.pending_changes.push(StoreChange::Create {
             id: id.clone(),
             doc_type: DocumentType::RichText,
             title,
         });
-        
+
         id
     }
 
@@ -354,16 +352,16 @@ impl DocumentStore {
         let id = DocumentId::new();
         let title = title.into();
         let doc = Document::new_json(id.clone(), &title, &self.replica_id);
-        
+
         self.title_index.insert(title.clone(), id.clone());
         self.documents.insert(id.clone(), doc);
-        
+
         self.pending_changes.push(StoreChange::Create {
             id: id.clone(),
             doc_type: DocumentType::Json,
             title,
         });
-        
+
         id
     }
 
@@ -381,7 +379,8 @@ impl DocumentStore {
     pub fn delete(&mut self, id: &DocumentId) -> Option<Document> {
         if let Some(doc) = self.documents.remove(id) {
             self.title_index.remove(&doc.title);
-            self.pending_changes.push(StoreChange::Delete { id: id.clone() });
+            self.pending_changes
+                .push(StoreChange::Delete { id: id.clone() });
             Some(doc)
         } else {
             None
@@ -406,190 +405,260 @@ impl DocumentStore {
     // === Text Operations ===
 
     /// Insert text into a text document.
-    pub fn text_insert(&mut self, id: &DocumentId, position: usize, text: &str) -> Result<(), DbError> {
-        let doc = self.documents.get_mut(id)
+    pub fn text_insert(
+        &mut self,
+        id: &DocumentId,
+        position: usize,
+        text: &str,
+    ) -> Result<(), DbError> {
+        let doc = self
+            .documents
+            .get_mut(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
+
         let doc_type = doc.value.document_type();
-        let rga_text = doc.value.as_text_mut()
-            .ok_or(DbError::TypeMismatch { expected: "Text".to_string(), found: format!("{:?}", doc_type) })?;
-        
+        let rga_text = doc.value.as_text_mut().ok_or(DbError::TypeMismatch {
+            expected: "Text".to_string(),
+            found: format!("{:?}", doc_type),
+        })?;
+
         rga_text.insert(position, text);
         let delta = rga_text.take_delta();
         doc.touch();
-        
+
         if let Some(delta) = delta {
             self.pending_changes.push(StoreChange::Update {
                 id: id.clone(),
                 delta: DocumentDelta::Text(delta),
             });
         }
-        
+
         Ok(())
     }
 
     /// Delete text from a text document.
-    pub fn text_delete(&mut self, id: &DocumentId, start: usize, length: usize) -> Result<(), DbError> {
-        let doc = self.documents.get_mut(id)
+    pub fn text_delete(
+        &mut self,
+        id: &DocumentId,
+        start: usize,
+        length: usize,
+    ) -> Result<(), DbError> {
+        let doc = self
+            .documents
+            .get_mut(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
+
         let doc_type = doc.value.document_type();
-        let rga_text = doc.value.as_text_mut()
-            .ok_or(DbError::TypeMismatch { expected: "Text".to_string(), found: format!("{:?}", doc_type) })?;
-        
+        let rga_text = doc.value.as_text_mut().ok_or(DbError::TypeMismatch {
+            expected: "Text".to_string(),
+            found: format!("{:?}", doc_type),
+        })?;
+
         rga_text.delete(start, length);
         let delta = rga_text.take_delta();
         doc.touch();
-        
+
         if let Some(delta) = delta {
             self.pending_changes.push(StoreChange::Update {
                 id: id.clone(),
                 delta: DocumentDelta::Text(delta),
             });
         }
-        
+
         Ok(())
     }
 
     /// Get text content.
     pub fn text_content(&self, id: &DocumentId) -> Result<String, DbError> {
-        let doc = self.documents.get(id)
+        let doc = self
+            .documents
+            .get(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
-        let rga_text = doc.value.as_text()
-            .ok_or(DbError::TypeMismatch { expected: "Text".to_string(), found: format!("{:?}", doc.value.document_type()) })?;
-        
+
+        let rga_text = doc.value.as_text().ok_or(DbError::TypeMismatch {
+            expected: "Text".to_string(),
+            found: format!("{:?}", doc.value.document_type()),
+        })?;
+
         Ok(rga_text.to_string())
     }
 
     // === Rich Text Operations ===
 
     /// Insert text into a rich text document.
-    pub fn rich_text_insert(&mut self, id: &DocumentId, position: usize, text: &str) -> Result<(), DbError> {
-        let doc = self.documents.get_mut(id)
+    pub fn rich_text_insert(
+        &mut self,
+        id: &DocumentId,
+        position: usize,
+        text: &str,
+    ) -> Result<(), DbError> {
+        let doc = self
+            .documents
+            .get_mut(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
+
         let doc_type = doc.value.document_type();
-        let rich_text = doc.value.as_rich_text_mut()
-            .ok_or(DbError::TypeMismatch { expected: "RichText".to_string(), found: format!("{:?}", doc_type) })?;
-        
+        let rich_text = doc.value.as_rich_text_mut().ok_or(DbError::TypeMismatch {
+            expected: "RichText".to_string(),
+            found: format!("{:?}", doc_type),
+        })?;
+
         rich_text.insert(position, text);
         let delta = rich_text.take_delta();
         doc.touch();
-        
+
         if let Some(delta) = delta {
             self.pending_changes.push(StoreChange::Update {
                 id: id.clone(),
                 delta: DocumentDelta::RichText(delta),
             });
         }
-        
+
         Ok(())
     }
 
     /// Apply bold formatting.
-    pub fn rich_text_bold(&mut self, id: &DocumentId, start: usize, end: usize) -> Result<(), DbError> {
-        let doc = self.documents.get_mut(id)
+    pub fn rich_text_bold(
+        &mut self,
+        id: &DocumentId,
+        start: usize,
+        end: usize,
+    ) -> Result<(), DbError> {
+        let doc = self
+            .documents
+            .get_mut(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
+
         let doc_type = doc.value.document_type();
-        let rich_text = doc.value.as_rich_text_mut()
-            .ok_or(DbError::TypeMismatch { expected: "RichText".to_string(), found: format!("{:?}", doc_type) })?;
-        
+        let rich_text = doc.value.as_rich_text_mut().ok_or(DbError::TypeMismatch {
+            expected: "RichText".to_string(),
+            found: format!("{:?}", doc_type),
+        })?;
+
         rich_text.bold(start, end);
         let delta = rich_text.take_delta();
         doc.touch();
-        
+
         if let Some(delta) = delta {
             self.pending_changes.push(StoreChange::Update {
                 id: id.clone(),
                 delta: DocumentDelta::RichText(delta),
             });
         }
-        
+
         Ok(())
     }
 
     /// Apply italic formatting.
-    pub fn rich_text_italic(&mut self, id: &DocumentId, start: usize, end: usize) -> Result<(), DbError> {
-        let doc = self.documents.get_mut(id)
+    pub fn rich_text_italic(
+        &mut self,
+        id: &DocumentId,
+        start: usize,
+        end: usize,
+    ) -> Result<(), DbError> {
+        let doc = self
+            .documents
+            .get_mut(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
+
         let doc_type = doc.value.document_type();
-        let rich_text = doc.value.as_rich_text_mut()
-            .ok_or(DbError::TypeMismatch { expected: "RichText".to_string(), found: format!("{:?}", doc_type) })?;
-        
+        let rich_text = doc.value.as_rich_text_mut().ok_or(DbError::TypeMismatch {
+            expected: "RichText".to_string(),
+            found: format!("{:?}", doc_type),
+        })?;
+
         rich_text.italic(start, end);
         let delta = rich_text.take_delta();
         doc.touch();
-        
+
         if let Some(delta) = delta {
             self.pending_changes.push(StoreChange::Update {
                 id: id.clone(),
                 delta: DocumentDelta::RichText(delta),
             });
         }
-        
+
         Ok(())
     }
 
     /// Get rich text as HTML.
     pub fn rich_text_html(&self, id: &DocumentId) -> Result<String, DbError> {
-        let doc = self.documents.get(id)
+        let doc = self
+            .documents
+            .get(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
+
         let doc_type = doc.value.document_type();
-        let rich_text = doc.value.as_rich_text()
-            .ok_or(DbError::TypeMismatch { expected: "RichText".to_string(), found: format!("{:?}", doc_type) })?;
-        
+        let rich_text = doc.value.as_rich_text().ok_or(DbError::TypeMismatch {
+            expected: "RichText".to_string(),
+            found: format!("{:?}", doc_type),
+        })?;
+
         Ok(rich_text.to_html())
     }
 
     // === JSON Operations ===
 
     /// Set a value in a JSON document.
-    pub fn json_set(&mut self, id: &DocumentId, path: &str, value: JsonValue) -> Result<(), DbError> {
-        let doc = self.documents.get_mut(id)
+    pub fn json_set(
+        &mut self,
+        id: &DocumentId,
+        path: &str,
+        value: JsonValue,
+    ) -> Result<(), DbError> {
+        let doc = self
+            .documents
+            .get_mut(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
+
         let doc_type = doc.value.document_type();
-        let json = doc.value.as_json_mut()
-            .ok_or(DbError::TypeMismatch { expected: "Json".to_string(), found: format!("{:?}", doc_type) })?;
-        
+        let json = doc.value.as_json_mut().ok_or(DbError::TypeMismatch {
+            expected: "Json".to_string(),
+            found: format!("{:?}", doc_type),
+        })?;
+
         json.set(&JsonPath::parse(path), value)?;
         let delta = json.take_delta();
         doc.touch();
-        
+
         if let Some(delta) = delta {
             self.pending_changes.push(StoreChange::Update {
                 id: id.clone(),
                 delta: DocumentDelta::Json(delta),
             });
         }
-        
+
         Ok(())
     }
 
     /// Get a value from a JSON document.
     pub fn json_get(&self, id: &DocumentId, path: &str) -> Result<Option<&JsonValue>, DbError> {
-        let doc = self.documents.get(id)
+        let doc = self
+            .documents
+            .get(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
+
         let doc_type = doc.value.document_type();
-        let json = doc.value.as_json()
-            .ok_or(DbError::TypeMismatch { expected: "Json".to_string(), found: format!("{:?}", doc_type) })?;
-        
+        let json = doc.value.as_json().ok_or(DbError::TypeMismatch {
+            expected: "Json".to_string(),
+            found: format!("{:?}", doc_type),
+        })?;
+
         Ok(json.get(&JsonPath::parse(path)))
     }
 
     /// Get JSON document as serde_json::Value.
     pub fn json_to_value(&self, id: &DocumentId) -> Result<serde_json::Value, DbError> {
-        let doc = self.documents.get(id)
+        let doc = self
+            .documents
+            .get(id)
             .ok_or_else(|| DbError::DocumentNotFound(id.to_string()))?;
-        
-        let json = doc.value.as_json()
-            .ok_or(DbError::TypeMismatch { expected: "Json".to_string(), found: format!("{:?}", doc.value.document_type()) })?;
-        
+
+        let json = doc.value.as_json().ok_or(DbError::TypeMismatch {
+            expected: "Json".to_string(),
+            found: format!("{:?}", doc.value.document_type()),
+        })?;
+
         Ok(json.to_json())
     }
 
@@ -597,7 +666,8 @@ impl DocumentStore {
 
     /// Find a document by title.
     pub fn find_by_title(&self, title: &str) -> Option<&Document> {
-        self.title_index.get(title)
+        self.title_index
+            .get(title)
             .and_then(|id| self.documents.get(id))
     }
 
@@ -608,7 +678,9 @@ impl DocumentStore {
 
     /// Query documents with options.
     pub fn query(&self, options: &QueryOptions) -> Vec<&Document> {
-        let mut results: Vec<_> = self.documents.values()
+        let mut results: Vec<_> = self
+            .documents
+            .values()
             .filter(|doc| {
                 // Type filter
                 if let Some(ref doc_type) = options.document_type {
@@ -625,7 +697,7 @@ impl DocumentStore {
                 true
             })
             .collect();
-        
+
         // Sort
         if let Some(ref sort_by) = options.sort_by {
             match sort_by {
@@ -643,7 +715,7 @@ impl DocumentStore {
                 results.reverse();
             }
         }
-        
+
         // Pagination
         if let Some(offset) = options.offset {
             results = results.into_iter().skip(offset).collect();
@@ -651,13 +723,14 @@ impl DocumentStore {
         if let Some(limit) = options.limit {
             results.truncate(limit);
         }
-        
+
         results
     }
 
     /// Prefix scan for titles.
     pub fn scan_prefix(&self, prefix: &str) -> Vec<&Document> {
-        self.title_index.range(prefix.to_string()..)
+        self.title_index
+            .range(prefix.to_string()..)
             .take_while(|(k, _)| k.starts_with(prefix))
             .filter_map(|(_, id)| self.documents.get(id))
             .collect()
@@ -674,12 +747,22 @@ impl DocumentStore {
     pub fn apply_changes(&mut self, changes: &[StoreChange]) {
         for change in changes {
             match change {
-                StoreChange::Create { id, doc_type, title } => {
+                StoreChange::Create {
+                    id,
+                    doc_type,
+                    title,
+                } => {
                     if !self.documents.contains_key(id) {
                         let doc = match doc_type {
-                            DocumentType::Text => Document::new_text(id.clone(), title, &self.replica_id),
-                            DocumentType::RichText => Document::new_rich_text(id.clone(), title, &self.replica_id),
-                            DocumentType::Json => Document::new_json(id.clone(), title, &self.replica_id),
+                            DocumentType::Text => {
+                                Document::new_text(id.clone(), title, &self.replica_id)
+                            }
+                            DocumentType::RichText => {
+                                Document::new_rich_text(id.clone(), title, &self.replica_id)
+                            }
+                            DocumentType::Json => {
+                                Document::new_json(id.clone(), title, &self.replica_id)
+                            }
                         };
                         self.title_index.insert(title.clone(), id.clone());
                         self.documents.insert(id.clone(), doc);
@@ -710,8 +793,12 @@ impl DocumentStore {
                 StoreChange::MetadataChange { id, key, value } => {
                     if let Some(doc) = self.documents.get_mut(id) {
                         match value {
-                            Some(v) => { doc.metadata.insert(key.clone(), v.clone()); }
-                            None => { doc.metadata.remove(key); }
+                            Some(v) => {
+                                doc.metadata.insert(key.clone(), v.clone());
+                            }
+                            None => {
+                                doc.metadata.remove(key);
+                            }
                         }
                     }
                 }
@@ -732,11 +819,11 @@ mod tests {
     #[test]
     fn test_create_documents() {
         let mut store = DocumentStore::new("r1");
-        
+
         let text_id = store.create_text("My Text");
         let rich_id = store.create_rich_text("My Rich Text");
         let json_id = store.create_json("My JSON");
-        
+
         assert_eq!(store.len(), 3);
         assert!(store.contains(&text_id));
         assert!(store.contains(&rich_id));
@@ -747,13 +834,13 @@ mod tests {
     fn test_text_operations() {
         let mut store = DocumentStore::new("r1");
         let id = store.create_text("Test");
-        
+
         store.text_insert(&id, 0, "Hello").unwrap();
         store.text_insert(&id, 5, " World").unwrap();
-        
+
         let content = store.text_content(&id).unwrap();
         assert_eq!(content, "Hello World");
-        
+
         store.text_delete(&id, 5, 6).unwrap();
         let content = store.text_content(&id).unwrap();
         assert_eq!(content, "Hello");
@@ -763,13 +850,15 @@ mod tests {
     fn test_json_operations() {
         let mut store = DocumentStore::new("r1");
         let id = store.create_json("Config");
-        
-        store.json_set(&id, "name", JsonValue::String("Test".to_string())).unwrap();
+
+        store
+            .json_set(&id, "name", JsonValue::String("Test".to_string()))
+            .unwrap();
         store.json_set(&id, "count", JsonValue::Int(42)).unwrap();
-        
+
         let name = store.json_get(&id, "name").unwrap();
         assert_eq!(name.unwrap().as_str(), Some("Test"));
-        
+
         let json = store.json_to_value(&id).unwrap();
         assert_eq!(json["name"], "Test");
         assert_eq!(json["count"], 42);
@@ -778,30 +867,30 @@ mod tests {
     #[test]
     fn test_find_by_title() {
         let mut store = DocumentStore::new("r1");
-        
+
         store.create_text("Document A");
         store.create_text("Document B");
         store.create_text("Other");
-        
+
         let doc = store.find_by_title("Document A").unwrap();
         assert_eq!(doc.title, "Document A");
-        
+
         assert!(store.find_by_title("Not Found").is_none());
     }
 
     #[test]
     fn test_query() {
         let mut store = DocumentStore::new("r1");
-        
+
         store.create_text("Text 1");
         store.create_text("Text 2");
         store.create_json("Json 1");
-        
+
         let options = QueryOptions {
             document_type: Some(DocumentType::Text),
             ..Default::default()
         };
-        
+
         let results = store.query(&options);
         assert_eq!(results.len(), 2);
     }
@@ -809,11 +898,11 @@ mod tests {
     #[test]
     fn test_prefix_scan() {
         let mut store = DocumentStore::new("r1");
-        
+
         store.create_text("project/doc1");
         store.create_text("project/doc2");
         store.create_text("other/doc1");
-        
+
         let results = store.scan_prefix("project/");
         assert_eq!(results.len(), 2);
     }
@@ -821,10 +910,10 @@ mod tests {
     #[test]
     fn test_delete() {
         let mut store = DocumentStore::new("r1");
-        
+
         let id = store.create_text("To Delete");
         assert!(store.contains(&id));
-        
+
         store.delete(&id);
         assert!(!store.contains(&id));
     }
@@ -833,15 +922,15 @@ mod tests {
     fn test_replication() {
         let mut store1 = DocumentStore::new("r1");
         let mut store2 = DocumentStore::new("r2");
-        
+
         // Create on store1
         let id = store1.create_text("Shared Doc");
         store1.text_insert(&id, 0, "Hello").unwrap();
-        
+
         // Replicate to store2
         let changes = store1.take_changes();
         store2.apply_changes(&changes);
-        
+
         // Verify
         assert!(store2.contains(&id));
         let content = store2.text_content(&id).unwrap();
@@ -852,11 +941,11 @@ mod tests {
     fn test_metadata() {
         let mut store = DocumentStore::new("r1");
         let id = store.create_text("With Metadata");
-        
+
         let doc = store.get_mut(&id).unwrap();
         doc.set_metadata("author", "Alice");
         doc.set_metadata("version", "1.0");
-        
+
         let doc = store.get(&id).unwrap();
         assert_eq!(doc.get_metadata("author"), Some(&"Alice".to_string()));
         assert_eq!(doc.get_metadata("version"), Some(&"1.0".to_string()));

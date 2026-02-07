@@ -53,7 +53,7 @@ pub mod sync;
 // Re-exports for convenience
 pub use client::{Client, ClientConfig, ClientConfigBuilder};
 pub use document::{CollaborativeDoc, DocEvent, JsonDoc, RichTextDoc, TextDoc};
-pub use error::{SdkError, Result};
+pub use error::{Result, SdkError};
 pub use network::{MemoryTransport, Message, NetworkTransport, Peer, PeerId, PeerState};
 pub use presence::{Awareness, AwarenessEvent, CursorInfo, UserPresenceInfo};
 pub use session::{Session, SessionEvent};

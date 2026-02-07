@@ -36,7 +36,7 @@ pub trait Lattice: Clone + PartialEq {
     fn leq(&self, other: &Self) -> bool {
         matches!(
             self.partial_cmp_lattice(other),
-            Some(Ordering:: Less) | Some(Ordering::Equal)
+            Some(Ordering::Less) | Some(Ordering::Equal)
         )
     }
 
@@ -47,9 +47,9 @@ pub trait Lattice: Clone + PartialEq {
 }
 
 /// Marker trait for CRDTs that support delta operations
-pub trait DeltaCRDT:  Lattice {
+pub trait DeltaCRDT: Lattice {
     /// The delta state type (often the same as Self)
-    type Delta:  Lattice;
+    type Delta: Lattice;
 
     /// Split off pending deltas, returning them and resetting internal delta buffer
     fn split_delta(&mut self) -> Option<Self::Delta>;

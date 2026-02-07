@@ -44,32 +44,32 @@ impl SyncConfigBuilder {
             config: SyncConfig::default(),
         }
     }
-    
+
     pub fn sync_interval(mut self, ms: u64) -> Self {
         self.config.sync_interval_ms = ms;
         self
     }
-    
+
     pub fn presence_interval(mut self, ms: u64) -> Self {
         self.config.presence_interval_ms = ms;
         self
     }
-    
+
     pub fn sync_timeout(mut self, ms: u64) -> Self {
         self.config.sync_timeout_ms = ms;
         self
     }
-    
+
     pub fn max_batch_size(mut self, size: usize) -> Self {
         self.config.max_batch_size = size;
         self
     }
-    
+
     pub fn auto_sync(mut self, enabled: bool) -> Self {
         self.config.auto_sync = enabled;
         self
     }
-    
+
     pub fn build(self) -> SyncConfig {
         self.config
     }
@@ -89,9 +89,15 @@ pub enum SyncEvent {
     /// Sync completed with a peer.
     SyncCompleted(PeerId),
     /// Received update from peer.
-    ReceivedUpdate { peer_id: PeerId, document_id: String },
+    ReceivedUpdate {
+        peer_id: PeerId,
+        document_id: String,
+    },
     /// Sent update to peer.
-    SentUpdate { peer_id: PeerId, document_id: String },
+    SentUpdate {
+        peer_id: PeerId,
+        document_id: String,
+    },
     /// Sync error occurred.
     SyncError { peer_id: PeerId, error: String },
 }
@@ -121,12 +127,12 @@ impl<T: NetworkTransport> SyncManager<T> {
             peer_states: HashMap::new(),
         }
     }
-    
+
     /// Get the sync configuration.
     pub fn config(&self) -> &SyncConfig {
         &self.config
     }
-    
+
     /// Broadcast a document update to all connected peers.
     pub async fn broadcast_update(
         &mut self,
@@ -139,11 +145,13 @@ impl<T: NetworkTransport> SyncManager<T> {
             delta,
             version,
         };
-        
-        self.transport.broadcast(message).await
+
+        self.transport
+            .broadcast(message)
+            .await
             .map_err(|e| SdkError::SyncError(e.to_string()))
     }
-    
+
     /// Send a sync request to a specific peer.
     pub async fn request_sync(
         &mut self,
@@ -155,18 +163,22 @@ impl<T: NetworkTransport> SyncManager<T> {
             document_id: document_id.to_string(),
             version,
         };
-        
-        self.transport.send(peer_id, message).await
+
+        self.transport
+            .send(peer_id, message)
+            .await
             .map_err(|e| SdkError::SyncError(e.to_string()))
     }
-    
+
     /// Update sync state for a peer.
     pub fn update_peer_state(&mut self, peer_id: &PeerId, document_id: &str, version: u64) {
         let state = self.peer_states.entry(peer_id.clone()).or_default();
-        state.document_versions.insert(document_id.to_string(), version);
+        state
+            .document_versions
+            .insert(document_id.to_string(), version);
         state.last_sync = Some(Instant::now());
     }
-    
+
     /// Get sync state for a peer.
     pub fn get_peer_state(&self, peer_id: &PeerId) -> Option<&PeerSyncState> {
         self.peer_states.get(peer_id)
@@ -177,7 +189,7 @@ impl<T: NetworkTransport> SyncManager<T> {
 mod tests {
     use super::*;
     use crate::network::MemoryTransport;
-    
+
     #[test]
     fn test_sync_config_builder() {
         let config = SyncConfigBuilder::new()
@@ -187,20 +199,20 @@ mod tests {
             .max_batch_size(50)
             .auto_sync(false)
             .build();
-        
+
         assert_eq!(config.sync_interval_ms, 500);
         assert_eq!(config.presence_interval_ms, 250);
         assert_eq!(config.sync_timeout_ms, 3000);
         assert_eq!(config.max_batch_size, 50);
         assert!(!config.auto_sync);
     }
-    
+
     #[tokio::test]
     async fn test_sync_manager_creation() {
         let transport = Arc::new(MemoryTransport::new(PeerId::new("peer-1")));
         let config = SyncConfig::default();
         let manager = SyncManager::new(transport, config);
-        
+
         assert!(manager.config().auto_sync);
     }
 }

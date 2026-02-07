@@ -257,11 +257,11 @@ impl PresenceTracker {
             stale_timeout: 30_000, // 30 seconds default
             pending_delta: None,
         };
-        
+
         // Add local user
         let presence = UserPresence::new(local_user, info);
         tracker.users.insert(presence.user_id.clone(), presence);
-        
+
         tracker
     }
 
@@ -352,10 +352,9 @@ impl PresenceTracker {
 
     /// Get all online users.
     pub fn online_users(&self) -> impl Iterator<Item = &UserPresence> + '_ {
-        self.users.values().filter(|p| {
-            !p.is_stale(self.stale_timeout) && 
-            !matches!(p.status, UserStatus::Offline)
-        })
+        self.users
+            .values()
+            .filter(|p| !p.is_stale(self.stale_timeout) && !matches!(p.status, UserStatus::Offline))
     }
 
     /// Get users with cursors in a document.
@@ -369,9 +368,7 @@ impl PresenceTracker {
     pub fn cursors_in_document(&self, document_id: &str) -> Vec<(&UserPresence, &Cursor)> {
         self.online_users()
             .filter(|p| p.user_id != self.local_user)
-            .filter_map(|p| {
-                p.get_cursor(document_id).map(|c| (p, c))
-            })
+            .filter_map(|p| p.get_cursor(document_id).map(|c| (p, c)))
             .collect()
     }
 
@@ -397,9 +394,10 @@ impl PresenceTracker {
                     continue;
                 }
             }
-            self.users.insert(presence.user_id.clone(), presence.clone());
+            self.users
+                .insert(presence.user_id.clone(), presence.clone());
         }
-        
+
         // Apply removals
         for user_id in &delta.removals {
             if *user_id != self.local_user {
@@ -410,20 +408,22 @@ impl PresenceTracker {
 
     /// Clean up stale presence records.
     pub fn cleanup_stale(&mut self) -> Vec<UserId> {
-        let stale: Vec<_> = self.users.iter()
+        let stale: Vec<_> = self
+            .users
+            .iter()
             .filter(|(id, p)| *id != &self.local_user && p.is_stale(self.stale_timeout))
             .map(|(id, _)| id.clone())
             .collect();
-        
+
         for id in &stale {
             self.users.remove(id);
         }
-        
+
         if !stale.is_empty() {
             let delta = self.pending_delta.get_or_insert_with(PresenceDelta::new);
             delta.removals.extend(stale.clone());
         }
-        
+
         stale
     }
 
@@ -446,9 +446,11 @@ impl Lattice for PresenceTracker {
 
     fn join(&self, other: &Self) -> Self {
         let mut result = self.clone();
-        
+
         for (user_id, other_presence) in &other.users {
-            result.users.entry(user_id.clone())
+            result
+                .users
+                .entry(user_id.clone())
                 .and_modify(|p| {
                     if other_presence.timestamp > p.timestamp {
                         *p = other_presence.clone();
@@ -456,7 +458,7 @@ impl Lattice for PresenceTracker {
                 })
                 .or_insert_with(|| other_presence.clone());
         }
-        
+
         result
     }
 }
@@ -579,14 +581,8 @@ mod tests {
         let user1 = UserId::new("user1");
         let user2 = UserId::new("user2");
 
-        let mut tracker1 = PresenceTracker::new(
-            user1.clone(),
-            UserInfo::new("Alice", "#E91E63"),
-        );
-        let mut tracker2 = PresenceTracker::new(
-            user2.clone(),
-            UserInfo::new("Bob", "#2196F3"),
-        );
+        let mut tracker1 = PresenceTracker::new(user1.clone(), UserInfo::new("Alice", "#E91E63"));
+        let mut tracker2 = PresenceTracker::new(user2.clone(), UserInfo::new("Bob", "#2196F3"));
 
         // User 1 sets cursor
         tracker1.set_cursor("doc1", Cursor::at(10));

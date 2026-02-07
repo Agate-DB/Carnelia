@@ -109,7 +109,12 @@ pub enum CausalMessage<D> {
     /// Request for state snapshot (for bootstrapping new replicas)
     SnapshotRequest { from: ReplicaId, to: ReplicaId },
     /// Full state snapshot response
-    Snapshot { from: ReplicaId, to: ReplicaId, state: D, seq: SeqNo },
+    Snapshot {
+        from: ReplicaId,
+        to: ReplicaId,
+        state: D,
+        seq: SeqNo,
+    },
 }
 
 /// Durable state that survives crashes
@@ -236,7 +241,9 @@ impl<D: Lattice> VolatileState<D> {
 
     /// Register a peer
     pub fn register_peer(&mut self, peer_id: ReplicaId) {
-        self.delta_buffers.entry(peer_id.clone()).or_insert_with(PeerDeltaBuffer::new);
+        self.delta_buffers
+            .entry(peer_id.clone())
+            .or_insert_with(PeerDeltaBuffer::new);
         self.peer_acks.entry(peer_id).or_insert(0);
     }
 
@@ -360,15 +367,15 @@ impl<S: Lattice + Clone> CausalReplica<S> {
     pub fn prepare_interval(&mut self, peer_id: &str) -> Option<DeltaInterval<S>> {
         let buffer = self.volatile.delta_buffers.get_mut(peer_id)?;
 
-        buffer.take().map(|(delta, from_seq, to_seq)| {
-            DeltaInterval {
+        buffer
+            .take()
+            .map(|(delta, from_seq, to_seq)| DeltaInterval {
                 from: self.durable.replica_id.clone(),
                 to: peer_id.to_string(),
                 delta,
                 from_seq,
                 to_seq,
-            }
-        })
+            })
     }
 
     /// Check if a delta-interval is causally ready
@@ -404,7 +411,8 @@ impl<S: Lattice + Clone> CausalReplica<S> {
             self.durable.state.join_assign(&interval.delta);
 
             // Update our ack for this peer
-            self.volatile.update_peer_ack(&interval.from, interval.to_seq);
+            self.volatile
+                .update_peer_ack(&interval.from, interval.to_seq);
 
             let ack = IntervalAck {
                 from: self.durable.replica_id.clone(),
@@ -418,8 +426,11 @@ impl<S: Lattice + Clone> CausalReplica<S> {
             Some(ack)
         } else {
             // Buffer for later
-            let pending = self.pending.entry(interval.from.clone()).or_insert_with(VecDeque::new);
-            
+            let pending = self
+                .pending
+                .entry(interval.from.clone())
+                .or_insert_with(VecDeque::new);
+
             // Insert in sorted order by from_seq
             let pos = pending.iter().position(|p| p.from_seq > interval.from_seq);
             match pos {
@@ -491,7 +502,10 @@ impl<S: Lattice + Clone> CausalReplica<S> {
 
     /// Check if we have pending deltas for any peer
     pub fn has_pending_deltas(&self) -> bool {
-        self.volatile.delta_buffers.values().any(|b| b.has_pending())
+        self.volatile
+            .delta_buffers
+            .values()
+            .any(|b| b.has_pending())
     }
 
     /// Count of pending out-of-order intervals
@@ -548,7 +562,9 @@ impl<S: Clone> MemoryStorage<S> {
     }
 }
 
-impl<S: Lattice + Clone + Serialize + for<'de> Deserialize<'de>> DurableStorage<S> for MemoryStorage<S> {
+impl<S: Lattice + Clone + Serialize + for<'de> Deserialize<'de>> DurableStorage<S>
+    for MemoryStorage<S>
+{
     fn persist(&mut self, state: &DurableState<S>) -> Result<(), StorageError> {
         self.states.insert(state.replica_id.clone(), state.clone());
         Ok(())
@@ -730,7 +746,12 @@ impl<S: Lattice + Clone> CausalCluster<S> {
                         }
                     }
                 }
-                CausalMessage::Snapshot { from, to, state, seq } => {
+                CausalMessage::Snapshot {
+                    from,
+                    to,
+                    state,
+                    seq,
+                } => {
                     // Find recipient and apply
                     for replica in &mut self.replicas {
                         if replica.id() == &to {
@@ -789,10 +810,10 @@ impl<S: Lattice + Clone> CausalCluster<S> {
     /// Simulate a crash and recovery for a replica
     pub fn crash_and_recover(&mut self, idx: usize) {
         let durable = self.replicas[idx].durable_state().clone();
-        
+
         // Restore from durable state (volatile state is lost)
         let mut recovered = CausalReplica::restore(durable);
-        
+
         // Re-register peers
         let n = self.replicas.len();
         for j in 0..n {
@@ -800,7 +821,7 @@ impl<S: Lattice + Clone> CausalCluster<S> {
                 recovered.register_peer(format!("causal_{}", j));
             }
         }
-        
+
         self.replicas[idx] = recovered;
     }
 
@@ -902,7 +923,7 @@ mod tests {
                 d.insert(999);
                 d
             },
-            from_seq: 5,  // Not ready - we haven't seen 1-5
+            from_seq: 5, // Not ready - we haven't seen 1-5
             to_seq: 6,
         };
 
@@ -1049,7 +1070,7 @@ mod tests {
 
         // Create intervals for each mutation
         // Simulate them arriving out of order by creating separate intervals
-        
+
         // We need to manually create intervals to test out-of-order delivery
         let interval_1_3 = DeltaInterval {
             from: "r1".to_string(),
@@ -1059,7 +1080,7 @@ mod tests {
                 d.insert(3);
                 d
             },
-            from_seq: 2,  // This requires seq 1-2 to be acked first
+            from_seq: 2, // This requires seq 1-2 to be acked first
             to_seq: 3,
         };
 
@@ -1086,7 +1107,7 @@ mod tests {
         assert!(result.is_some()); // Should be applied
         assert!(r2.state().contains(&1));
         assert!(r2.state().contains(&2));
-        
+
         // And the pending interval should now be applied too!
         assert!(r2.state().contains(&3));
         assert_eq!(r2.pending_count(), 0);

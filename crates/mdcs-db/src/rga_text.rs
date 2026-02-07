@@ -144,10 +144,10 @@ impl RGAText {
             seq: 0,
             pending_delta: None,
         };
-        
+
         // Initialize with genesis node's children list
         text.children.insert(TextId::genesis(), Vec::new());
-        
+
         text
     }
 
@@ -164,31 +164,33 @@ impl RGAText {
 
     /// Insert a string at the given position.
     pub fn insert(&mut self, position: usize, text: &str) {
-        let mut origin = self.id_at_index(position.saturating_sub(1))
+        let mut origin = self
+            .id_at_index(position.saturating_sub(1))
             .unwrap_or(TextId::genesis());
-        
+
         for ch in text.chars() {
             let id = self.next_id();
             let node = TextNode::new(id.clone(), ch, origin.clone());
-            
+
             self.integrate_node(node.clone());
-            
+
             // Record in delta
             let delta = self.pending_delta.get_or_insert_with(RGATextDelta::new);
             delta.inserts.push((id.clone(), ch, origin));
-            
+
             origin = id;
         }
     }
 
     /// Delete characters from start to start+length.
     pub fn delete(&mut self, start: usize, length: usize) {
-        let ids: Vec<_> = self.visible_ids()
+        let ids: Vec<_> = self
+            .visible_ids()
             .skip(start)
             .take(length)
             .cloned()
             .collect();
-        
+
         for id in ids {
             self.delete_by_id(&id);
         }
@@ -200,11 +202,11 @@ impl RGAText {
             if !node.deleted {
                 node.deleted = true;
                 let ch = node.char.take();
-                
+
                 // Record delta
                 let delta = self.pending_delta.get_or_insert_with(RGATextDelta::new);
                 delta.deletes.push(id.clone());
-                
+
                 return ch;
             }
         }
@@ -262,9 +264,7 @@ impl RGAText {
 
     /// Iterate over visible IDs.
     fn visible_ids(&self) -> impl Iterator<Item = &TextId> + '_ {
-        self.iter_nodes()
-            .filter(|n| !n.deleted)
-            .map(|n| &n.id)
+        self.iter_nodes().filter(|n| !n.deleted).map(|n| &n.id)
     }
 
     /// Convert a TextId to a visible position.
@@ -290,15 +290,18 @@ impl RGAText {
     fn integrate_node(&mut self, node: TextNode) {
         let id = node.id.clone();
         let origin = node.origin.clone();
-        
+
         // Add to nodes map
         self.nodes.insert(id.clone(), node);
-        
+
         // Add to children of origin, maintaining sort order (descending by ID for RGA)
         let children = self.children.entry(origin).or_default();
-        let pos = children.iter().position(|c| c < &id).unwrap_or(children.len());
+        let pos = children
+            .iter()
+            .position(|c| c < &id)
+            .unwrap_or(children.len());
         children.insert(pos, id.clone());
-        
+
         // Ensure this node has a children entry
         self.children.entry(id).or_default();
     }
@@ -317,7 +320,7 @@ impl RGAText {
                 self.integrate_node(node);
             }
         }
-        
+
         // Apply deletes
         for id in &delta.deletes {
             if let Some(node) = self.nodes.get_mut(id) {
@@ -344,7 +347,7 @@ impl<'a> Iterator for TextIterator<'a> {
                 continue;
             }
             self.visited.insert(id.clone());
-            
+
             // Push children in reverse order
             if let Some(children) = self.text.children.get(&id) {
                 for child in children.iter().rev() {
@@ -353,7 +356,7 @@ impl<'a> Iterator for TextIterator<'a> {
                     }
                 }
             }
-            
+
             // Return the node (skip genesis)
             if id != TextId::genesis() {
                 if let Some(node) = self.text.nodes.get(&id) {
@@ -386,7 +389,7 @@ impl Lattice for RGAText {
 
     fn join(&self, other: &Self) -> Self {
         let mut result = self.clone();
-        
+
         // Merge all nodes from other
         for (id, node) in &other.nodes {
             if let Some(existing) = result.nodes.get_mut(id) {
@@ -398,7 +401,7 @@ impl Lattice for RGAText {
                 result.integrate_node(node.clone());
             }
         }
-        
+
         result
     }
 }
@@ -457,22 +460,22 @@ mod tests {
     fn test_concurrent_inserts() {
         let mut text1 = RGAText::new("r1");
         let mut text2 = RGAText::new("r2");
-        
+
         // Both start with "Hello"
         text1.insert(0, "Hello");
         text2.apply_delta(&text1.take_delta().unwrap());
-        
+
         // Concurrent inserts at the end
         text1.insert(5, " World");
         text2.insert(5, " Rust");
-        
+
         // Exchange deltas
         let delta1 = text1.take_delta().unwrap();
         let delta2 = text2.take_delta().unwrap();
-        
+
         text1.apply_delta(&delta2);
         text2.apply_delta(&delta1);
-        
+
         // Should converge to same text
         assert_eq!(text1.to_string(), text2.to_string());
         // Both additions should be present
@@ -483,22 +486,22 @@ mod tests {
     fn test_concurrent_insert_delete() {
         let mut text1 = RGAText::new("r1");
         let mut text2 = RGAText::new("r2");
-        
+
         // Both start with "Hello"
         text1.insert(0, "Hello");
         text2.apply_delta(&text1.take_delta().unwrap());
-        
+
         // r1 deletes "llo", r2 inserts "x" after "He"
         text1.delete(2, 3);
         text2.insert(2, "x");
-        
+
         // Exchange deltas
         let delta1 = text1.take_delta().unwrap();
         let delta2 = text2.take_delta().unwrap();
-        
+
         text1.apply_delta(&delta2);
         text2.apply_delta(&delta1);
-        
+
         // Should converge
         assert_eq!(text1.to_string(), text2.to_string());
         // x should survive, llo should be deleted
@@ -510,7 +513,7 @@ mod tests {
     fn test_char_at() {
         let mut text = RGAText::new("r1");
         text.insert(0, "Hello");
-        
+
         assert_eq!(text.char_at(0), Some('H'));
         assert_eq!(text.char_at(4), Some('o'));
         assert_eq!(text.char_at(5), None);
@@ -520,7 +523,7 @@ mod tests {
     fn test_slice() {
         let mut text = RGAText::new("r1");
         text.insert(0, "Hello World");
-        
+
         assert_eq!(text.slice(0, 5), "Hello");
         assert_eq!(text.slice(6, 11), "World");
     }
@@ -529,10 +532,10 @@ mod tests {
     fn test_position_id_conversion() {
         let mut text = RGAText::new("r1");
         text.insert(0, "Hello");
-        
+
         let id = text.position_to_id(2).unwrap();
         let pos = text.id_to_position(&id).unwrap();
-        
+
         assert_eq!(pos, 2);
     }
 
@@ -540,12 +543,12 @@ mod tests {
     fn test_lattice_join() {
         let mut text1 = RGAText::new("r1");
         let mut text2 = RGAText::new("r2");
-        
+
         text1.insert(0, "Hello");
         text2.insert(0, "World");
-        
+
         let merged = text1.join(&text2);
-        
+
         // Both texts should be somehow combined
         assert!(merged.len() >= 5);
     }

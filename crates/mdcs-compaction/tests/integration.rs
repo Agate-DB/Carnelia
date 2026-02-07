@@ -7,8 +7,8 @@
 //! - Safe pruning with verification
 
 use mdcs_compaction::{
-    Compactor, CompactionConfig, PruningPolicy, Snapshot, StabilityMonitor,
-    VersionVector, FrontierUpdate, Pruner, PruningVerifier, StabilityConfig,
+    CompactionConfig, Compactor, FrontierUpdate, Pruner, PruningPolicy, PruningVerifier, Snapshot,
+    StabilityConfig, StabilityMonitor, VersionVector,
 };
 use mdcs_merkle::{DAGStore, Hash, NodeBuilder, Payload};
 use std::collections::HashSet;
@@ -16,7 +16,7 @@ use std::collections::HashSet;
 /// Helper to implement PrunableStore for tests
 mod prunable {
     use mdcs_compaction::PrunableStore;
-    use mdcs_merkle::{DAGStore, DAGError, Hash, MerkleNode, MemoryDAGStore};
+    use mdcs_merkle::{DAGError, DAGStore, Hash, MemoryDAGStore, MerkleNode};
 
     /// Wrapper that tracks "pruned" nodes
     pub struct PrunableMemoryStore {
@@ -57,10 +57,7 @@ mod prunable {
             self.inner.put(node)
         }
 
-        fn put_unchecked(
-            &mut self,
-            node: MerkleNode,
-        ) -> Result<Hash, DAGError> {
+        fn put_unchecked(&mut self, node: MerkleNode) -> Result<Hash, DAGError> {
             self.inner.put_unchecked(node)
         }
 
@@ -221,13 +218,7 @@ fn test_no_resurrection_concurrent_branches() {
         ("r2".to_string(), 1),
         ("test".to_string(), 1),
     ]);
-    let snapshot = Snapshot::new(
-        vv,
-        vec![cid_merge],
-        b"resolved_state".to_vec(),
-        "test",
-        200,
-    );
+    let snapshot = Snapshot::new(vv, vec![cid_merge], b"resolved_state".to_vec(), "test", 200);
 
     // Prune old branches
     store.pruned.insert(cid_b1);
@@ -380,8 +371,7 @@ fn test_rebuild_matches_full_replay() {
     );
 
     // Rebuild from snapshot
-    let mut rebuilt_state =
-        i64::from_le_bytes(snapshot.state_data.clone().try_into().unwrap());
+    let mut rebuilt_state = i64::from_le_bytes(snapshot.state_data.clone().try_into().unwrap());
 
     // Apply remaining deltas (ops 4 and 5)
     apply_delta(&mut rebuilt_state, &ops[3]); // inc:10
@@ -519,10 +509,8 @@ fn test_compactor_full_workflow() {
 fn test_compactor_bootstrap() {
     // Original compactor creates state
     let mut original = Compactor::new("original");
-    let vv = VersionVector::from_entries([
-        ("original".to_string(), 100),
-        ("other".to_string(), 50),
-    ]);
+    let vv =
+        VersionVector::from_entries([("original".to_string(), 100), ("other".to_string(), 50)]);
     original.update_local_frontier(vv.clone(), vec![]);
     original.set_time(1000);
 

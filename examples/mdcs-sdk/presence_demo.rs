@@ -13,13 +13,10 @@ fn main() {
 
     // Create 4 connected clients
     let clients = create_collaborative_clients(&["Alice", "Bob", "Charlie", "Diana"]);
-    
+
     println!("Connected users:");
     for client in &clients {
-        println!("  - {} (peer: {})", 
-            client.user_name(),
-            client.peer_id()
-        );
+        println!("  - {} (peer: {})", client.user_name(), client.peer_id());
     }
     println!();
 
@@ -44,7 +41,7 @@ fn main() {
         let pos2 = doc.len();
         doc.insert(pos2, "Each user has a cursor position tracked.\n");
     }
-    
+
     // Sync to all clients via CRDT merge
     {
         let alice_state = docs[0].read().clone_state();
@@ -73,13 +70,17 @@ fn main() {
 
     // Bob has selected some text "this is a collaborative"
     println!("  Bob: Selecting text (positions 7-31)");
-    sessions[1].awareness().set_selection("shared-doc.txt", 7, 31);
+    sessions[1]
+        .awareness()
+        .set_selection("shared-doc.txt", 7, 31);
     sessions[1].awareness().set_status(UserStatus::Online);
 
     // Charlie is idle, cursor at end
     let doc_len = docs[2].read().len();
     println!("  Charlie: Idle at end of document (position {})", doc_len);
-    sessions[2].awareness().set_cursor("shared-doc.txt", doc_len);
+    sessions[2]
+        .awareness()
+        .set_cursor("shared-doc.txt", doc_len);
     sessions[2].awareness().set_status(UserStatus::Idle);
 
     // Diana is away
@@ -93,12 +94,18 @@ fn main() {
 
     for (i, session) in sessions.iter().enumerate() {
         let user = clients[i].user_name();
-        println!("┌─── {}'s view ───────────────────────────────────────────────┐", user);
-        
+        println!(
+            "┌─── {}'s view ───────────────────────────────────────────────┐",
+            user
+        );
+
         // Get all users
         let users = session.awareness().get_users();
-        println!("│  Users in session: {}                                        │", users.len());
-        
+        println!(
+            "│  Users in session: {}                                        │",
+            users.len()
+        );
+
         for u in &users {
             let status_str = match &u.status {
                 UserStatus::Online => "🟢 online ",
@@ -108,20 +115,30 @@ fn main() {
                 UserStatus::Offline => "⚫ offline",
                 UserStatus::Custom(s) => s,
             };
-            println!("│    {:8} - {}                                      │", u.name, status_str);
+            println!(
+                "│    {:8} - {}                                      │",
+                u.name, status_str
+            );
         }
-        
+
         // Get cursors for the document
         let cursors = session.awareness().get_cursors("shared-doc.txt");
         if !cursors.is_empty() {
             println!("│  Cursors:                                                    │");
             for cursor in &cursors {
                 if let Some(start) = cursor.selection_start {
-                    println!("│    {} at pos {} (sel: {}-{})                            │",
-                        cursor.user_name, cursor.position, start, cursor.selection_end.unwrap_or(0));
+                    println!(
+                        "│    {} at pos {} (sel: {}-{})                            │",
+                        cursor.user_name,
+                        cursor.position,
+                        start,
+                        cursor.selection_end.unwrap_or(0)
+                    );
                 } else {
-                    println!("│    {} at position {}                                   │", 
-                        cursor.user_name, cursor.position);
+                    println!(
+                        "│    {} at position {}                                   │",
+                        cursor.user_name, cursor.position
+                    );
                 }
             }
         }
@@ -140,25 +157,32 @@ fn main() {
     }
 
     println!("\n  Bob changes selection: 7-31 → 42-82");
-    sessions[1].awareness().set_selection("shared-doc.txt", 42, 82);
+    sessions[1]
+        .awareness()
+        .set_selection("shared-doc.txt", 42, 82);
     println!("    Bob's new selection: 42-82 (second line)");
 
     println!("\n  Charlie starts typing:");
     sessions[2].awareness().set_status(UserStatus::Typing);
-    sessions[2].awareness().set_cursor("shared-doc.txt", doc_len);
+    sessions[2]
+        .awareness()
+        .set_cursor("shared-doc.txt", doc_len);
     println!("    Charlie: status changed to Typing");
 
     // === Final presence state ===
     println!("\n╔════════════════════════════════════════════════════════════════╗");
     println!("║              Final Presence State (Synced)                     ║");
     println!("╠════════════════════════════════════════════════════════════════╣");
-    
+
     // Show from Alice's perspective (any would work, they're synced)
     let all_users = sessions[0].awareness().get_users();
     let all_cursors = sessions[0].awareness().get_cursors("shared-doc.txt");
-    
+
     println!("║                                                                ║");
-    println!("║  Users ({} online):                                            ║", all_users.len());
+    println!(
+        "║  Users ({} online):                                            ║",
+        all_users.len()
+    );
     for u in &all_users {
         let status_emoji = match &u.status {
             UserStatus::Typing => "⌨️ ",
@@ -167,19 +191,29 @@ fn main() {
             UserStatus::Away => "🔴",
             _ => "⚫",
         };
-        println!("║    {} {:8} ({:12})                               ║", 
-            status_emoji, u.name, format!("{:?}", u.status));
+        println!(
+            "║    {} {:8} ({:12})                               ║",
+            status_emoji,
+            u.name,
+            format!("{:?}", u.status)
+        );
     }
-    
+
     println!("║                                                                ║");
     println!("║  Cursor Positions:                                             ║");
     for cursor in &all_cursors {
         if let Some(start) = cursor.selection_start {
-            println!("║    {:8}: selection [{:3} - {:3}]                          ║",
-                cursor.user_name, start, cursor.selection_end.unwrap_or(0));
+            println!(
+                "║    {:8}: selection [{:3} - {:3}]                          ║",
+                cursor.user_name,
+                start,
+                cursor.selection_end.unwrap_or(0)
+            );
         } else {
-            println!("║    {:8}: position {:3}                                    ║",
-                cursor.user_name, cursor.position);
+            println!(
+                "║    {:8}: position {:3}                                    ║",
+                cursor.user_name, cursor.position
+            );
         }
     }
     println!("║                                                                ║");
@@ -187,21 +221,27 @@ fn main() {
 
     // === Verification ===
     println!("\n=== Verification ===\n");
-    
+
     // Check all sessions see the same user list
     let ref_count = sessions[0].awareness().get_users().len();
-    let all_match = sessions.iter().all(|s| s.awareness().get_users().len() == ref_count);
-    
+    let all_match = sessions
+        .iter()
+        .all(|s| s.awareness().get_users().len() == ref_count);
+
     if all_match {
-        println!("  ✓ All {} clients see {} users in session", sessions.len(), ref_count);
+        println!(
+            "  ✓ All {} clients see {} users in session",
+            sessions.len(),
+            ref_count
+        );
     }
-    
+
     // Check cursor sync
     let ref_cursors = sessions[0].awareness().get_cursors("shared-doc.txt").len();
-    let cursors_match = sessions.iter().all(|s| 
-        s.awareness().get_cursors("shared-doc.txt").len() == ref_cursors
-    );
-    
+    let cursors_match = sessions
+        .iter()
+        .all(|s| s.awareness().get_cursors("shared-doc.txt").len() == ref_cursors);
+
     if cursors_match {
         println!("  ✓ All clients see {} cursors in document", ref_cursors);
     }
@@ -211,8 +251,11 @@ fn main() {
     for (i, session) in sessions.iter().enumerate() {
         let awareness = session.awareness();
         let color = awareness.get_local_color();
-        println!("  {} → {} (used for cursor highlighting)", 
-            clients[i].user_name(), color);
+        println!(
+            "  {} → {} (used for cursor highlighting)",
+            clients[i].user_name(),
+            color
+        );
     }
 
     println!("\n=== Demo Complete ===");

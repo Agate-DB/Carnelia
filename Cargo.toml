@@ -4,6 +4,7 @@ version = "1.0.0"
 edition = "2021"
 description = "Merkle-Delta CRDT Store - A lock-free, offline-first CRDT database"
 
+
 [workspace]
 members = [
     "crates/mdcs-core",       # Core CRDT types and traits
@@ -13,8 +14,6 @@ members = [
     "crates/mdcs-db",         # Database API layer (Phase 6)
     "crates/mdcs-sdk",        # High-level SDK for collaborative apps
     "crates/mdcs-wasm",       # WebAssembly bindings for browser use
-#    "crates/mdcs-sync",      # Anti-entropy protocols
-#    "crates/mdcs-sim",       # Network simulation for testing
 ]
 
 [dependencies]

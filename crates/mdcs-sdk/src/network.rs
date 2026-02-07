@@ -48,10 +48,7 @@ pub enum Message {
         user_name: String,
     },
     /// Request sync for a document.
-    SyncRequest {
-        document_id: String,
-        version: u64,
-    },
+    SyncRequest { document_id: String, version: u64 },
     /// Response with deltas.
     SyncResponse {
         document_id: String,
@@ -71,9 +68,7 @@ pub enum Message {
         cursor_pos: Option<usize>,
     },
     /// Acknowledgment.
-    Ack {
-        message_id: u64,
-    },
+    Ack { message_id: u64 },
     /// Ping for keepalive.
     Ping,
     /// Pong response.
@@ -209,7 +204,7 @@ impl NetworkTransport for MemoryTransport {
             let outgoing = self.outgoing.read();
             outgoing.get(peer_id).cloned()
         };
-        
+
         if let Some(tx) = tx {
             tx.send((self.local_id.clone(), message))
                 .await
@@ -225,7 +220,7 @@ impl NetworkTransport for MemoryTransport {
             let outgoing = self.outgoing.read();
             outgoing.values().cloned().collect()
         };
-        
+
         for tx in senders {
             let _ = tx.send((self.local_id.clone(), message.clone())).await;
         }

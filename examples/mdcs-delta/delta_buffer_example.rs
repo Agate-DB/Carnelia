@@ -6,17 +6,17 @@
 //! 3. Anti-entropy Algorithm 1 for convergence
 
 use mdcs_core::gset::GSet;
-use mdcs_core::orset::ORSet;
-use mdcs_core::pncounter::PNCounter;
+use mdcs_core::lattice::{DeltaCRDT, Lattice};
 use mdcs_core::lwwreg::LWWRegister;
 use mdcs_core::mvreg::MVRegister;
-use mdcs_core::lattice::{Lattice, DeltaCRDT};
-use mdcs_delta::buffer::DeltaBuffer;
+use mdcs_core::orset::ORSet;
+use mdcs_core::pncounter::PNCounter;
 use mdcs_delta::anti_entropy::{AntiEntropyCluster, NetworkConfig};
+use mdcs_delta::buffer::DeltaBuffer;
 use mdcs_delta::mutators::gset as gset_mutators;
-use mdcs_delta::mutators::pncounter as pncounter_mutators;
 use mdcs_delta::mutators::lwwreg as lwwreg_mutators;
 use mdcs_delta::mutators::mvreg as mvreg_mutators;
+use mdcs_delta::mutators::pncounter as pncounter_mutators;
 
 fn main() {
     println!("═══════════════════════════════════════════════════════════════");
@@ -53,11 +53,17 @@ fn example_1_delta_mutators() {
     // Method 1: Direct mutation
     let mut direct = state.clone();
     direct.insert(42);
-    println!("Direct mutation m(X) = X.insert(42): {:?}", direct.iter().collect::<Vec<_>>());
+    println!(
+        "Direct mutation m(X) = X.insert(42): {:?}",
+        direct.iter().collect::<Vec<_>>()
+    );
 
     // Method 2: Via delta-mutator
     let delta = gset_mutators::insert_delta(42);
-    println!("Delta mδ(X) = {{42}}: {:?}", delta.iter().collect::<Vec<_>>());
+    println!(
+        "Delta mδ(X) = {{42}}: {:?}",
+        delta.iter().collect::<Vec<_>>()
+    );
 
     let via_delta = state.join(&delta);
     println!("X ⊔ mδ(X): {:?}", via_delta.iter().collect::<Vec<_>>());
@@ -82,19 +88,30 @@ fn example_2_delta_buffer() {
         let mut delta = GSet::new();
         delta.insert(i);
         buffer.push(delta);
-        println!("Pushed delta {{{}}} - buffer seq: {}, len: {}",
-            i, buffer.current_seq(), buffer.len());
+        println!(
+            "Pushed delta {{{}}} - buffer seq: {}, len: {}",
+            i,
+            buffer.current_seq(),
+            buffer.len()
+        );
     }
 
     // Get delta-group for a peer that has acked seq 3
     println!("\nPeer has acked up to seq 3");
     if let Some(group) = buffer.delta_group_since(3) {
-        println!("Delta-group for peer: {:?}", group.iter().collect::<Vec<_>>());
+        println!(
+            "Delta-group for peer: {:?}",
+            group.iter().collect::<Vec<_>>()
+        );
     }
 
     // Acknowledge and garbage collect
     let removed = buffer.ack(5);
-    println!("\nAfter ack(5): removed {} deltas, {} remaining", removed, buffer.len());
+    println!(
+        "\nAfter ack(5): removed {} deltas, {} remaining",
+        removed,
+        buffer.len()
+    );
 
     println!("\n✓ Delta buffer demonstration complete\n");
 }
@@ -169,8 +186,7 @@ fn example_4_convergence_under_failure() {
     ];
 
     for (name, config) in configs {
-        let mut cluster: AntiEntropyCluster<GSet<i32>> =
-            AntiEntropyCluster::new(4, config);
+        let mut cluster: AntiEntropyCluster<GSet<i32>> = AntiEntropyCluster::new(4, config);
 
         // Each replica adds unique elements
         for i in 0..4 {
@@ -193,8 +209,10 @@ fn example_4_convergence_under_failure() {
         let converged = cluster.is_converged();
         let element_count = cluster.replica(0).state().len();
 
-        println!("  {}: converged={}, rounds={}, elements={}",
-            name, converged, rounds, element_count);
+        println!(
+            "  {}: converged={}, rounds={}, elements={}",
+            name, converged, rounds, element_count
+        );
 
         assert!(converged, "Failed to converge with {}", name);
     }
@@ -287,19 +305,25 @@ fn example_6_pncounter_deltas() {
     let mut counter1_clone = counter1.clone();
     pncounter_mutators::apply_increment(&mut counter1_clone, "r1".to_string(), 7);
     pncounter_mutators::apply_decrement(&mut counter1_clone, "r2".to_string(), 2);
-    
+
     println!("\nAfter applying deltas to counter1:");
     println!("  Counter 1 value: {}", counter1_clone.value());
 
     // Sync the counters using lattice join
     let synced = counter1.join(&counter2);
-    println!("\nAfter lattice sync (counter1 ⊔ counter2): value = {}", synced.value());
+    println!(
+        "\nAfter lattice sync (counter1 ⊔ counter2): value = {}",
+        synced.value()
+    );
 
     // Apply same deltas to synced state
     let mut final_counter = synced.clone();
     pncounter_mutators::apply_increment(&mut final_counter, "r1".to_string(), 7);
     pncounter_mutators::apply_decrement(&mut final_counter, "r2".to_string(), 2);
-    println!("After applying deltas to synced: value = {}", final_counter.value());
+    println!(
+        "After applying deltas to synced: value = {}",
+        final_counter.value()
+    );
 
     println!("\n✓ PNCounter delta demonstration complete\n");
 }
@@ -331,11 +355,20 @@ fn example_7_lwwreg_deltas() {
 
     // Apply deltas using apply function
     let mut reg1_clone = reg1.clone();
-    lwwreg_mutators::apply_set(&mut reg1_clone, "Charlie".to_string(), 150, "r1".to_string());
+    lwwreg_mutators::apply_set(
+        &mut reg1_clone,
+        "Charlie".to_string(),
+        150,
+        "r1".to_string(),
+    );
     lwwreg_mutators::apply_set(&mut reg1_clone, "Diana".to_string(), 250, "r2".to_string());
 
     println!("\nAfter applying deltas to reg1:");
-    println!("  Value: {:?} (t={})", reg1_clone.get(), reg1_clone.timestamp());
+    println!(
+        "  Value: {:?} (t={})",
+        reg1_clone.get(),
+        reg1_clone.timestamp()
+    );
 
     // Merge replicas using lattice join - this is how state syncs
     let merged = reg1.join(&reg2);
@@ -346,8 +379,16 @@ fn example_7_lwwreg_deltas() {
     let mut final_reg = merged.clone();
     lwwreg_mutators::apply_set(&mut final_reg, "Diana".to_string(), 250, "r2".to_string());
     println!("\nAfter applying 'Diana'@t=250 delta:");
-    println!("  Value: {:?} (t={})", final_reg.get(), final_reg.timestamp());
-    assert_eq!(final_reg.get(), Some(&"Diana".to_string()), "Latest timestamp wins!");
+    println!(
+        "  Value: {:?} (t={})",
+        final_reg.get(),
+        final_reg.timestamp()
+    );
+    assert_eq!(
+        final_reg.get(),
+        Some(&"Diana".to_string()),
+        "Latest timestamp wins!"
+    );
 
     println!("\n✓ LWWRegister delta demonstration complete\n");
 }
@@ -386,7 +427,7 @@ fn example_8_mvreg_deltas() {
 
     // Merge using lattice join - preserves all concurrent values
     let merged = reg1.join(&reg2);
-    
+
     println!("\nAfter lattice merge (reg1 ⊔ reg2):");
     println!("  Merged values: {:?}", merged.read());
     println!("  Number of concurrent values: {}", merged.len());

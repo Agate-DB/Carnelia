@@ -4,11 +4,11 @@
 //! network conditions including message loss, duplication, and reordering.
 
 use mdcs_core::gset::GSet;
-use mdcs_core::orset::ORSet;
-use mdcs_core::pncounter::PNCounter;
+use mdcs_core::lattice::Lattice;
 use mdcs_core::lwwreg::LWWRegister;
 use mdcs_core::mvreg::MVRegister;
-use mdcs_core::lattice::Lattice;
+use mdcs_core::orset::ORSet;
+use mdcs_core::pncounter::PNCounter;
 use mdcs_delta::anti_entropy::{AntiEntropyCluster, NetworkConfig};
 use mdcs_delta::mutators::gset;
 use rand::seq::SliceRandom;
@@ -53,7 +53,11 @@ fn test_gset_convergence_with_loss() {
         rounds += 1;
     }
 
-    assert!(cluster.is_converged(), "Failed to converge after {} rounds", rounds);
+    assert!(
+        cluster.is_converged(),
+        "Failed to converge after {} rounds",
+        rounds
+    );
     assert_eq!(cluster.replica(0).state().len(), 4);
 }
 
@@ -313,12 +317,24 @@ fn test_multi_type_document_convergence() {
     let mut doc2: CRDTMap<String> = CRDTMap::new();
 
     // Server 1 updates
-    doc1.put("s1", "title".to_string(), MapValue::Text("Hello".to_string()));
+    doc1.put(
+        "s1",
+        "title".to_string(),
+        MapValue::Text("Hello".to_string()),
+    );
     doc1.put("s1", "count".to_string(), MapValue::Int(1));
 
     // Server 2 updates (concurrent)
-    doc2.put("s2", "title".to_string(), MapValue::Text("World".to_string()));
-    doc2.put("s2", "author".to_string(), MapValue::Text("Bob".to_string()));
+    doc2.put(
+        "s2",
+        "title".to_string(),
+        MapValue::Text("World".to_string()),
+    );
+    doc2.put(
+        "s2",
+        "author".to_string(),
+        MapValue::Text("Bob".to_string()),
+    );
 
     let m1 = doc1.join(&doc2);
     let m2 = doc2.join(&doc1);
@@ -328,7 +344,10 @@ fn test_multi_type_document_convergence() {
     assert!(m1.contains_key(&"count".to_string()));
     assert!(m1.contains_key(&"author".to_string()));
 
-    assert_eq!(m1.contains_key(&"title".to_string()), m2.contains_key(&"title".to_string()));
+    assert_eq!(
+        m1.contains_key(&"title".to_string()),
+        m2.contains_key(&"title".to_string())
+    );
 }
 
 // ============================================================================

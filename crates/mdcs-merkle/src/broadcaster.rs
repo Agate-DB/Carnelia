@@ -11,13 +11,13 @@ use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 pub struct BroadcastConfig {
     /// Number of peers to send each message to (fanout).
     pub fanout: usize,
-    
+
     /// Maximum messages to buffer before dropping old ones.
     pub buffer_size: usize,
-    
+
     /// Whether to deduplicate messages we've already seen.
     pub deduplicate: bool,
-    
+
     /// Time-to-live: maximum hops a message can travel.
     pub ttl: u8,
 }
@@ -38,16 +38,16 @@ impl Default for BroadcastConfig {
 pub struct BroadcastMessage {
     /// Unique message ID (hash of contents).
     pub id: Hash,
-    
+
     /// The replica that originated this message.
     pub origin: String,
-    
+
     /// Current heads being announced.
     pub heads: Vec<Hash>,
-    
+
     /// Remaining hops (time-to-live).
     pub ttl: u8,
-    
+
     /// Logical timestamp when the message was created.
     pub timestamp: u64,
 }
@@ -56,7 +56,7 @@ impl BroadcastMessage {
     /// Create a new broadcast message.
     pub fn new(origin: impl Into<String>, heads: Vec<Hash>, ttl: u8, timestamp: u64) -> Self {
         let origin = origin.into();
-        
+
         // Compute message ID from contents
         let mut hasher = crate::hash::Hasher::new();
         hasher.update(origin.as_bytes());
@@ -65,7 +65,7 @@ impl BroadcastMessage {
         }
         hasher.update(&timestamp.to_le_bytes());
         let id = hasher.finalize();
-        
+
         BroadcastMessage {
             id,
             origin,
@@ -80,7 +80,7 @@ impl BroadcastMessage {
         if self.ttl == 0 {
             return None;
         }
-        
+
         Some(BroadcastMessage {
             id: self.id,
             origin: self.origin.clone(),
@@ -100,13 +100,19 @@ impl BroadcastMessage {
 #[derive(Clone, Debug)]
 pub enum BroadcastEvent {
     /// Send this message to a peer.
-    Send { peer: String, message: BroadcastMessage },
-    
+    Send {
+        peer: String,
+        message: BroadcastMessage,
+    },
+
     /// New heads received from a peer.
     HeadsReceived { from: String, heads: Vec<Hash> },
-    
+
     /// A message was dropped (buffer full or duplicate).
-    Dropped { message_id: Hash, reason: DropReason },
+    Dropped {
+        message_id: Hash,
+        reason: DropReason,
+    },
 }
 
 /// Reason a message was dropped.
@@ -126,25 +132,25 @@ pub enum DropReason {
 pub struct Broadcaster {
     /// Our replica ID.
     replica_id: String,
-    
+
     /// Configuration.
     config: BroadcastConfig,
-    
+
     /// Known peers (BTreeSet for deterministic iteration order).
     peers: BTreeSet<String>,
-    
+
     /// Message IDs we've seen (for deduplication).
     seen: HashSet<Hash>,
-    
+
     /// Order of seen messages (for LRU eviction).
     seen_order: VecDeque<Hash>,
-    
+
     /// Current logical timestamp.
     timestamp: u64,
-    
+
     /// Pending events to be processed.
     pending_events: VecDeque<BroadcastEvent>,
-    
+
     /// Track which peers have which heads (optimization).
     peer_heads: HashMap<String, HashSet<Hash>>,
 }
@@ -202,20 +208,16 @@ impl Broadcaster {
     /// Broadcast new heads to peers.
     pub fn broadcast(&mut self, heads: Vec<Hash>) {
         self.timestamp += 1;
-        
-        let message = BroadcastMessage::new(
-            &self.replica_id,
-            heads,
-            self.config.ttl,
-            self.timestamp,
-        );
-        
+
+        let message =
+            BroadcastMessage::new(&self.replica_id, heads, self.config.ttl, self.timestamp);
+
         // Mark as seen
         self.mark_seen(message.id);
-        
+
         // Select peers to send to
         let targets = self.select_peers(self.config.fanout);
-        
+
         for peer in targets {
             self.pending_events.push_back(BroadcastEvent::Send {
                 peer,
@@ -227,7 +229,7 @@ impl Broadcaster {
     /// Receive a message from a peer.
     pub fn receive(&mut self, from: impl Into<String>, message: BroadcastMessage) {
         let from = from.into();
-        
+
         // Check for duplicate
         if self.config.deduplicate && self.seen.contains(&message.id) {
             self.pending_events.push_back(BroadcastEvent::Dropped {
@@ -236,7 +238,7 @@ impl Broadcaster {
             });
             return;
         }
-        
+
         // Check TTL
         if !message.is_alive() {
             self.pending_events.push_back(BroadcastEvent::Dropped {
@@ -245,29 +247,28 @@ impl Broadcaster {
             });
             return;
         }
-        
+
         // Mark as seen
         self.mark_seen(message.id);
-        
+
         // Update peer's known heads
         self.peer_heads
             .entry(from.clone())
             .or_default()
             .extend(message.heads.iter().copied());
-        
+
         // Emit event for heads received
-        self.pending_events.push_back(BroadcastEvent::HeadsReceived {
-            from: from.clone(),
-            heads: message.heads.clone(),
-        });
-        
+        self.pending_events
+            .push_back(BroadcastEvent::HeadsReceived {
+                from: from.clone(),
+                heads: message.heads.clone(),
+            });
+
         // Forward to other peers (excluding sender and origin)
         if let Some(forwarded) = message.forward() {
-            let targets = self.select_peers_excluding(
-                self.config.fanout,
-                &[&from, &message.origin],
-            );
-            
+            let targets =
+                self.select_peers_excluding(self.config.fanout, &[&from, &message.origin]);
+
             for peer in targets {
                 self.pending_events.push_back(BroadcastEvent::Send {
                     peer,
@@ -296,7 +297,7 @@ impl Broadcaster {
     fn mark_seen(&mut self, id: Hash) {
         if self.seen.insert(id) {
             self.seen_order.push_back(id);
-            
+
             // Evict old entries if buffer is full
             while self.seen_order.len() > self.config.buffer_size {
                 if let Some(old_id) = self.seen_order.pop_front() {
@@ -347,7 +348,7 @@ pub struct BroadcastStats {
 pub struct BroadcastNetwork {
     /// Broadcasters indexed by replica ID.
     broadcasters: HashMap<String, Broadcaster>,
-    
+
     /// Message queue: (from, to, message).
     message_queue: VecDeque<(String, String, BroadcastMessage)>,
 }
@@ -356,22 +357,22 @@ impl BroadcastNetwork {
     /// Create a fully connected network of n replicas.
     pub fn fully_connected(n: usize) -> Self {
         let mut broadcasters = HashMap::new();
-        
+
         // Create broadcasters
         for i in 0..n {
             let id = format!("replica_{}", i);
             let mut broadcaster = Broadcaster::new(&id);
-            
+
             // Add all other replicas as peers
             for j in 0..n {
                 if i != j {
                     broadcaster.add_peer(format!("replica_{}", j));
                 }
             }
-            
+
             broadcasters.insert(id, broadcaster);
         }
-        
+
         BroadcastNetwork {
             broadcasters,
             message_queue: VecDeque::new(),
@@ -394,7 +395,8 @@ impl BroadcastNetwork {
             for event in events {
                 match event {
                     BroadcastEvent::Send { peer, message } => {
-                        self.message_queue.push_back((from.to_string(), peer, message));
+                        self.message_queue
+                            .push_back((from.to_string(), peer, message));
                     }
                     // Put non-Send events back for later retrieval
                     other => broadcaster.pending_events.push_back(other),
@@ -434,7 +436,7 @@ impl BroadcastNetwork {
     /// Get all received heads for a replica.
     pub fn received_heads(&mut self, id: &str) -> Vec<Hash> {
         let mut heads = Vec::new();
-        
+
         if let Some(broadcaster) = self.broadcasters.get_mut(id) {
             for event in broadcaster.drain_events() {
                 if let BroadcastEvent::HeadsReceived { heads: h, .. } = event {
@@ -442,7 +444,7 @@ impl BroadcastNetwork {
                 }
             }
         }
-        
+
         heads
     }
 
@@ -460,21 +462,21 @@ mod tests {
     #[test]
     fn test_basic_broadcast() {
         let mut network = BroadcastNetwork::fully_connected(3);
-        
+
         // Broadcast from replica_0
         let head = Hasher::hash(b"test_head");
         network.broadcast("replica_0", vec![head]);
-        
+
         // Should have messages queued for 2 peers
         assert!(network.pending_messages() > 0);
-        
+
         // Deliver all
         network.deliver_all();
-        
+
         // All replicas should have received the heads
         let heads_1 = network.received_heads("replica_1");
         let heads_2 = network.received_heads("replica_2");
-        
+
         assert!(heads_1.contains(&head) || heads_2.contains(&head));
     }
 
@@ -484,14 +486,14 @@ mod tests {
         broadcaster.add_peer("peer_1");
         broadcaster.add_peer("peer_2");
         broadcaster.add_peer("peer_3");
-        
+
         let head = Hasher::hash(b"test");
         broadcaster.broadcast(vec![head]);
-        
+
         // Should have send events
         let events = broadcaster.drain_events();
         assert!(!events.is_empty());
-        
+
         for event in events {
             if let BroadcastEvent::Send { message, .. } = event {
                 assert!(message.ttl <= broadcaster.config.ttl);
@@ -504,37 +506,52 @@ mod tests {
     fn test_deduplication() {
         let mut broadcaster = Broadcaster::new("receiver");
         broadcaster.add_peer("sender");
-        
+
         let head = Hasher::hash(b"test");
         let message = BroadcastMessage::new("origin", vec![head], 5, 1);
-        
+
         // Receive twice
         broadcaster.receive("sender", message.clone());
         broadcaster.receive("sender", message.clone());
-        
+
         // Second should be dropped
         let events = broadcaster.drain_events();
-        let dropped_count = events.iter().filter(|e| {
-            matches!(e, BroadcastEvent::Dropped { reason: DropReason::Duplicate, .. })
-        }).count();
-        
+        let dropped_count = events
+            .iter()
+            .filter(|e| {
+                matches!(
+                    e,
+                    BroadcastEvent::Dropped {
+                        reason: DropReason::Duplicate,
+                        ..
+                    }
+                )
+            })
+            .count();
+
         assert_eq!(dropped_count, 1);
     }
 
     #[test]
     fn test_ttl_expiry() {
         let mut broadcaster = Broadcaster::new("receiver");
-        
+
         let head = Hasher::hash(b"test");
         let message = BroadcastMessage::new("origin", vec![head], 0, 1);
-        
+
         broadcaster.receive("sender", message);
-        
+
         let events = broadcaster.drain_events();
         let expired = events.iter().any(|e| {
-            matches!(e, BroadcastEvent::Dropped { reason: DropReason::ExpiredTTL, .. })
+            matches!(
+                e,
+                BroadcastEvent::Dropped {
+                    reason: DropReason::ExpiredTTL,
+                    ..
+                }
+            )
         });
-        
+
         assert!(expired);
     }
 
@@ -542,10 +559,10 @@ mod tests {
     fn test_forward_decrements_ttl() {
         let head = Hasher::hash(b"test");
         let message = BroadcastMessage::new("origin", vec![head], 5, 1);
-        
+
         let forwarded = message.forward().unwrap();
         assert_eq!(forwarded.ttl, 4);
-        
+
         // ID should be the same
         assert_eq!(forwarded.id, message.id);
     }
@@ -558,12 +575,12 @@ mod tests {
         };
         let mut broadcaster = Broadcaster::with_config("test", config);
         broadcaster.add_peer("peer");
-        
+
         // Broadcast 3 messages
         for i in 0..3 {
             broadcaster.broadcast(vec![Hasher::hash(&[i])]);
         }
-        
+
         // Only 2 should be in seen set
         assert_eq!(broadcaster.seen.len(), 2);
     }
@@ -571,11 +588,11 @@ mod tests {
     #[test]
     fn test_peer_management() {
         let mut broadcaster = Broadcaster::new("test");
-        
+
         broadcaster.add_peer("peer_1");
         broadcaster.add_peer("peer_2");
         assert_eq!(broadcaster.peers().count(), 2);
-        
+
         broadcaster.remove_peer("peer_1");
         assert_eq!(broadcaster.peers().count(), 1);
     }
@@ -583,16 +600,16 @@ mod tests {
     #[test]
     fn test_network_convergence() {
         let mut network = BroadcastNetwork::fully_connected(5);
-        
+
         // Each replica broadcasts different heads
         for i in 0..5 {
             let head = Hasher::hash(&[i as u8]);
             network.broadcast(&format!("replica_{}", i), vec![head]);
         }
-        
+
         // Deliver all messages
         network.deliver_all();
-        
+
         // All replicas should have received heads from others
         // (checking that the gossip propagated)
         assert_eq!(network.pending_messages(), 0);

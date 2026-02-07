@@ -73,10 +73,7 @@ impl<D: Lattice> DeltaBuffer<D> {
 
     /// Get deltas for sending to a peer that has acked up to `acked_seq`
     pub fn deltas_since(&self, acked_seq: SeqNo) -> Vec<&TaggedDelta<D>> {
-        self.deltas
-            .iter()
-            .filter(|td| td.seq > acked_seq)
-            .collect()
+        self.deltas.iter().filter(|td| td.seq > acked_seq).collect()
     }
 
     /// Create a delta-group (joined deltas) for a peer
@@ -259,7 +256,9 @@ impl<S: Lattice + Clone> DeltaReplica<S, S> {
     /// Get delta-group to send to a peer
     pub fn prepare_sync(&self, peer_id: &str) -> Option<(S, SeqNo)> {
         let acked = self.acks.get_ack(peer_id);
-        self.buffer.delta_group_since(acked).map(|d| (d, self.buffer.current_seq()))
+        self.buffer
+            .delta_group_since(acked)
+            .map(|d| (d, self.buffer.current_seq()))
     }
 
     /// Receive and apply a delta from a peer (idempotent!)

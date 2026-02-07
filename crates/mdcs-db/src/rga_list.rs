@@ -142,11 +142,11 @@ impl<T: Clone + PartialEq> RGAList<T> {
             seq: 0,
             pending_delta: None,
         };
-        
+
         // Insert virtual head node
         let genesis = ListId::genesis();
         list.children.insert(genesis, Vec::new());
-        
+
         list
     }
 
@@ -163,7 +163,9 @@ impl<T: Clone + PartialEq> RGAList<T> {
 
     /// Insert a value at the given index.
     pub fn insert(&mut self, index: usize, value: T) {
-        let origin = self.id_at_index(index.saturating_sub(1)).unwrap_or(ListId::genesis());
+        let origin = self
+            .id_at_index(index.saturating_sub(1))
+            .unwrap_or(ListId::genesis());
         self.insert_after(&origin, value);
     }
 
@@ -171,9 +173,9 @@ impl<T: Clone + PartialEq> RGAList<T> {
     pub fn insert_after(&mut self, origin: &ListId, value: T) {
         let id = self.next_id();
         let node = ListNode::new(id.clone(), value, origin.clone());
-        
+
         self.integrate_node(node.clone());
-        
+
         // Record delta
         let delta = self.pending_delta.get_or_insert_with(RGAListDelta::new);
         delta.inserts.push(node);
@@ -202,11 +204,11 @@ impl<T: Clone + PartialEq> RGAList<T> {
             if !node.deleted {
                 node.deleted = true;
                 let value = node.value.take();
-                
+
                 // Record delta
                 let delta = self.pending_delta.get_or_insert_with(RGAListDelta::new);
                 delta.deletes.push(id.clone());
-                
+
                 return value;
             }
         }
@@ -292,17 +294,20 @@ impl<T: Clone + PartialEq> RGAList<T> {
     fn integrate_node(&mut self, node: ListNode<T>) {
         let id = node.id.clone();
         let origin = node.origin.clone();
-        
+
         // Add to nodes map
         self.nodes.insert(id.clone(), node);
-        
+
         // Add to children of origin, maintaining sort order
         let children = self.children.entry(origin).or_default();
-        
+
         // Find insertion position (maintain descending order by ID for RGA)
-        let pos = children.iter().position(|c| c < &id).unwrap_or(children.len());
+        let pos = children
+            .iter()
+            .position(|c| c < &id)
+            .unwrap_or(children.len());
         children.insert(pos, id.clone());
-        
+
         // Ensure this node has a children entry
         self.children.entry(id).or_default();
     }
@@ -320,7 +325,7 @@ impl<T: Clone + PartialEq> RGAList<T> {
                 self.integrate_node(node.clone());
             }
         }
-        
+
         // Apply deletes
         for id in &delta.deletes {
             if let Some(node) = self.nodes.get_mut(id) {
@@ -347,7 +352,7 @@ impl<'a, T: Clone + PartialEq> Iterator for RGAIterator<'a, T> {
                 continue;
             }
             self.visited.insert(id.clone());
-            
+
             // Push children in reverse order (so first child is processed first)
             if let Some(children) = self.list.children.get(&id) {
                 for child in children.iter().rev() {
@@ -356,7 +361,7 @@ impl<'a, T: Clone + PartialEq> Iterator for RGAIterator<'a, T> {
                     }
                 }
             }
-            
+
             // Return the node (skip genesis)
             if id != ListId::genesis() {
                 if let Some(node) = self.list.nodes.get(&id) {
@@ -382,7 +387,7 @@ impl<T: Clone + PartialEq> Lattice for RGAList<T> {
 
     fn join(&self, other: &Self) -> Self {
         let mut result = self.clone();
-        
+
         // Merge all nodes from other
         for (id, node) in &other.nodes {
             if let Some(existing) = result.nodes.get_mut(id) {
@@ -396,7 +401,7 @@ impl<T: Clone + PartialEq> Lattice for RGAList<T> {
                 result.integrate_node(node.clone());
             }
         }
-        
+
         result
     }
 }
@@ -414,11 +419,11 @@ mod tests {
     #[test]
     fn test_basic_operations() {
         let mut list: RGAList<String> = RGAList::new("r1");
-        
+
         list.push_back("a".to_string());
         list.push_back("b".to_string());
         list.push_back("c".to_string());
-        
+
         assert_eq!(list.len(), 3);
         assert_eq!(list.get(0), Some(&"a".to_string()));
         assert_eq!(list.get(1), Some(&"b".to_string()));
@@ -428,22 +433,22 @@ mod tests {
     #[test]
     fn test_insert_at_index() {
         let mut list: RGAList<i32> = RGAList::new("r1");
-        
+
         list.push_back(1);
         list.push_back(3);
         list.insert(1, 2);
-        
+
         assert_eq!(list.to_vec(), vec![1, 2, 3]);
     }
 
     #[test]
     fn test_delete() {
         let mut list: RGAList<i32> = RGAList::new("r1");
-        
+
         list.push_back(1);
         list.push_back(2);
         list.push_back(3);
-        
+
         let deleted = list.delete(1);
         assert_eq!(deleted, Some(2));
         assert_eq!(list.to_vec(), vec![1, 3]);
@@ -453,22 +458,22 @@ mod tests {
     fn test_concurrent_inserts() {
         let mut list1: RGAList<&str> = RGAList::new("r1");
         let mut list2: RGAList<&str> = RGAList::new("r2");
-        
+
         // Both start with "a"
         list1.push_back("a");
         list2.apply_delta(&list1.take_delta().unwrap());
-        
+
         // Concurrent inserts after "a"
         list1.push_back("b"); // r1 inserts "b"
         list2.push_back("c"); // r2 inserts "c"
-        
+
         // Exchange deltas
         let delta1 = list1.take_delta().unwrap();
         let delta2 = list2.take_delta().unwrap();
-        
+
         list1.apply_delta(&delta2);
         list2.apply_delta(&delta1);
-        
+
         // Should converge to same order
         assert_eq!(list1.to_vec(), list2.to_vec());
     }
@@ -476,11 +481,11 @@ mod tests {
     #[test]
     fn test_move_element() {
         let mut list: RGAList<i32> = RGAList::new("r1");
-        
+
         list.push_back(1);
         list.push_back(2);
         list.push_back(3);
-        
+
         list.move_element(0, 2);
         assert_eq!(list.to_vec(), vec![2, 1, 3]);
     }
@@ -489,12 +494,12 @@ mod tests {
     fn test_lattice_join() {
         let mut list1: RGAList<i32> = RGAList::new("r1");
         let mut list2: RGAList<i32> = RGAList::new("r2");
-        
+
         list1.push_back(1);
         list2.push_back(2);
-        
+
         let merged = list1.join(&list2);
-        
+
         // Both elements should be present
         assert_eq!(merged.len(), 2);
     }
@@ -502,11 +507,11 @@ mod tests {
     #[test]
     fn test_iter() {
         let mut list: RGAList<i32> = RGAList::new("r1");
-        
+
         list.push_back(1);
         list.push_back(2);
         list.push_back(3);
-        
+
         let collected: Vec<_> = list.iter().cloned().collect();
         assert_eq!(collected, vec![1, 2, 3]);
     }

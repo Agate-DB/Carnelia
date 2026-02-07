@@ -284,7 +284,8 @@ impl SnapshotManager {
         match self.latest() {
             None => true, // No snapshots yet
             Some(latest) => {
-                let ops_since = current_vv.total_operations() - latest.version_vector.total_operations();
+                let ops_since =
+                    current_vv.total_operations() - latest.version_vector.total_operations();
                 let time_since = current_time.saturating_sub(latest.created_at);
 
                 ops_since >= self.config.min_operations_between

@@ -8,9 +8,7 @@
 
 use mdcs_core::gset::GSet;
 use mdcs_core::pncounter::PNCounter;
-use mdcs_delta::causal::{
-    CausalCluster, CausalReplica, MemoryStorage, DurableStorage
-};
+use mdcs_delta::causal::{CausalCluster, CausalReplica, DurableStorage, MemoryStorage};
 
 fn main() {
     println!("═══════════════════════════════════════════════════════════════");
@@ -52,29 +50,38 @@ fn example_1_basic_causal_sync() {
         d.insert(3);
         d
     });
-    println!("Replica 1 after mutations: {:?}", r1.state().iter().collect::<Vec<_>>());
+    println!(
+        "Replica 1 after mutations: {:?}",
+        r1.state().iter().collect::<Vec<_>>()
+    );
     println!("Replica 1 counter (sequence): {}", r1.counter());
 
     // Prepare delta-interval for replica 2
     if let Some(interval) = r1.prepare_interval("replica_2") {
         println!("\nDelta-interval prepared:");
         println!("  From: {}", interval.from);
-        println!("  Sequence range: ({}, {}]", interval.from_seq, interval.to_seq);
-        
+        println!(
+            "  Sequence range: ({}, {}]",
+            interval.from_seq, interval.to_seq
+        );
+
         // Replica 2 receives the interval
         if let Some(ack) = r2.receive_interval(interval) {
             println!("\nReplica 2 received and applied interval");
             println!("  Ack sequence: {}", ack.acked_seq);
-            
+
             // Replica 1 receives the ack
             r1.receive_ack(&ack);
             println!("  Replica 1 received ack, delta buffer cleared");
         }
     }
 
-    println!("\nReplica 2 state after sync: {:?}", r2.state().iter().collect::<Vec<_>>());
+    println!(
+        "\nReplica 2 state after sync: {:?}",
+        r2.state().iter().collect::<Vec<_>>()
+    );
     println!("States match: {}", r1.state() == r2.state());
-    
+
     println!("\n✓ Basic causal sync complete\n");
 }
 
@@ -93,41 +100,85 @@ fn example_2_out_of_order_delivery() {
 
     // R1 creates 3 sequential mutations
     println!("Creating 3 sequential mutations on R1...");
-    
-    r1.mutate(|_| { let mut d = GSet::new(); d.insert(10); d });
+
+    r1.mutate(|_| {
+        let mut d = GSet::new();
+        d.insert(10);
+        d
+    });
     let interval1 = r1.prepare_interval("r2").unwrap();
-    
-    r1.mutate(|_| { let mut d = GSet::new(); d.insert(20); d });
+
+    r1.mutate(|_| {
+        let mut d = GSet::new();
+        d.insert(20);
+        d
+    });
     let interval2 = r1.prepare_interval("r2").unwrap();
-    
-    r1.mutate(|_| { let mut d = GSet::new(); d.insert(30); d });
+
+    r1.mutate(|_| {
+        let mut d = GSet::new();
+        d.insert(30);
+        d
+    });
     let interval3 = r1.prepare_interval("r2").unwrap();
 
-    println!("Interval 1: seq ({}, {}] - contains {{10}}", interval1.from_seq, interval1.to_seq);
-    println!("Interval 2: seq ({}, {}] - contains {{20}}", interval2.from_seq, interval2.to_seq);
-    println!("Interval 3: seq ({}, {}] - contains {{30}}", interval3.from_seq, interval3.to_seq);
+    println!(
+        "Interval 1: seq ({}, {}] - contains {{10}}",
+        interval1.from_seq, interval1.to_seq
+    );
+    println!(
+        "Interval 2: seq ({}, {}] - contains {{20}}",
+        interval2.from_seq, interval2.to_seq
+    );
+    println!(
+        "Interval 3: seq ({}, {}] - contains {{30}}",
+        interval3.from_seq, interval3.to_seq
+    );
 
     // Simulate out-of-order delivery: 3 arrives first, then 1, then 2
     println!("\nDelivering out of order: 3, 1, 2");
 
     let result3 = r2.receive_interval(interval3.clone());
-    println!("  Interval 3: {} (buffered: {})", 
-        if result3.is_some() { "applied" } else { "buffered" },
-        r2.pending_count());
+    println!(
+        "  Interval 3: {} (buffered: {})",
+        if result3.is_some() {
+            "applied"
+        } else {
+            "buffered"
+        },
+        r2.pending_count()
+    );
 
     let result1 = r2.receive_interval(interval1.clone());
-    println!("  Interval 1: {} (buffered: {})", 
-        if result1.is_some() { "applied" } else { "buffered" },
-        r2.pending_count());
+    println!(
+        "  Interval 1: {} (buffered: {})",
+        if result1.is_some() {
+            "applied"
+        } else {
+            "buffered"
+        },
+        r2.pending_count()
+    );
 
     let result2 = r2.receive_interval(interval2.clone());
-    println!("  Interval 2: {} (buffered: {})", 
-        if result2.is_some() { "applied" } else { "buffered" },
-        r2.pending_count());
+    println!(
+        "  Interval 2: {} (buffered: {})",
+        if result2.is_some() {
+            "applied"
+        } else {
+            "buffered"
+        },
+        r2.pending_count()
+    );
 
-    println!("\nR2 final state: {:?}", r2.state().iter().collect::<Vec<_>>());
-    println!("All elements present: {}", 
-        r2.state().contains(&10) && r2.state().contains(&20) && r2.state().contains(&30));
+    println!(
+        "\nR2 final state: {:?}",
+        r2.state().iter().collect::<Vec<_>>()
+    );
+    println!(
+        "All elements present: {}",
+        r2.state().contains(&10) && r2.state().contains(&20) && r2.state().contains(&30)
+    );
 
     println!("\n✓ Out-of-order delivery handled correctly\n");
 }
@@ -144,7 +195,7 @@ fn example_3_crash_recovery() {
 
     // Create replica and add data
     let mut replica: CausalReplica<GSet<i32>> = CausalReplica::new("crash_demo");
-    
+
     println!("Adding elements 1-5 to replica...");
     for i in 1..=5 {
         replica.mutate(move |_| {
@@ -154,7 +205,10 @@ fn example_3_crash_recovery() {
         });
     }
 
-    println!("State before crash: {:?}", replica.state().iter().collect::<Vec<_>>());
+    println!(
+        "State before crash: {:?}",
+        replica.state().iter().collect::<Vec<_>>()
+    );
     println!("Counter (sequence): {}", replica.counter());
     println!("Has pending deltas: {}", replica.has_pending_deltas());
 
@@ -171,9 +225,15 @@ fn example_3_crash_recovery() {
     let durable = storage.load("crash_demo").unwrap().unwrap();
     let recovered = CausalReplica::restore(durable);
 
-    println!("\nState after recovery: {:?}", recovered.state().iter().collect::<Vec<_>>());
+    println!(
+        "\nState after recovery: {:?}",
+        recovered.state().iter().collect::<Vec<_>>()
+    );
     println!("Counter after recovery: {}", recovered.counter());
-    println!("Pending deltas after recovery: {}", recovered.has_pending_deltas());
+    println!(
+        "Pending deltas after recovery: {}",
+        recovered.has_pending_deltas()
+    );
 
     println!("\n✓ Crash recovery successful - durable state preserved\n");
 }
@@ -202,23 +262,38 @@ fn example_4_network_partition() {
 
     // Sync before partition
     cluster.full_sync_round();
-    println!("\nAfter initial sync - converged: {}", cluster.is_converged());
+    println!(
+        "\nAfter initial sync - converged: {}",
+        cluster.is_converged()
+    );
 
     // PARTITION: replica 2 is isolated
     println!("\n⚡ NETWORK PARTITION - Replica 2 isolated");
 
     // Replicas 0 and 1 continue to operate
-    cluster.mutate(0, |_| { let mut d = GSet::new(); d.insert(100); d });
-    cluster.mutate(1, |_| { let mut d = GSet::new(); d.insert(200); d });
-    
+    cluster.mutate(0, |_| {
+        let mut d = GSet::new();
+        d.insert(100);
+        d
+    });
+    cluster.mutate(1, |_| {
+        let mut d = GSet::new();
+        d.insert(200);
+        d
+    });
+
     // Replica 2 also operates independently
-    cluster.mutate(2, |_| { let mut d = GSet::new(); d.insert(300); d });
+    cluster.mutate(2, |_| {
+        let mut d = GSet::new();
+        d.insert(300);
+        d
+    });
 
     println!("During partition:");
     println!("  Replica 0 added: 100");
     println!("  Replica 1 added: 200");
     println!("  Replica 2 added: 300 (isolated)");
-    
+
     // States are divergent
     println!("\nStates divergent: {}", !cluster.is_converged());
 
@@ -231,8 +306,10 @@ fn example_4_network_partition() {
     }
 
     println!("\nAfter healing - converged: {}", cluster.is_converged());
-    println!("Final state (all replicas): {:?}", 
-        cluster.replica(0).state().iter().collect::<Vec<_>>());
+    println!(
+        "Final state (all replicas): {:?}",
+        cluster.replica(0).state().iter().collect::<Vec<_>>()
+    );
 
     println!("\n✓ Partition scenario handled - all data preserved\n");
 }
@@ -256,9 +333,12 @@ fn example_5_snapshot_bootstrap() {
             d
         });
     }
-    
+
     cluster.full_sync_round();
-    println!("Existing cluster has {} elements", cluster.replica(0).state().len());
+    println!(
+        "Existing cluster has {} elements",
+        cluster.replica(0).state().len()
+    );
 
     // Get snapshot from replica 0
     let (snapshot_state, snapshot_seq) = cluster.replica(0).snapshot();
@@ -272,7 +352,10 @@ fn example_5_snapshot_bootstrap() {
 
     println!("\nNew replica bootstrapped:");
     println!("  State size: {} elements", new_replica.state().len());
-    println!("  States match: {}", new_replica.state() == cluster.replica(0).state());
+    println!(
+        "  States match: {}",
+        new_replica.state() == cluster.replica(0).state()
+    );
 
     println!("\n✓ Snapshot bootstrap complete\n");
 }
@@ -287,7 +370,7 @@ fn example_6_distributed_counter() {
     let mut cluster: CausalCluster<PNCounter<String>> = CausalCluster::new(3, 0.0);
 
     println!("Each replica increments 10 times:");
-    
+
     // Each replica does increments
     for replica_idx in 0..3 {
         let replica_id = format!("r{}", replica_idx);
@@ -299,9 +382,11 @@ fn example_6_distributed_counter() {
                 delta
             });
         }
-        println!("  Replica {} local value: {}", 
-            replica_idx, 
-            cluster.replica(replica_idx).state().value());
+        println!(
+            "  Replica {} local value: {}",
+            replica_idx,
+            cluster.replica(replica_idx).state().value()
+        );
     }
 
     println!("\nBefore sync - converged: {}", cluster.is_converged());
@@ -312,8 +397,10 @@ fn example_6_distributed_counter() {
     }
 
     println!("After sync - converged: {}", cluster.is_converged());
-    println!("Final counter value: {} (expected: 30)", 
-        cluster.replica(0).state().value());
+    println!(
+        "Final counter value: {} (expected: 30)",
+        cluster.replica(0).state().value()
+    );
 
     // Demonstrate decrement
     println!("\nReplica 0 decrements 5 times:");
@@ -326,8 +413,10 @@ fn example_6_distributed_counter() {
     }
 
     cluster.full_sync_round();
-    println!("Final value after decrements: {} (expected: 25)", 
-        cluster.replica(0).state().value());
+    println!(
+        "Final value after decrements: {} (expected: 25)",
+        cluster.replica(0).state().value()
+    );
 
     println!("\n✓ Distributed counter example complete\n");
 }

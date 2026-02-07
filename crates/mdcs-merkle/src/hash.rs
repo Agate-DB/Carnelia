@@ -3,7 +3,7 @@
 //! Uses SHA-256 to generate Content Identifiers (CIDs) for nodes.
 
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use std::fmt;
 
 /// A 32-byte SHA-256 hash used as a Content Identifier (CID).
@@ -159,12 +159,12 @@ mod tests {
     #[test]
     fn test_hash_all() {
         let h1 = Hasher::hash_all(&[b"hello", b"world"]);
-        
+
         let mut hasher = Hasher::new();
         hasher.update(b"hello");
         hasher.update(b"world");
         let h2 = hasher.finalize();
-        
+
         assert_eq!(h1, h2);
     }
 }

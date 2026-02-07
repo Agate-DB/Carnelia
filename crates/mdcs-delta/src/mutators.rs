@@ -126,7 +126,11 @@ pub mod orset {
     }
 
     /// Apply add operation using delta-mutator
-    pub fn apply_add<T: Ord + Clone>(state: &mut ORSet<T>, replica_id: &str, value: T) -> ORSetDelta<T> {
+    pub fn apply_add<T: Ord + Clone>(
+        state: &mut ORSet<T>,
+        replica_id: &str,
+        value: T,
+    ) -> ORSetDelta<T> {
         // Use the built-in add which already maintains pending_delta
         state.add(replica_id, value.clone());
         add_delta(replica_id, value)
@@ -261,20 +265,12 @@ pub mod pncounter {
     }
 
     /// Apply increment delta to counter
-    pub fn apply_increment<K: Ord + Clone>(
-        state: &mut PNCounter<K>,
-        replica_id: K,
-        amount: u64,
-    ) {
+    pub fn apply_increment<K: Ord + Clone>(state: &mut PNCounter<K>, replica_id: K, amount: u64) {
         state.increment(replica_id, amount);
     }
 
     /// Apply decrement delta to counter
-    pub fn apply_decrement<K: Ord + Clone>(
-        state: &mut PNCounter<K>,
-        replica_id: K,
-        amount: u64,
-    ) {
+    pub fn apply_decrement<K: Ord + Clone>(state: &mut PNCounter<K>, replica_id: K, amount: u64) {
         state.decrement(replica_id, amount);
     }
 }
@@ -327,8 +323,8 @@ mod tests {
     use super::*;
     use mdcs_core::lattice::DeltaCRDT;
     use mdcs_core::lwwreg::LWWRegister;
-    use mdcs_core::pncounter::PNCounter;
     use mdcs_core::mvreg::MVRegister;
+    use mdcs_core::pncounter::PNCounter;
 
     #[test]
     fn test_gset_insert_delta() {
@@ -513,4 +509,3 @@ mod tests {
         assert_eq!(values.len(), 2);
     }
 }
-

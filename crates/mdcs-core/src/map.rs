@@ -102,16 +102,18 @@ impl<K: Ord + Clone + Serialize> Serialize for CRDTMap<K> {
             entries: Vec<(&'a K, Vec<(&'a Dot, &'a MapValue)>)>,
             context: &'a CausalContext,
         }
-        
-        let entries: Vec<_> = self.entries.iter()
+
+        let entries: Vec<_> = self
+            .entries
+            .iter()
             .map(|(k, v)| (k, v.iter().collect::<Vec<_>>()))
             .collect();
-        
+
         let serializable = SerializableCRDTMap {
             entries,
             context: &self.context,
         };
-        
+
         serializable.serialize(serializer)
     }
 }
@@ -126,14 +128,15 @@ impl<'de, K: Ord + Clone + Deserialize<'de>> Deserialize<'de> for CRDTMap<K> {
             entries: Vec<(K, Vec<(Dot, MapValue)>)>,
             context: CausalContext,
         }
-        
+
         let deserialized = DeserializableCRDTMap::<K>::deserialize(deserializer)?;
-        
-        let entries: BTreeMap<K, BTreeMap<Dot, MapValue>> = deserialized.entries
+
+        let entries: BTreeMap<K, BTreeMap<Dot, MapValue>> = deserialized
+            .entries
             .into_iter()
             .map(|(k, v)| (k, v.into_iter().collect()))
             .collect();
-        
+
         Ok(Self {
             entries,
             context: deserialized.context,
@@ -204,13 +207,9 @@ impl<K: Ord + Clone> CRDTMap<K> {
 
     /// Get all keys that have live values
     pub fn keys(&self) -> impl Iterator<Item = &K> {
-        self.entries.iter().filter_map(|(k, v)| {
-            if !v.is_empty() {
-                Some(k)
-            } else {
-                None
-            }
-        })
+        self.entries
+            .iter()
+            .filter_map(|(k, v)| if !v.is_empty() { Some(k) } else { None })
     }
 
     /// Get the causal context
@@ -273,7 +272,11 @@ mod tests {
         map.put("replica1", "key1".to_string(), MapValue::Int(42));
         assert_eq!(map.get(&"key1".to_string()), Some(&MapValue::Int(42)));
 
-        map.put("replica1", "key2".to_string(), MapValue::Text("hello".to_string()));
+        map.put(
+            "replica1",
+            "key2".to_string(),
+            MapValue::Text("hello".to_string()),
+        );
         assert_eq!(
             map.get(&"key2".to_string()),
             Some(&MapValue::Text("hello".to_string()))
@@ -306,16 +309,26 @@ mod tests {
         map1.put("replica1", "key1".to_string(), MapValue::Int(42));
 
         let mut map2: CRDTMap<String> = CRDTMap::new();
-        map2.put("replica2", "key2".to_string(), MapValue::Text("world".to_string()));
+        map2.put(
+            "replica2",
+            "key2".to_string(),
+            MapValue::Text("world".to_string()),
+        );
 
         let joined1 = map1.join(&map2);
         let joined2 = map2.join(&map1);
 
         assert_eq!(joined1.get(&"key1".to_string()), Some(&MapValue::Int(42)));
-        assert_eq!(joined1.get(&"key2".to_string()), Some(&MapValue::Text("world".to_string())));
+        assert_eq!(
+            joined1.get(&"key2".to_string()),
+            Some(&MapValue::Text("world".to_string()))
+        );
 
         assert_eq!(joined2.get(&"key1".to_string()), Some(&MapValue::Int(42)));
-        assert_eq!(joined2.get(&"key2".to_string()), Some(&MapValue::Text("world".to_string())));
+        assert_eq!(
+            joined2.get(&"key2".to_string()),
+            Some(&MapValue::Text("world".to_string()))
+        );
     }
 
     #[test]
@@ -358,7 +371,11 @@ mod tests {
     fn test_map_serialization() {
         let mut map: CRDTMap<String> = CRDTMap::new();
         map.put("replica1", "key1".to_string(), MapValue::Int(42));
-        map.put("replica1", "key2".to_string(), MapValue::Text("hello".to_string()));
+        map.put(
+            "replica1",
+            "key2".to_string(),
+            MapValue::Text("hello".to_string()),
+        );
 
         let serialized = serde_json::to_string(&map).unwrap();
         let deserialized: CRDTMap<String> = serde_json::from_str(&serialized).unwrap();

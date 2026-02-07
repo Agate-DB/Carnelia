@@ -30,48 +30,46 @@
 //! store.rich_text_bold(&rich_id, 0, 4).unwrap();
 //! ```
 
+pub mod document;
 pub mod error;
+pub mod json_crdt;
+pub mod presence;
 pub mod rga_list;
 pub mod rga_text;
 pub mod rich_text;
-pub mod json_crdt;
-pub mod document;
-pub mod presence;
 pub mod undo;
 
 // RGA List exports
-pub use rga_list::{RGAList, RGAListDelta, ListId, ListNode};
+pub use rga_list::{ListId, ListNode, RGAList, RGAListDelta};
 
 // RGA Text exports
 pub use rga_text::{RGAText, RGATextDelta, TextId};
 
 // Rich Text exports
-pub use rich_text::{RichText, RichTextDelta, Mark, MarkId, MarkType, Anchor};
+pub use rich_text::{Anchor, Mark, MarkId, MarkType, RichText, RichTextDelta};
 
 // JSON CRDT exports
 pub use json_crdt::{
-    JsonCrdt, JsonCrdtDelta, JsonPath, PathSegment, JsonValue,
-    ArrayId, ObjectId, ObjectChange, ArrayChange,
+    ArrayChange, ArrayId, JsonCrdt, JsonCrdtDelta, JsonPath, JsonValue, ObjectChange, ObjectId,
+    PathSegment,
 };
 
 // Document Store exports
 pub use document::{
-    Document, DocumentStore, DocumentId, DocumentType,
-    CrdtValue, DocumentDelta, StoreChange,
-    QueryOptions, SortField,
+    CrdtValue, Document, DocumentDelta, DocumentId, DocumentStore, DocumentType, QueryOptions,
+    SortField, StoreChange,
 };
 
 // Presence exports
 pub use presence::{
-    PresenceTracker, PresenceDelta, UserPresence, UserId, UserInfo,
-    Cursor, CursorBuilder, CursorColors, UserStatus,
+    Cursor, CursorBuilder, CursorColors, PresenceDelta, PresenceTracker, UserId, UserInfo,
+    UserPresence, UserStatus,
 };
 
 // Undo/Redo exports
 pub use undo::{
-    UndoManager, CollaborativeUndoManager,
-    Operation, OperationId, GroupId,
-    UndoableOperation, TextOperation, FormatOperation, JsonOperation,
+    CollaborativeUndoManager, FormatOperation, GroupId, JsonOperation, Operation, OperationId,
+    TextOperation, UndoManager, UndoableOperation,
 };
 
 // Error exports

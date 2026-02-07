@@ -34,14 +34,14 @@
 //! }
 //! ```
 
-mod version_vector;
-mod snapshot;
-mod pruning;
-mod stability;
 mod compactor;
+mod pruning;
+mod snapshot;
+mod stability;
+mod version_vector;
 
-pub use version_vector::{VersionVector, VectorEntry};
-pub use snapshot::{Snapshot, SnapshotManager, SnapshotError};
-pub use pruning::{PruningPolicy, PruningResult, Pruner, PrunableStore, PruningVerifier};
-pub use stability::{StabilityMonitor, StabilityState, FrontierUpdate, StabilityConfig};
-pub use compactor::{Compactor, CompactionConfig, CompactionStats, CompactionError};
+pub use compactor::{CompactionConfig, CompactionError, CompactionStats, Compactor};
+pub use pruning::{PrunableStore, Pruner, PruningPolicy, PruningResult, PruningVerifier};
+pub use snapshot::{Snapshot, SnapshotError, SnapshotManager};
+pub use stability::{FrontierUpdate, StabilityConfig, StabilityMonitor, StabilityState};
+pub use version_vector::{VectorEntry, VersionVector};

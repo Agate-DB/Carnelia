@@ -54,23 +54,11 @@ impl StressTestStats {
 
     pub fn print(&self) {
         println!("\n╔════════════════════════════════════════════════════════════╗");
-        println!(
-            "║  {:^56} ║",
-            format!("{} Results", self.test_name)
-        );
+        println!("║  {:^56} ║", format!("{} Results", self.test_name));
         println!("╠════════════════════════════════════════════════════════════╣");
-        println!(
-            "║  Replicas:        {:>38} ║",
-            self.num_replicas
-        );
-        println!(
-            "║  Ops/Replica:     {:>38} ║",
-            self.operations_per_replica
-        );
-        println!(
-            "║  Total Syncs:     {:>38} ║",
-            self.total_syncs
-        );
+        println!("║  Replicas:        {:>38} ║", self.num_replicas);
+        println!("║  Ops/Replica:     {:>38} ║", self.operations_per_replica);
+        println!("║  Total Syncs:     {:>38} ║", self.total_syncs);
         println!(
             "║  Total Time:      {:>37.3}s ║",
             self.total_time.as_secs_f64()
@@ -79,10 +67,7 @@ impl StressTestStats {
             "║  Avg Sync Time:   {:>35}µs ║",
             format!("{:.2}", self.avg_sync_time.as_micros())
         );
-        println!(
-            "║  Ops/Second:      {:>38.0} ║",
-            self.ops_per_second
-        );
+        println!("║  Ops/Second:      {:>38.0} ║", self.ops_per_second);
         println!(
             "║  Converged:       {:>38} ║",
             if self.converged { "✓ Yes" } else { "✗ No" }
@@ -142,7 +127,9 @@ pub struct BenchmarkReport {
 
 impl BenchmarkReport {
     pub fn new() -> Self {
-        Self { results: Vec::new() }
+        Self {
+            results: Vec::new(),
+        }
     }
 
     pub fn add(&mut self, result: BenchmarkResult) {
@@ -180,7 +167,10 @@ impl Default for BenchmarkReport {
 // ============================================================================
 
 /// Generator that yields replica indices for synchronization patterns
-fn replica_sync_generator(num_replicas: usize, num_syncs: usize) -> impl Stream<Item = (usize, usize)> {
+fn replica_sync_generator(
+    num_replicas: usize,
+    num_syncs: usize,
+) -> impl Stream<Item = (usize, usize)> {
     stream! {
         let mut rng = StdRng::from_entropy();
         for _ in 0..num_syncs {
@@ -339,7 +329,12 @@ pub async fn stress_test_orset(
     ops_per_replica: usize,
     num_syncs: usize,
 ) -> StressTestStats {
-    print_header("ORSet Stress Test", num_replicas, ops_per_replica, num_syncs);
+    print_header(
+        "ORSet Stress Test",
+        num_replicas,
+        ops_per_replica,
+        num_syncs,
+    );
 
     let start = Instant::now();
 
@@ -435,7 +430,12 @@ pub async fn stress_test_pncounter(
     ops_per_replica: usize,
     num_syncs: usize,
 ) -> StressTestStats {
-    print_header("PNCounter Stress Test", num_replicas, ops_per_replica, num_syncs);
+    print_header(
+        "PNCounter Stress Test",
+        num_replicas,
+        ops_per_replica,
+        num_syncs,
+    );
 
     let start = Instant::now();
 
@@ -537,7 +537,12 @@ pub async fn stress_test_lwwreg(
     ops_per_replica: usize,
     num_syncs: usize,
 ) -> StressTestStats {
-    print_header("LWWRegister Stress Test", num_replicas, ops_per_replica, num_syncs);
+    print_header(
+        "LWWRegister Stress Test",
+        num_replicas,
+        ops_per_replica,
+        num_syncs,
+    );
 
     let start = Instant::now();
 
@@ -638,7 +643,12 @@ pub async fn stress_test_mvreg(
     ops_per_replica: usize,
     num_syncs: usize,
 ) -> StressTestStats {
-    print_header("MVRegister Stress Test", num_replicas, ops_per_replica, num_syncs);
+    print_header(
+        "MVRegister Stress Test",
+        num_replicas,
+        ops_per_replica,
+        num_syncs,
+    );
 
     let start = Instant::now();
 
@@ -791,14 +801,14 @@ pub fn stress_test_rga_text(num_replicas: usize, ops_per_replica: usize) -> Stre
         for i in 0..num_replicas {
             for j in (i + 1)..num_replicas {
                 let sync_start = Instant::now();
-                
+
                 // Clone to avoid borrow issues
                 let delta_i = replicas[i].clone();
                 let delta_j = replicas[j].clone();
-                
+
                 replicas[i] = replicas[i].join(&delta_j);
                 replicas[j] = replicas[j].join(&delta_i);
-                
+
                 sync_times.push(sync_start.elapsed());
                 total_syncs += 1;
             }
@@ -813,10 +823,7 @@ pub fn stress_test_rga_text(num_replicas: usize, ops_per_replica: usize) -> Stre
     let first_text = replicas[0].to_string();
     let converged = replicas.iter().all(|r| r.to_string() == first_text);
 
-    println!(
-        "  Final text length: {} chars",
-        first_text.len()
-    );
+    println!("  Final text length: {} chars", first_text.len());
     println!("  All replicas identical: {}", converged);
 
     let total_time = start.elapsed();
@@ -877,11 +884,15 @@ pub fn stress_test_rich_text(num_replicas: usize, ops_per_replica: usize) -> Str
     for (idx, replica) in replicas.iter_mut().enumerate() {
         for i in 0..ops_per_replica {
             let text_len = replica.text().len();
-            
+
             // 50% text insert, 30% format, 20% delete
             let op = rng.gen::<f64>();
             if op < 0.5 || text_len == 0 {
-                let pos = if text_len == 0 { 0 } else { rng.gen_range(0..=text_len) };
+                let pos = if text_len == 0 {
+                    0
+                } else {
+                    rng.gen_range(0..=text_len)
+                };
                 let text = format!("T{}_{} ", idx, i);
                 let _ = replica.insert(pos, &text);
             } else if op < 0.8 && text_len > 2 {
@@ -911,13 +922,13 @@ pub fn stress_test_rich_text(num_replicas: usize, ops_per_replica: usize) -> Str
         for i in 0..num_replicas {
             for j in (i + 1)..num_replicas {
                 let sync_start = Instant::now();
-                
+
                 let delta_i = replicas[i].clone();
                 let delta_j = replicas[j].clone();
-                
+
                 replicas[i] = replicas[i].join(&delta_j);
                 replicas[j] = replicas[j].join(&delta_i);
-                
+
                 sync_times.push(sync_start.elapsed());
                 total_syncs += 1;
             }
@@ -1027,13 +1038,13 @@ pub fn stress_test_json_crdt(num_replicas: usize, ops_per_replica: usize) -> Str
         for i in 0..num_replicas {
             for j in (i + 1)..num_replicas {
                 let sync_start = Instant::now();
-                
+
                 let delta_i = replicas[i].clone();
                 let delta_j = replicas[j].clone();
-                
+
                 replicas[i] = replicas[i].join(&delta_j);
                 replicas[j] = replicas[j].join(&delta_i);
-                
+
                 sync_times.push(sync_start.elapsed());
                 total_syncs += 1;
             }
@@ -1117,8 +1128,12 @@ pub fn stress_test_document_store(num_docs: usize, ops_per_doc: usize) -> Stress
         }
     }
 
-    println!("  Created {} text, {} JSON, {} rich text documents",
-             text_docs.len(), json_docs.len(), rich_docs.len());
+    println!(
+        "  Created {} text, {} JSON, {} rich text documents",
+        text_docs.len(),
+        json_docs.len(),
+        rich_docs.len()
+    );
 
     // Perform operations
     for i in 0..ops_per_doc {
@@ -1153,12 +1168,16 @@ pub fn stress_test_document_store(num_docs: usize, ops_per_doc: usize) -> Stress
 
     // Test queries
     use mdcs_db::QueryOptions;
-    
+
     let query_start = Instant::now();
     let results = store.query(&QueryOptions::default());
     let query_time = query_start.elapsed();
 
-    println!("  Query returned {} documents in {:?}", results.len(), query_time);
+    println!(
+        "  Query returned {} documents in {:?}",
+        results.len(),
+        query_time
+    );
 
     let total_time = start.elapsed();
     let total_ops = num_docs + (ops_per_doc * num_docs);
@@ -1256,12 +1275,16 @@ pub fn stress_test_delta_gset(
 
         // Check convergence
         let first_len = replicas[0].len();
-        converged = replicas.iter().all(|r| r.len() == first_len && r.len() == expected_total);
+        converged = replicas
+            .iter()
+            .all(|r| r.len() == first_len && r.len() == expected_total);
 
         if rounds % 5 == 0 {
-            println!("  Round {}: sizes = {:?}",
-                     rounds,
-                     replicas.iter().map(|r| r.len()).collect::<Vec<_>>());
+            println!(
+                "  Round {}: sizes = {:?}",
+                rounds,
+                replicas.iter().map(|r| r.len()).collect::<Vec<_>>()
+            );
         }
     }
 
@@ -1287,7 +1310,11 @@ pub fn stress_test_delta_gset(
     DeltaStressTestStats {
         num_replicas,
         operations_per_replica: ops_per_replica,
-        network_config: format!("loss={:.0}%, dup={:.0}%", loss_rate * 100.0, dup_rate * 100.0),
+        network_config: format!(
+            "loss={:.0}%, dup={:.0}%",
+            loss_rate * 100.0,
+            dup_rate * 100.0
+        ),
         sync_rounds: rounds,
         converged,
         total_time,
@@ -1435,7 +1462,10 @@ pub fn stress_test_all_db_crdts(num_replicas: usize, ops_per_replica: usize) {
     results.push(stress_test_rga_text(num_replicas, ops_per_replica));
     results.push(stress_test_rich_text(num_replicas, ops_per_replica));
     results.push(stress_test_json_crdt(num_replicas, ops_per_replica));
-    results.push(stress_test_document_store(num_replicas * 5, ops_per_replica / 2));
+    results.push(stress_test_document_store(
+        num_replicas * 5,
+        ops_per_replica / 2,
+    ));
 
     print_summary_table(&results);
 }

@@ -46,15 +46,9 @@ impl Default for GroupId {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TextOperation {
     /// Insert text at a position.
-    Insert {
-        position: usize,
-        text: String,
-    },
+    Insert { position: usize, text: String },
     /// Delete text at a position.
-    Delete {
-        position: usize,
-        deleted: String,
-    },
+    Delete { position: usize, deleted: String },
     /// Replace text (delete + insert).
     Replace {
         position: usize,
@@ -75,7 +69,11 @@ impl TextOperation {
                 position: *position,
                 text: deleted.clone(),
             },
-            TextOperation::Replace { position, deleted, inserted } => TextOperation::Replace {
+            TextOperation::Replace {
+                position,
+                deleted,
+                inserted,
+            } => TextOperation::Replace {
                 position: *position,
                 deleted: inserted.clone(),
                 inserted: deleted.clone(),
@@ -95,9 +93,7 @@ pub enum FormatOperation {
         end: usize,
     },
     /// Remove a mark.
-    RemoveMark {
-        mark_id: String,
-    },
+    RemoveMark { mark_id: String },
 }
 
 impl FormatOperation {
@@ -149,7 +145,11 @@ impl JsonOperation {
     /// Create the inverse operation.
     pub fn inverse(&self) -> Self {
         match self {
-            JsonOperation::Set { path, old_value, new_value } => {
+            JsonOperation::Set {
+                path,
+                old_value,
+                new_value,
+            } => {
                 if let Some(old) = old_value {
                     JsonOperation::Set {
                         path: path.clone(),
@@ -168,12 +168,20 @@ impl JsonOperation {
                 old_value: None,
                 new_value: old_value.clone(),
             },
-            JsonOperation::ArrayInsert { array_path, index, value } => JsonOperation::ArrayRemove {
+            JsonOperation::ArrayInsert {
+                array_path,
+                index,
+                value,
+            } => JsonOperation::ArrayRemove {
                 array_path: array_path.clone(),
                 index: *index,
                 value: value.clone(),
             },
-            JsonOperation::ArrayRemove { array_path, index, value } => JsonOperation::ArrayInsert {
+            JsonOperation::ArrayRemove {
+                array_path,
+                index,
+                value,
+            } => JsonOperation::ArrayInsert {
                 array_path: array_path.clone(),
                 index: *index,
                 value: value.clone(),
@@ -289,27 +297,22 @@ impl UndoManager {
     /// Record a local operation.
     pub fn record(&mut self, operation: UndoableOperation) -> &Operation {
         self.clock += 1;
-        
-        let mut op = Operation::new(
-            &self.document_id,
-            &self.replica_id,
-            operation,
-            self.clock,
-        );
-        
+
+        let mut op = Operation::new(&self.document_id, &self.replica_id, operation, self.clock);
+
         if let Some(group_id) = &self.current_group {
             op.group_id = Some(group_id.clone());
         }
-        
+
         let op_id = op.id.clone();
         self.history.push(op);
         self.undo_stack.push_back(op_id);
-        
+
         // Clear redo stack when new operation is recorded
         self.redo_stack.clear();
-        
+
         self.trim_history();
-        
+
         self.history.last().unwrap()
     }
 
@@ -349,15 +352,17 @@ impl UndoManager {
         if self.undo_stack.is_empty() {
             return Vec::new();
         }
-        
+
         let op_id = self.undo_stack.pop_back().unwrap();
         let mut inverses = Vec::new();
-        
+
         // Find the operation's group id first
-        let group_id = self.history.iter()
+        let group_id = self
+            .history
+            .iter()
             .find(|o| o.id == op_id)
             .and_then(|o| o.group_id.clone());
-        
+
         if let Some(group_id) = group_id {
             // Find all operations in this group and undo them
             for op in self.history.iter_mut() {
@@ -366,16 +371,17 @@ impl UndoManager {
                     op.undone = true;
                 }
             }
-            
+
             // Remove all group operations from undo stack
             let group_id_ref = &group_id;
             self.undo_stack.retain(|id| {
-                self.history.iter()
+                self.history
+                    .iter()
                     .find(|o| &o.id == id)
                     .map(|o| o.group_id.as_ref() != Some(group_id_ref))
                     .unwrap_or(true)
             });
-            
+
             self.redo_stack.push_back(op_id);
         } else {
             // Single operation
@@ -385,7 +391,7 @@ impl UndoManager {
             }
             self.redo_stack.push_back(op_id);
         }
-        
+
         // Return in reverse order (last operation first)
         inverses.reverse();
         inverses
@@ -397,15 +403,17 @@ impl UndoManager {
         if self.redo_stack.is_empty() {
             return Vec::new();
         }
-        
+
         let op_id = self.redo_stack.pop_back().unwrap();
         let mut operations = Vec::new();
-        
+
         // Find the operation's group id first
-        let group_id = self.history.iter()
+        let group_id = self
+            .history
+            .iter()
             .find(|o| o.id == op_id)
             .and_then(|o| o.group_id.clone());
-        
+
         if let Some(group_id) = group_id {
             // Find all operations in this group and redo them
             for op in self.history.iter_mut() {
@@ -422,7 +430,7 @@ impl UndoManager {
             }
             self.undo_stack.push_back(op_id);
         }
-        
+
         operations
     }
 
@@ -476,7 +484,8 @@ impl CollaborativeUndoManager {
 
     /// Get or create an undo manager for a document.
     pub fn for_document(&mut self, document_id: &str) -> &mut UndoManager {
-        self.managers.entry(document_id.to_string())
+        self.managers
+            .entry(document_id.to_string())
             .or_insert_with(|| UndoManager::new(document_id, &self.replica_id))
     }
 
@@ -512,14 +521,16 @@ impl CollaborativeUndoManager {
 
     /// Check if we can undo for a document.
     pub fn can_undo(&self, document_id: &str) -> bool {
-        self.managers.get(document_id)
+        self.managers
+            .get(document_id)
             .map(|m| m.can_undo())
             .unwrap_or(false)
     }
 
     /// Check if we can redo for a document.
     pub fn can_redo(&self, document_id: &str) -> bool {
-        self.managers.get(document_id)
+        self.managers
+            .get(document_id)
             .map(|m| m.can_redo())
             .unwrap_or(false)
     }
@@ -541,33 +552,35 @@ mod tests {
             text: "Hello".to_string(),
         };
         let inverse = insert.inverse();
-        
-        assert!(matches!(inverse, TextOperation::Delete { position: 0, deleted } if deleted == "Hello"));
+
+        assert!(
+            matches!(inverse, TextOperation::Delete { position: 0, deleted } if deleted == "Hello")
+        );
     }
 
     #[test]
     fn test_basic_undo() {
         let mut manager = UndoManager::new("doc1", "r1");
-        
+
         // Record insert
         manager.record(UndoableOperation::Text(TextOperation::Insert {
             position: 0,
             text: "Hello".to_string(),
         }));
-        
+
         assert!(manager.can_undo());
         assert!(!manager.can_redo());
-        
+
         // Undo
         let inverses = manager.undo();
         assert_eq!(inverses.len(), 1);
-        
+
         if let UndoableOperation::Text(TextOperation::Delete { deleted, .. }) = &inverses[0] {
             assert_eq!(deleted, "Hello");
         } else {
             panic!("Expected text delete operation");
         }
-        
+
         assert!(!manager.can_undo());
         assert!(manager.can_redo());
     }
@@ -575,18 +588,18 @@ mod tests {
     #[test]
     fn test_redo() {
         let mut manager = UndoManager::new("doc1", "r1");
-        
+
         manager.record(UndoableOperation::Text(TextOperation::Insert {
             position: 0,
             text: "Hello".to_string(),
         }));
-        
+
         manager.undo();
         assert!(manager.can_redo());
-        
+
         let ops = manager.redo();
         assert_eq!(ops.len(), 1);
-        
+
         if let UndoableOperation::Text(TextOperation::Insert { text, .. }) = &ops[0] {
             assert_eq!(text, "Hello");
         } else {
@@ -597,10 +610,10 @@ mod tests {
     #[test]
     fn test_operation_group() {
         let mut manager = UndoManager::new("doc1", "r1");
-        
+
         // Start group
         manager.start_group();
-        
+
         // Record multiple operations
         manager.record(UndoableOperation::Text(TextOperation::Insert {
             position: 0,
@@ -614,10 +627,10 @@ mod tests {
             position: 2,
             text: "C".to_string(),
         }));
-        
+
         // End group
         manager.end_group();
-        
+
         // Undo should undo all operations in the group
         let inverses = manager.undo();
         // Note: Due to our simplified implementation, this might return just one
@@ -628,43 +641,49 @@ mod tests {
     #[test]
     fn test_redo_clears_on_new_operation() {
         let mut manager = UndoManager::new("doc1", "r1");
-        
+
         manager.record(UndoableOperation::Text(TextOperation::Insert {
             position: 0,
             text: "A".to_string(),
         }));
-        
+
         manager.undo();
         assert!(manager.can_redo());
-        
+
         // New operation should clear redo stack
         manager.record(UndoableOperation::Text(TextOperation::Insert {
             position: 0,
             text: "B".to_string(),
         }));
-        
+
         assert!(!manager.can_redo());
     }
 
     #[test]
     fn test_collaborative_undo_manager() {
         let mut manager = CollaborativeUndoManager::new("r1");
-        
+
         // Record operations in different documents
-        manager.record("doc1", UndoableOperation::Text(TextOperation::Insert {
-            position: 0,
-            text: "Hello".to_string(),
-        }));
-        
-        manager.record("doc2", UndoableOperation::Json(JsonOperation::Set {
-            path: "name".to_string(),
-            old_value: None,
-            new_value: serde_json::json!("test"),
-        }));
-        
+        manager.record(
+            "doc1",
+            UndoableOperation::Text(TextOperation::Insert {
+                position: 0,
+                text: "Hello".to_string(),
+            }),
+        );
+
+        manager.record(
+            "doc2",
+            UndoableOperation::Json(JsonOperation::Set {
+                path: "name".to_string(),
+                old_value: None,
+                new_value: serde_json::json!("test"),
+            }),
+        );
+
         assert!(manager.can_undo("doc1"));
         assert!(manager.can_undo("doc2"));
-        
+
         // Undo in doc1 doesn't affect doc2
         manager.undo("doc1");
         assert!(!manager.can_undo("doc1"));
@@ -678,10 +697,15 @@ mod tests {
             old_value: Some(serde_json::json!("old")),
             new_value: serde_json::json!("new"),
         };
-        
+
         let inverse = set.inverse();
-        
-        if let JsonOperation::Set { path, old_value, new_value } = inverse {
+
+        if let JsonOperation::Set {
+            path,
+            old_value,
+            new_value,
+        } = inverse
+        {
             assert_eq!(path, "name");
             assert_eq!(new_value, serde_json::json!("old"));
             assert_eq!(old_value, Some(serde_json::json!("new")));
@@ -694,14 +718,14 @@ mod tests {
     fn test_max_history() {
         let mut manager = UndoManager::new("doc1", "r1");
         manager.set_max_history(5);
-        
+
         for i in 0..10 {
             manager.record(UndoableOperation::Text(TextOperation::Insert {
                 position: i,
                 text: format!("{}", i),
             }));
         }
-        
+
         // Should only keep last 5 operations
         assert!(manager.undo_stack_size() <= 5);
     }
@@ -709,7 +733,7 @@ mod tests {
     #[test]
     fn test_remote_operation() {
         let mut manager = UndoManager::new("doc1", "r1");
-        
+
         // Record a remote operation
         let remote_op = Operation::new(
             "doc1",
@@ -720,9 +744,9 @@ mod tests {
             }),
             100,
         );
-        
+
         manager.record_remote(remote_op);
-        
+
         // Remote operations are in history but not in local undo stack
         assert!(!manager.can_undo());
     }

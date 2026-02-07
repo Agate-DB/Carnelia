@@ -6,7 +6,7 @@
 //!
 //! Run with: cargo run --example network_simulation
 
-use mdcs_sdk::network::{create_network, MemoryTransport, NetworkTransport, PeerId, Message};
+use mdcs_sdk::network::{create_network, MemoryTransport, Message, NetworkTransport, PeerId};
 use std::collections::HashMap;
 
 #[tokio::main]
@@ -18,7 +18,7 @@ async fn main() {
     // Create a network of 4 fully-connected peers
     println!("Creating a mesh network of 4 peers...\n");
     let transports = create_network(4);
-    
+
     println!("┌────────────────────────────────────────────────────────────────┐");
     println!("│                    Network Topology                            │");
     println!("├────────────────────────────────────────────────────────────────┤");
@@ -59,26 +59,29 @@ async fn main() {
     // Get a reference to peer-0's transport
     let sender = &transports[0];
     let sender_id = sender.local_id().clone();
-    
+
     // Subscribe to messages on peer-1
     let mut receiver_rx = transports[1].subscribe();
-    
+
     // Send a Hello message from peer-0 to peer-1
     let target = PeerId::new("peer-1");
     let hello_msg = Message::Hello {
         replica_id: sender_id.0.clone(),
         user_name: "Alice".to_string(),
     };
-    
+
     println!("  [SEND] {} → {}: Hello message", sender_id, target);
-    println!("         {{ replica_id: \"{}\", user_name: \"Alice\" }}", sender_id.0);
-    sender.send(&target, hello_msg.clone()).await.expect("send failed");
-    
+    println!(
+        "         {{ replica_id: \"{}\", user_name: \"Alice\" }}",
+        sender_id.0
+    );
+    sender
+        .send(&target, hello_msg.clone())
+        .await
+        .expect("send failed");
+
     // Receive the message on peer-1
-    match tokio::time::timeout(
-        std::time::Duration::from_millis(100),
-        receiver_rx.recv()
-    ).await {
+    match tokio::time::timeout(std::time::Duration::from_millis(100), receiver_rx.recv()).await {
         Ok(Some((from, msg))) => {
             println!("  [RECV] {} received from {}:", target, from);
             println!("         {:?}", msg);
@@ -93,14 +96,14 @@ async fn main() {
     println!("╔════════════════════════════════════════════════════════════════╗");
     println!("║                     Broadcast Demo                             ║");
     println!("╚════════════════════════════════════════════════════════════════╝\n");
-    
+
     let delta_bytes = vec![1, 2, 3, 4, 5, 6, 7, 8]; // Simulated CRDT delta
     let update_msg = Message::Update {
         document_id: "shared-doc".to_string(),
         delta: delta_bytes.clone(),
         version: 1,
     };
-    
+
     println!("  {} broadcasting document update...", sender_id);
     println!();
     println!("  Message:");
@@ -108,9 +111,12 @@ async fn main() {
     println!("    ├─ delta: [{} bytes]", delta_bytes.len());
     println!("    └─ version: 1");
     println!();
-    
-    sender.broadcast(update_msg.clone()).await.expect("broadcast failed");
-    
+
+    sender
+        .broadcast(update_msg.clone())
+        .await
+        .expect("broadcast failed");
+
     // Show broadcast flow
     println!("  Broadcast path:");
     println!("    {} ──broadcast──┬──► peer-1", sender_id);
@@ -125,13 +131,13 @@ async fn main() {
 
     // Simulate local document states
     let mut doc_states: HashMap<String, String> = HashMap::new();
-    
+
     // peer-0 has the initial document
     doc_states.insert("peer-0".to_string(), "Hello World!".to_string());
     doc_states.insert("peer-1".to_string(), "".to_string());
     doc_states.insert("peer-2".to_string(), "".to_string());
     doc_states.insert("peer-3".to_string(), "".to_string());
-    
+
     println!("  Initial document states:");
     for (peer, doc) in &doc_states {
         println!("    {}: {:?}", peer, doc);
@@ -145,7 +151,7 @@ async fn main() {
         version: 0,
     };
     println!("    [REQ]  peer-1 → peer-0: SyncRequest(version: 0)");
-    
+
     // Step 2: peer-0 responds with full state
     let _sync_resp = Message::SyncResponse {
         document_id: "shared-doc".to_string(),
@@ -162,7 +168,7 @@ async fn main() {
     println!("    [BROADCAST] peer-1 → peer-2: Update(delta, version: 1)");
     doc_states.insert("peer-2".to_string(), "Hello World!".to_string());
     println!("    [APPLY] peer-2 applied delta");
-    
+
     println!("    [BROADCAST] peer-1 → peer-3: Update(delta, version: 1)");
     doc_states.insert("peer-3".to_string(), "Hello World!".to_string());
     println!("    [APPLY] peer-3 applied delta");
@@ -185,7 +191,7 @@ async fn main() {
     println!("=== Verification ===\n");
     let reference = doc_states.get("peer-0").unwrap();
     let all_match = doc_states.values().all(|v| v == reference);
-    
+
     if all_match {
         println!("  ✓ All 4 peers have identical document state");
         println!("  ✓ Document content: {:?}", reference);
@@ -198,20 +204,23 @@ async fn main() {
     println!("╔════════════════════════════════════════════════════════════════╗");
     println!("║                  Peer Management Demo                          ║");
     println!("╚════════════════════════════════════════════════════════════════╝\n");
-    
+
     // Create a new isolated transport
     let new_peer = MemoryTransport::new(PeerId::new("peer-new"));
     println!("  Created new peer: {}", new_peer.local_id());
-    
+
     // Initially not connected
     let peers = new_peer.connected_peers().await;
     println!("  Initial connections: {}", peers.len());
-    
+
     // Connect to an existing peer
     new_peer.connect_to(&transports[0]);
     let peers = new_peer.connected_peers().await;
-    println!("  After connecting to peer-0: {} connection(s)", peers.len());
-    
+    println!(
+        "  After connecting to peer-0: {} connection(s)",
+        peers.len()
+    );
+
     // Simulate sync for new peer
     println!();
     println!("  New peer syncing...");
@@ -220,7 +229,7 @@ async fn main() {
     doc_states.insert("peer-new".to_string(), "Hello World!".to_string());
     println!("    [APPLY] peer-new now has: \"Hello World!\"");
     println!();
-    
+
     // New topology
     println!("  Updated network topology:");
     println!("    peer-0 ◄──────────────► peer-1");
@@ -239,7 +248,7 @@ async fn main() {
     println!("╔════════════════════════════════════════════════════════════════╗");
     println!("║                  Message Types Reference                       ║");
     println!("╠══════════════╤═════════════════════════════════════════════════╣");
-    
+
     let messages = vec![
         ("Hello", "Initial handshake with replica ID and user name"),
         ("SyncRequest", "Request sync state for a document"),
@@ -249,7 +258,7 @@ async fn main() {
         ("Ack", "Acknowledgment of received message"),
         ("Ping/Pong", "Keepalive messages for connection health"),
     ];
-    
+
     for (name, desc) in messages {
         println!("║ {:12} │ {:47} ║", name, desc);
     }

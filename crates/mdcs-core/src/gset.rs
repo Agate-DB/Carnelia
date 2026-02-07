@@ -1,9 +1,9 @@
 //! Grow-only Set - elements can only be added, never removed
 //!  This is the simplest useful CRDT and a good starting point.
 
-use crate::lattice:: Lattice;
+use crate::lattice::Lattice;
 use serde::{Deserialize, Serialize};
-use std::collections:: BTreeSet;
+use std::collections::BTreeSet;
 // use std::hash:: Hash;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -32,7 +32,7 @@ impl<T: Ord + Clone> GSet<T> {
     }
 
     pub fn len(&self) -> usize {
-        self. elements.len()
+        self.elements.len()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -40,7 +40,7 @@ impl<T: Ord + Clone> GSet<T> {
     }
 }
 
-impl<T:  Ord + Clone> Default for GSet<T> {
+impl<T: Ord + Clone> Default for GSet<T> {
     fn default() -> Self {
         Self::new()
     }
@@ -51,9 +51,9 @@ impl<T: Ord + Clone> Lattice for GSet<T> {
         Self::new()
     }
 
-    fn join(&self, other:  &Self) -> Self {
+    fn join(&self, other: &Self) -> Self {
         Self {
-            elements:  self.elements.union(&other.elements).cloned().collect(),
+            elements: self.elements.union(&other.elements).cloned().collect(),
         }
     }
 }
@@ -61,10 +61,10 @@ impl<T: Ord + Clone> Lattice for GSet<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use proptest::prelude:: *;
+    use proptest::prelude::*;
 
     // Property-based tests for lattice laws
-    proptest!  {
+    proptest! {
         #[test]
         fn gset_join_is_commutative(
             a in prop::collection::btree_set(0i32..100, 0.. 20),
