@@ -1,6 +1,6 @@
 [package]
 name = "carnelia-increment"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Standalone CLI increment tracker using the MDCS SDK with CRDT sync and merge"
 

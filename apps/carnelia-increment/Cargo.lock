@@ -92,7 +92,7 @@ checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
 name = "carnelia-increment"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "colored",
@@ -364,7 +364,7 @@ dependencies = [
 
 [[package]]
 name = "mdcs-compaction"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "mdcs-core",
  "mdcs-merkle",
@@ -375,7 +375,7 @@ dependencies = [
 
 [[package]]
 name = "mdcs-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "ulid",
@@ -383,7 +383,7 @@ dependencies = [
 
 [[package]]
 name = "mdcs-db"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "mdcs-compaction",
  "mdcs-core",
@@ -397,7 +397,7 @@ dependencies = [
 
 [[package]]
 name = "mdcs-delta"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "mdcs-core",
  "serde",
@@ -405,7 +405,7 @@ dependencies = [
 
 [[package]]
 name = "mdcs-merkle"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "mdcs-core",
  "mdcs-delta",
@@ -415,7 +415,7 @@ dependencies = [
 
 [[package]]
 name = "mdcs-sdk"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "async-trait",
  "futures",

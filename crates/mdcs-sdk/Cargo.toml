@@ -1,6 +1,6 @@
 [package]
 name = "mdcs-sdk"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
 description = "High-level SDK for building collaborative applications with the Carnelia MDCS"
@@ -13,10 +13,10 @@ categories = ["database-implementations", "data-structures"]
 [dependencies]
 # Core MDCS crates
 mdcs-core = { path = "../mdcs-core", version = "0.1.1" }
-mdcs-delta = { path = "../mdcs-delta", version = "0.1.0" }
-mdcs-merkle = { path = "../mdcs-merkle", version = "0.1.0" }
-mdcs-compaction = { path = "../mdcs-compaction", version = "0.1.0" }
-mdcs-db = { path = "../mdcs-db", version = "0.1.0" }
+mdcs-delta = { path = "../mdcs-delta", version = "0.1.1" }
+mdcs-merkle = { path = "../mdcs-merkle", version = "0.1.1" }
+mdcs-compaction = { path = "../mdcs-compaction", version = "0.1.1" }
+mdcs-db = { path = "../mdcs-db", version = "0.1.1" }
 
 # Async runtime
 tokio = { version = "1.35", features = ["full", "sync"] }

@@ -1,6 +1,6 @@
 [package]
 name = "mdcs-compaction"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
 description = "Compaction, pruning and stability subsystem for the Carnelia MDCS"
@@ -12,7 +12,7 @@ categories = ["data-structures"]
 
 [dependencies]
 mdcs-core = { path = "../mdcs-core", version = "0.1.1" }
-mdcs-merkle = { path = "../mdcs-merkle", version = "0.1.0" }
+mdcs-merkle = { path = "../mdcs-merkle", version = "0.1.1" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0"

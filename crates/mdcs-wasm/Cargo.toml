@@ -1,6 +1,6 @@
 [package]
 name = "mdcs-wasm"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
 description = "WebAssembly bindings for the Carnelia Merkle-Delta CRDT Store"
@@ -19,7 +19,7 @@ console_error_panic_hook = ["dep:console_error_panic_hook"]
 
 [dependencies]
 # MDCS crates
-mdcs-db = { path = "../mdcs-db", version = "0.1.0" }
+mdcs-db = { path = "../mdcs-db", version = "0.1.1" }
 mdcs-core = { path = "../mdcs-core", version = "0.1.1" }
 
 # WASM bindings

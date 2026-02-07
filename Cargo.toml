@@ -26,11 +26,11 @@ members = [
 
 [dependencies]
 mdcs-core = { path = "crates/mdcs-core", version = "0.1.1" }
-mdcs-delta = { path = "crates/mdcs-delta", version = "0.1.0" }
-mdcs-merkle = { path = "crates/mdcs-merkle", version = "0.1.0" }
-mdcs-compaction = { path = "crates/mdcs-compaction", version = "0.1.0" }
-mdcs-db = { path = "crates/mdcs-db", version = "0.1.0" }
-mdcs-sdk = { path = "crates/mdcs-sdk", version = "0.1.0" }
+mdcs-delta = { path = "crates/mdcs-delta", version = "0.1.1" }
+mdcs-merkle = { path = "crates/mdcs-merkle", version = "0.1.1" }
+mdcs-compaction = { path = "crates/mdcs-compaction", version = "0.1.1" }
+mdcs-db = { path = "crates/mdcs-db", version = "0.1.1" }
+mdcs-sdk = { path = "crates/mdcs-sdk", version = "0.1.1" }
 tokio = { version = "1.35", features = ["full"] }
 rand = "0.8"
 chrono = "0.4"
