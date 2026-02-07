@@ -11,7 +11,7 @@ keywords = ["CRDT", "compaction", "garbage-collection", "DAG", "distributed"]
 categories = ["data-structures"]
 
 [dependencies]
-mdcs-core = { path = "../mdcs-core", version = "0.1.0" }
+mdcs-core = { path = "../mdcs-core", version = "0.1.1" }
 mdcs-merkle = { path = "../mdcs-merkle", version = "0.1.0" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

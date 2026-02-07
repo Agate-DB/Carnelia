@@ -25,7 +25,7 @@ members = [
 ]
 
 [dependencies]
-mdcs-core = { path = "crates/mdcs-core", version = "0.1.0" }
+mdcs-core = { path = "crates/mdcs-core", version = "0.1.1" }
 mdcs-delta = { path = "crates/mdcs-delta", version = "0.1.0" }
 mdcs-merkle = { path = "crates/mdcs-merkle", version = "0.1.0" }
 mdcs-compaction = { path = "crates/mdcs-compaction", version = "0.1.0" }

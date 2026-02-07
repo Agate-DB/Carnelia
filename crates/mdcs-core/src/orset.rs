@@ -54,6 +54,7 @@ pub struct ORSetDelta<T: Ord + Clone> {
     pub removals: BTreeSet<Tag>,
 }
 
+impl<T: Ord + Clone> ORSet<T> {
     /// Create a new empty OR-Set.
     pub fn new() -> Self {
         Self {
@@ -119,6 +120,7 @@ pub struct ORSetDelta<T: Ord + Clone> {
         self.entries.is_empty()
     }
 }
+
 
 impl<T: Ord + Clone> Default for ORSet<T> {
     fn default() -> Self {

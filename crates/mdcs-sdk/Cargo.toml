@@ -12,7 +12,7 @@ categories = ["database-implementations", "data-structures"]
 
 [dependencies]
 # Core MDCS crates
-mdcs-core = { path = "../mdcs-core", version = "0.1.0" }
+mdcs-core = { path = "../mdcs-core", version = "0.1.1" }
 mdcs-delta = { path = "../mdcs-delta", version = "0.1.0" }
 mdcs-merkle = { path = "../mdcs-merkle", version = "0.1.0" }
 mdcs-compaction = { path = "../mdcs-compaction", version = "0.1.0" }
