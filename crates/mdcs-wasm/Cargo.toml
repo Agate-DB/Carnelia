@@ -3,8 +3,6 @@ name = "mdcs-wasm"
 version = "0.1.0"
 edition = "2021"
 description = "WebAssembly bindings for MDCS - Merkle-Delta CRDT Store"
-license = "MIT"
-repository = "https://github.com/Agate-DB/Carnelia"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -15,8 +13,8 @@ console_error_panic_hook = ["dep:console_error_panic_hook"]
 
 [dependencies]
 # MDCS crates
-mdcs-db = { path = "../mdcs-db" }
-mdcs-core = { path = "../mdcs-core" }
+mdcs-db = { path = "../mdcs-db", version = "0.1.0" }
+mdcs-core = { path = "../mdcs-core", version = "0.1.0" }
 
 # WASM bindings
 wasm-bindgen = "0.2"

@@ -3,15 +3,14 @@ name = "mdcs-sdk"
 version = "0.1.0"
 edition = "2021"
 description = "High-level SDK for building collaborative applications with MDCS"
-license = "MIT OR Apache-2.0"
 
 [dependencies]
 # Core MDCS crates
-mdcs-core = { path = "../mdcs-core" }
-mdcs-delta = { path = "../mdcs-delta" }
-mdcs-merkle = { path = "../mdcs-merkle" }
-mdcs-compaction = { path = "../mdcs-compaction" }
-mdcs-db = { path = "../mdcs-db" }
+mdcs-core = { path = "../mdcs-core", version = "0.1.0" }
+mdcs-delta = { path = "../mdcs-delta", version = "0.1.0" }
+mdcs-merkle = { path = "../mdcs-merkle", version = "0.1.0" }
+mdcs-compaction = { path = "../mdcs-compaction", version = "0.1.0" }
+mdcs-db = { path = "../mdcs-db", version = "0.1.0" }
 
 # Async runtime
 tokio = { version = "1.35", features = ["full", "sync"] }
