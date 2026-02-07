@@ -1,8 +1,14 @@
 [package]
 name = "mdcs-wasm"
 version = "0.1.0"
+authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
-description = "WebAssembly bindings for MDCS - Merkle-Delta CRDT Store"
+description = "WebAssembly bindings for the Carnelia Merkle-Delta CRDT Store"
+license = "GPL-3.0"
+repository = "https://github.com/Agate-DB/Carnelia"
+homepage = "https://suvangs.tech"
+keywords = ["CRDT", "wasm", "WebAssembly", "collaborative", "database"]
+categories = ["wasm", "data-structures"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

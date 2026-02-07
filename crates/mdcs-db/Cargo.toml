@@ -2,8 +2,14 @@
 [package]
 name = "mdcs-db"
 version = "0.1.0"
+authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
-description = "Database layer for MDCS - Document API with collaborative features"
+description = "Database layer for the Carnelia MDCS - Document API with collaborative features"
+license = "GPL-3.0"
+repository = "https://github.com/Agate-DB/Carnelia"
+homepage = "https://suvangs.tech"
+keywords = ["CRDT", "database", "collaborative", "document", "offline-first"]
+categories = ["database-implementations", "data-structures"]
 
 [dependencies]
 mdcs-core = { path = "../mdcs-core", version = "0.1.0" }

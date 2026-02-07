@@ -1,8 +1,14 @@
 [package]
 name = "mdcs-compaction"
 version = "0.1.0"
+authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
-description = "Compaction and stability subsystem for MDCS"
+description = "Compaction, pruning and stability subsystem for the Carnelia MDCS"
+license = "GPL-3.0"
+repository = "https://github.com/Agate-DB/Carnelia"
+homepage = "https://suvangs.tech"
+keywords = ["CRDT", "compaction", "garbage-collection", "DAG", "distributed"]
+categories = ["data-structures"]
 
 [dependencies]
 mdcs-core = { path = "../mdcs-core", version = "0.1.0" }
