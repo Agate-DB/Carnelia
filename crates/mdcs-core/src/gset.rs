@@ -6,12 +6,35 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 // use std::hash:: Hash;
 
+/// A Grow-only Set (GSet) CRDT.
+///
+/// The simplest useful CRDT: elements can only be added, never removed.
+/// The join operation is set union, which is commutative, associative, and
+/// idempotent by definition.
+///
+/// # Example
+///
+/// ```rust
+/// use mdcs_core::GSet;
+/// use mdcs_core::Lattice;
+///
+/// let mut a = GSet::new();
+/// a.insert("hello");
+///
+/// let mut b = GSet::new();
+/// b.insert("world");
+///
+/// let merged = a.join(&b);
+/// assert!(merged.contains(&"hello"));
+/// assert!(merged.contains(&"world"));
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GSet<T: Ord + Clone> {
     elements: BTreeSet<T>,
 }
 
 impl<T: Ord + Clone> GSet<T> {
+    /// Create a new empty GSet.
     pub fn new() -> Self {
         Self {
             elements: BTreeSet::new(),
@@ -23,18 +46,22 @@ impl<T: Ord + Clone> GSet<T> {
         self.elements.insert(value);
     }
 
+    /// Check whether `value` is a member of this set.
     pub fn contains(&self, value: &T) -> bool {
         self.elements.contains(value)
     }
 
+    /// Iterate over all elements in the set.
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.elements.iter()
     }
 
+    /// Return the number of elements in the set.
     pub fn len(&self) -> usize {
         self.elements.len()
     }
 
+    /// Return `true` if the set contains no elements.
     pub fn is_empty(&self) -> bool {
         self.elements.is_empty()
     }

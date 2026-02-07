@@ -26,6 +26,13 @@ impl Tag {
     }
 }
 
+/// An Observed-Remove Set (OR-Set) CRDT with add-wins semantics.
+///
+/// Each insertion is tagged with a globally unique [`Tag`]. A remove operation
+/// only removes the tags that were *observed* at the time of removal. This means
+/// a concurrent add and remove results in the element being present (add wins).
+///
+/// Supports delta-state replication via the [`DeltaCRDT`] trait.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ORSet<T: Ord + Clone> {
     /// Maps elements to their active tags
@@ -38,13 +45,16 @@ pub struct ORSet<T: Ord + Clone> {
     pending_delta: Option<ORSetDelta<T>>,
 }
 
+/// Delta payload for [`ORSet`] replication.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ORSetDelta<T: Ord + Clone> {
+    /// New element additions with their tags.
     pub additions: BTreeMap<T, BTreeSet<Tag>>,
+    /// Tags that have been removed.
     pub removals: BTreeSet<Tag>,
 }
 
-impl<T: Ord + Clone> ORSet<T> {
+    /// Create a new empty OR-Set.
     pub fn new() -> Self {
         Self {
             entries: BTreeMap::new(),
@@ -87,20 +97,24 @@ impl<T: Ord + Clone> ORSet<T> {
         }
     }
 
+    /// Check whether `value` is present in the set (has at least one live tag).
     pub fn contains(&self, value: &T) -> bool {
         self.entries
             .get(value)
             .is_some_and(|tags| !tags.is_empty())
     }
 
+    /// Iterate over all elements currently in the set.
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.entries.keys()
     }
 
+    /// Return the number of distinct elements in the set.
     pub fn len(&self) -> usize {
         self.entries.len()
     }
 
+    /// Return `true` if the set contains no elements.
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }

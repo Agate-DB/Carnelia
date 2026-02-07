@@ -1,0 +1,134 @@
+name: Deploy Rustdoc to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry & build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-docs-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-docs-
+
+      - name: Build rustdoc (all workspace crates)
+        run: |
+          cargo doc --workspace --no-deps --document-private-items \
+            --exclude carnelia 2>&1
+        env:
+          RUSTDOCFLAGS: >-
+            --enable-index-page
+            -Zunstable-options
+            -D warnings
+
+      - name: Create redirect index.html
+        run: |
+          cat > target/doc/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>Carnelia — MDCS Documentation</title>
+            <meta http-equiv="refresh" content="0; url=mdcs_core/index.html">
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex; justify-content: center; align-items: center;
+                min-height: 100vh; margin: 0;
+                background: #1a1a2e; color: #e0e0e0;
+              }
+              .container { text-align: center; max-width: 800px; padding: 2rem; }
+              h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #c9b1ff; }
+              .subtitle { color: #9a9ab0; margin-bottom: 2rem; }
+              .crates { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+              .crate-card {
+                background: #16213e; border: 1px solid #2a2a4a; border-radius: 8px;
+                padding: 1rem; text-decoration: none; color: #e0e0e0;
+                transition: border-color 0.2s, transform 0.2s;
+              }
+              .crate-card:hover { border-color: #c9b1ff; transform: translateY(-2px); }
+              .crate-card h3 { margin: 0 0 0.5rem; color: #c9b1ff; font-size: 1rem; }
+              .crate-card p { margin: 0; font-size: 0.85rem; color: #9a9ab0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>🔮 Carnelia</h1>
+              <p class="subtitle">Merkle-Delta CRDT Store — API Documentation</p>
+              <div class="crates">
+                <a class="crate-card" href="mdcs_core/index.html">
+                  <h3>mdcs-core</h3>
+                  <p>CRDT types & lattice traits</p>
+                </a>
+                <a class="crate-card" href="mdcs_delta/index.html">
+                  <h3>mdcs-delta</h3>
+                  <p>Delta-state machinery</p>
+                </a>
+                <a class="crate-card" href="mdcs_merkle/index.html">
+                  <h3>mdcs-merkle</h3>
+                  <p>Merkle-Clock DAG</p>
+                </a>
+                <a class="crate-card" href="mdcs_compaction/index.html">
+                  <h3>mdcs-compaction</h3>
+                  <p>Compaction & stability</p>
+                </a>
+                <a class="crate-card" href="mdcs_db/index.html">
+                  <h3>mdcs-db</h3>
+                  <p>Database layer & documents</p>
+                </a>
+                <a class="crate-card" href="mdcs_sdk/index.html">
+                  <h3>mdcs-sdk</h3>
+                  <p>High-level SDK</p>
+                </a>
+                <a class="crate-card" href="mdcs_wasm/index.html">
+                  <h3>mdcs-wasm</h3>
+                  <p>WebAssembly bindings</p>
+                </a>
+              </div>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/doc
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
