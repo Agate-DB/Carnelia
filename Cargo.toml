@@ -1,8 +1,16 @@
 [package]
 name = "carnelia"
 version = "1.0.0"
+authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
 description = "Merkle-Delta CRDT Store - A lock-free, offline-first CRDT database"
+readme = "README.md"
+homepage = "https://suvangs.tech"
+repository = "https://github.com/Agate-DB/Carnelia"
+license = "GPL-3.0"
+keywords = ["CRDT", "Merkle-Clock", "DAG", "collaborative", "database", "offline-first", "Rust"]
+categories = ["database", "distributed", "collaboration", "web-assembly"]
+exclude = ["target", "examples", "benches", "tests", "docs", "scripts", "logs", "apps"]
 
 
 [workspace]
