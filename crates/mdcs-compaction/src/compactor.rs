@@ -295,7 +295,7 @@ impl Compactor {
     where
         F: FnOnce() -> Result<Vec<u8>, String>,
     {
-        let state_data = state_serializer().map_err(|e| CompactionError::SerializationFailed(e))?;
+        let state_data = state_serializer().map_err(CompactionError::SerializationFailed)?;
 
         let snapshot = Snapshot::new(
             self.stability.local_frontier().clone(),
@@ -370,7 +370,7 @@ impl Compactor {
         // Verify if configured
         if self.config.verify_after_compaction {
             crate::pruning::PruningVerifier::verify_connectivity(store)
-                .map_err(|e| CompactionError::VerificationFailed(e))?;
+                .map_err(CompactionError::VerificationFailed)?;
         }
 
         self.stats.last_compaction = Some(self.current_time);

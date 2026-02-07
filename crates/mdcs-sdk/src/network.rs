@@ -119,13 +119,18 @@ pub trait NetworkTransport: Send + Sync + 'static {
     fn subscribe(&self) -> mpsc::Receiver<(PeerId, Message)>;
 }
 
+/// Type alias for the message receiver shared across threads.
+type SharedMessageReceiver = Arc<RwLock<Option<mpsc::Receiver<(PeerId, Message)>>>>;
+/// Type alias for the outgoing message senders shared across threads.
+type SharedOutgoing = Arc<RwLock<HashMap<PeerId, mpsc::Sender<(PeerId, Message)>>>>;
+
 /// In-memory transport for testing and simulation.
 pub struct MemoryTransport {
     local_id: PeerId,
     peers: Arc<RwLock<HashMap<PeerId, Peer>>>,
     message_tx: mpsc::Sender<(PeerId, Message)>,
-    message_rx: Arc<RwLock<Option<mpsc::Receiver<(PeerId, Message)>>>>,
-    outgoing: Arc<RwLock<HashMap<PeerId, mpsc::Sender<(PeerId, Message)>>>>,
+    message_rx: SharedMessageReceiver,
+    outgoing: SharedOutgoing,
 }
 
 impl MemoryTransport {

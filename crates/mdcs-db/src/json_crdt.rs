@@ -945,7 +945,7 @@ mod tests {
     fn test_nested_object() {
         let mut doc = JsonCrdt::new("r1");
 
-        let user_id = doc.set_object(&JsonPath::parse("user")).unwrap();
+        let _user_id = doc.set_object(&JsonPath::parse("user")).unwrap();
         doc.set(
             &JsonPath::parse("user.name"),
             JsonValue::String("Bob".to_string()),

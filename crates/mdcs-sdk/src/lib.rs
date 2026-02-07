@@ -8,26 +8,24 @@
 //! ```rust
 //! use mdcs_sdk::{Client, ClientConfig};
 //!
-//! fn main() {
-//!     // Create a client with a unique replica ID
-//!     let config = ClientConfig {
-//!         user_name: "Alice".to_string(),
-//!         ..Default::default()
-//!     };
-//!     let client = Client::new_with_memory_transport(config);
+//! // Create a client with a unique replica ID
+//! let config = ClientConfig {
+//!     user_name: "Alice".to_string(),
+//!     ..Default::default()
+//! };
+//! let client = Client::new_with_memory_transport(config);
 //!
-//!     // Create a collaborative session
-//!     let session = client.create_session("my-session");
+//! // Create a collaborative session
+//! let session = client.create_session("my-session");
 //!
-//!     // Open a text document
-//!     let doc = session.open_text_doc("meeting-notes");
+//! // Open a text document
+//! let doc = session.open_text_doc("meeting-notes");
 //!
-//!     // Edit the document
-//!     doc.write().insert(0, "# Meeting Notes\n");
+//! // Edit the document
+//! doc.write().insert(0, "# Meeting Notes\n");
 //!
-//!     // Read the content
-//!     let content = doc.read().get_text();
-//! }
+//! // Read the content
+//! let content = doc.read().get_text();
 //! ```
 //!
 //! # Architecture

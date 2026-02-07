@@ -60,15 +60,15 @@ impl MarkType {
     /// Conflicting marks cannot overlap.
     pub fn conflicts_with(&self, other: &MarkType) -> bool {
         use MarkType::*;
-        match (self, other) {
-            (Bold, Bold) => true,
-            (Italic, Italic) => true,
-            (Underline, Underline) => true,
-            (Strikethrough, Strikethrough) => true,
-            (Code, Code) => true,
-            (Link { .. }, Link { .. }) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (Bold, Bold)
+                | (Italic, Italic)
+                | (Underline, Underline)
+                | (Strikethrough, Strikethrough)
+                | (Code, Code)
+                | (Link { .. }, Link { .. })
+        )
     }
 }
 
@@ -209,7 +209,7 @@ impl RichText {
     }
 
     /// Get the underlying text as a String.
-    pub fn to_string(&self) -> String {
+    pub fn text_content(&self) -> String {
         self.text.to_string()
     }
 
@@ -275,7 +275,7 @@ impl RichText {
         } else {
             self.text
                 .position_to_id(start.saturating_sub(1))
-                .map(|id| Anchor::After(id))
+                .map(Anchor::After)
                 .unwrap_or(Anchor::Start)
         };
 
@@ -284,7 +284,7 @@ impl RichText {
         } else {
             self.text
                 .position_to_id(end)
-                .map(|id| Anchor::Before(id))
+                .map(Anchor::Before)
                 .unwrap_or(Anchor::End)
         };
 
@@ -551,7 +551,7 @@ fn mark_close_tag(mark_type: &MarkType) -> String {
 
 impl std::fmt::Display for RichText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
+        write!(f, "{}", self.text)
     }
 }
 

@@ -25,13 +25,6 @@ mod prunable {
     }
 
     impl PrunableMemoryStore {
-        pub fn new() -> Self {
-            PrunableMemoryStore {
-                inner: MemoryDAGStore::new(),
-                pruned: std::collections::HashSet::new(),
-            }
-        }
-
         pub fn with_genesis(creator: &str) -> (Self, Hash) {
             let (inner, genesis) = MemoryDAGStore::with_genesis(creator);
             (

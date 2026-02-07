@@ -90,7 +90,7 @@ impl<T: Ord + Clone> ORSet<T> {
     pub fn contains(&self, value: &T) -> bool {
         self.entries
             .get(value)
-            .map_or(false, |tags| !tags.is_empty())
+            .is_some_and(|tags| !tags.is_empty())
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &T> {
@@ -99,6 +99,10 @@ impl<T: Ord + Clone> ORSet<T> {
 
     pub fn len(&self) -> usize {
         self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
     }
 }
 

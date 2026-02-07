@@ -243,7 +243,7 @@ impl<D: Lattice> VolatileState<D> {
     pub fn register_peer(&mut self, peer_id: ReplicaId) {
         self.delta_buffers
             .entry(peer_id.clone())
-            .or_insert_with(PeerDeltaBuffer::new);
+            .or_default();
         self.peer_acks.entry(peer_id).or_insert(0);
     }
 
@@ -324,7 +324,7 @@ impl<S: Lattice + Clone> CausalReplica<S> {
     /// Register a peer for causal anti-entropy
     pub fn register_peer(&mut self, peer_id: ReplicaId) {
         self.volatile.register_peer(peer_id.clone());
-        self.pending.entry(peer_id).or_insert_with(VecDeque::new);
+        self.pending.entry(peer_id).or_default();
     }
 
     /// Apply a local mutation
@@ -429,7 +429,7 @@ impl<S: Lattice + Clone> CausalReplica<S> {
             let pending = self
                 .pending
                 .entry(interval.from.clone())
-                .or_insert_with(VecDeque::new);
+                .or_default();
 
             // Insert in sorted order by from_seq
             let pos = pending.iter().position(|p| p.from_seq > interval.from_seq);

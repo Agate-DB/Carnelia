@@ -216,7 +216,7 @@ async fn perform_sync<T>(
     sync_times.push(sync_duration);
     *total_syncs += 1;
 
-    if *total_syncs % 100 == 0 {
+    if (*total_syncs).is_multiple_of(100) {
         println!("  Syncs completed: {}/{}", total_syncs, num_syncs);
     }
 }
@@ -759,7 +759,7 @@ pub fn stress_test_rga_text(num_replicas: usize, ops_per_replica: usize) -> Stre
     // Initialize replicas
     let mut replicas: Vec<RGAText> = Vec::with_capacity(num_replicas);
     for i in 0..num_replicas {
-        replicas.push(RGAText::new(&format!("replica_{}", i)));
+        replicas.push(RGAText::new(format!("replica_{}", i)));
     }
 
     println!("\n[Phase 1/3] Simulating concurrent text edits...");
@@ -769,17 +769,17 @@ pub fn stress_test_rga_text(num_replicas: usize, ops_per_replica: usize) -> Stre
     // Phase 1: Each replica makes edits
     for (idx, replica) in replicas.iter_mut().enumerate() {
         for i in 0..ops_per_replica {
-            let pos = if replica.len() == 0 {
+            let pos = if replica.is_empty() {
                 0
             } else {
                 rng.gen_range(0..=replica.len())
             };
 
             // 70% insert, 30% delete
-            if rng.gen::<f64>() < 0.7 || replica.len() == 0 {
+            if rng.gen::<f64>() < 0.7 || replica.is_empty() {
                 let text = format!("R{}_{}", idx, i);
-                let _ = replica.insert(pos, &text);
-            } else if replica.len() > 0 {
+                replica.insert(pos, &text);
+            } else if !replica.is_empty() {
                 let del_len = rng.gen_range(1..=std::cmp::min(3, replica.len()));
                 let del_pos = rng.gen_range(0..replica.len().saturating_sub(del_len - 1));
                 replica.delete(del_pos, del_len);
@@ -867,7 +867,7 @@ pub fn stress_test_rich_text(num_replicas: usize, ops_per_replica: usize) -> Str
     // Initialize replicas
     let mut replicas: Vec<RichText> = Vec::with_capacity(num_replicas);
     for i in 0..num_replicas {
-        replicas.push(RichText::new(&format!("replica_{}", i)));
+        replicas.push(RichText::new(format!("replica_{}", i)));
     }
 
     println!("\n[Phase 1/3] Simulating rich text edits with formatting...");
@@ -894,7 +894,7 @@ pub fn stress_test_rich_text(num_replicas: usize, ops_per_replica: usize) -> Str
                     rng.gen_range(0..=text_len)
                 };
                 let text = format!("T{}_{} ", idx, i);
-                let _ = replica.insert(pos, &text);
+                replica.insert(pos, &text);
             } else if op < 0.8 && text_len > 2 {
                 let start = rng.gen_range(0..text_len - 1);
                 let end = rng.gen_range(start + 1..=text_len);
@@ -989,7 +989,7 @@ pub fn stress_test_json_crdt(num_replicas: usize, ops_per_replica: usize) -> Str
     // Initialize replicas
     let mut replicas: Vec<JsonCrdt> = Vec::with_capacity(num_replicas);
     for i in 0..num_replicas {
-        replicas.push(JsonCrdt::new(&format!("replica_{}", i)));
+        replicas.push(JsonCrdt::new(format!("replica_{}", i)));
     }
 
     println!("\n[Phase 1/3] Simulating JSON document edits...");
@@ -1114,15 +1114,15 @@ pub fn stress_test_document_store(num_docs: usize, ops_per_doc: usize) -> Stress
     for i in 0..num_docs {
         match i % 3 {
             0 => {
-                let id = store.create_text(&format!("TextDoc_{}", i));
+                let id = store.create_text(format!("TextDoc_{}", i));
                 text_docs.push(id);
             }
             1 => {
-                let id = store.create_json(&format!("JsonDoc_{}", i));
+                let id = store.create_json(format!("JsonDoc_{}", i));
                 json_docs.push(id);
             }
             _ => {
-                let id = store.create_rich_text(&format!("RichDoc_{}", i));
+                let id = store.create_rich_text(format!("RichDoc_{}", i));
                 rich_docs.push(id);
             }
         }
@@ -1457,15 +1457,15 @@ pub fn stress_test_all_db_crdts(num_replicas: usize, ops_per_replica: usize) {
     println!("║  Testing: RGAText, RichText, JsonCrdt, DocumentStore                   ║");
     println!("╚════════════════════════════════════════════════════════════════════════╝");
 
-    let mut results: Vec<StressTestStats> = Vec::new();
-
-    results.push(stress_test_rga_text(num_replicas, ops_per_replica));
-    results.push(stress_test_rich_text(num_replicas, ops_per_replica));
-    results.push(stress_test_json_crdt(num_replicas, ops_per_replica));
-    results.push(stress_test_document_store(
-        num_replicas * 5,
-        ops_per_replica / 2,
-    ));
+    let results: Vec<StressTestStats> = vec![
+        stress_test_rga_text(num_replicas, ops_per_replica),
+        stress_test_rich_text(num_replicas, ops_per_replica),
+        stress_test_json_crdt(num_replicas, ops_per_replica),
+        stress_test_document_store(
+            num_replicas * 5,
+            ops_per_replica / 2,
+        ),
+    ];
 
     print_summary_table(&results);
 }

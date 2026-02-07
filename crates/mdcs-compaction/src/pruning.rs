@@ -244,7 +244,7 @@ impl Pruner {
             }
         }
 
-        if result.skipped.len() > 0 {
+        if !result.skipped.is_empty() {
             result.completed = false;
         }
 

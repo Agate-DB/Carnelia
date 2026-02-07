@@ -216,7 +216,7 @@ pub mod quick {
 
         user_names
             .iter()
-            .zip(network.into_iter())
+            .zip(network)
             .map(|(name, transport)| {
                 let peer_id = transport.local_id().clone();
                 let config = ClientConfig {
@@ -250,7 +250,7 @@ mod tests {
         let client = Client::new_with_memory_transport(config);
 
         let session1 = client.create_session("session-1");
-        let session2 = client.create_session("session-2");
+        let _session2 = client.create_session("session-2");
 
         assert_eq!(client.session_ids().len(), 2);
 

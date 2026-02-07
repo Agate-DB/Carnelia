@@ -90,7 +90,7 @@ impl<T: Ord + Clone> MVRegister<T> {
 
     /// Get all current values with their dots
     pub fn read_with_dots(&self) -> Vec<(&Dot, &T)> {
-        self.values.iter().map(|(d, v)| (d, v)).collect()
+        self.values.iter().collect()
     }
 
     /// Resolve concurrent values by choosing one (for write-after-read consistency)

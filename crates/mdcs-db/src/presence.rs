@@ -77,9 +77,10 @@ impl Cursor {
 }
 
 /// User status.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum UserStatus {
     /// User is online and active.
+    #[default]
     Online,
     /// User is online but idle.
     Idle,
@@ -91,12 +92,6 @@ pub enum UserStatus {
     Offline,
     /// Custom status.
     Custom(String),
-}
-
-impl Default for UserStatus {
-    fn default() -> Self {
-        UserStatus::Online
-    }
 }
 
 /// User information for display.
@@ -545,7 +540,7 @@ mod tests {
     fn test_presence_tracker() {
         let user_id = UserId::new("user1");
         let info = UserInfo::new("Alice", "#E91E63");
-        let mut tracker = PresenceTracker::new(user_id.clone(), info);
+        let tracker = PresenceTracker::new(user_id.clone(), info);
 
         assert_eq!(tracker.local_user(), &user_id);
         assert!(tracker.local_presence().is_some());

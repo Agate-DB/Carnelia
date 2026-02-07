@@ -225,11 +225,6 @@ impl RGAText {
         self.insert(position, insert);
     }
 
-    /// Get the text as a String.
-    pub fn to_string(&self) -> String {
-        self.iter().collect()
-    }
-
     /// Get the length (number of visible characters).
     pub fn len(&self) -> usize {
         self.nodes.values().filter(|n| !n.deleted).count()
@@ -370,7 +365,10 @@ impl<'a> Iterator for TextIterator<'a> {
 
 impl std::fmt::Display for RGAText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
+        for ch in self.iter() {
+            write!(f, "{}", ch)?;
+        }
+        Ok(())
     }
 }
 

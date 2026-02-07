@@ -161,7 +161,7 @@ impl<K: Ord + Clone> CRDTMap<K> {
         self.local_seq += 1;
 
         // Create entry for this key if it doesn't exist
-        let entry = self.entries.entry(key).or_insert_with(BTreeMap::new);
+        let entry = self.entries.entry(key).or_default();
 
         // Clear previous values for this key and insert new one
         entry.clear();
@@ -219,7 +219,7 @@ impl<K: Ord + Clone> CRDTMap<K> {
 
     /// Add a value with a specific dot (for merging)
     pub fn put_with_dot(&mut self, key: K, dot: Dot, value: MapValue) {
-        let entry = self.entries.entry(key).or_insert_with(BTreeMap::new);
+        let entry = self.entries.entry(key).or_default();
         entry.insert(dot.clone(), value);
         self.context.add_dot(dot);
     }
@@ -244,7 +244,7 @@ impl<K: Ord + Clone> Lattice for CRDTMap<K> {
 
         // Merge other's entries
         for (key, other_entry) in &other.entries {
-            let entry = entries.entry(key.clone()).or_insert_with(BTreeMap::new);
+            let entry = entries.entry(key.clone()).or_default();
             for (dot, value) in other_entry {
                 entry.insert(dot.clone(), value.clone());
             }
