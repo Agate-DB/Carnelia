@@ -224,9 +224,9 @@ impl<D: Lattice> Default for PeerDeltaBuffer<D> {
 /// Volatile state for causal anti-entropy (lost on crash)
 #[derive(Debug, Clone)]
 pub struct VolatileState<D: Lattice> {
-    /// Per-peer delta buffers: Dᵢ[j]
+    /// Per-peer delta buffers: Dᵢ\[j\]
     pub delta_buffers: HashMap<ReplicaId, PeerDeltaBuffer<D>>,
-    /// Per-peer acknowledgment tracking: Aᵢ[j]
+    /// Per-peer acknowledgment tracking: Aᵢ\[j\]
     /// Stores the last sequence number we've received from each peer
     pub peer_acks: HashMap<ReplicaId, SeqNo>,
 }

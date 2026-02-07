@@ -8,7 +8,7 @@
 //! Each replica maintains:
 //! - X: the local CRDT state
 //! - D: delta buffer (sequence of deltas)
-//! - acked[j]: last sequence number acknowledged by peer j
+//! - acked\[j\]: last sequence number acknowledged by peer j
 //!
 //! Protocol:
 //! 1. On local mutation m:
@@ -17,7 +17,7 @@
 //!    - D.push(d)     // buffer for sending
 //!
 //! 2. On send to peer j:
-//!    - send D[acked[j]..] to j
+//!    - send D\[acked\[j\]..\] to j
 //!
 //! 3. On receive delta d from peer i:
 //!    - X = X ⊔ d     // apply (idempotent!)

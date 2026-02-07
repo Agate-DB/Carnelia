@@ -14,7 +14,7 @@
 //!   D = D ⊔ d          // buffer delta
 //!
 //! On send to peer j:
-//!   send D[acked[j]..] to j
+//!   send D\[acked\[j\]..\] to j
 //!
 //! On receive delta d from peer i:
 //!   X = X ⊔ d          // apply (idempotent!)

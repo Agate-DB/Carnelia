@@ -63,7 +63,7 @@ impl VersionVector {
     }
 
     /// Check if this vector dominates another (is causally after or concurrent).
-    /// Returns true if for all replicas, self[r] >= other[r].
+    /// Returns true if for all replicas, self\[r\] >= other\[r\].
     pub fn dominates(&self, other: &VersionVector) -> bool {
         // Check all entries in other
         for (replica_id, &seq) in &other.entries {
