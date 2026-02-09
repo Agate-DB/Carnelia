@@ -186,9 +186,9 @@ export const MergeScene: React.FC = () => {
   const fadeOut = interpolate(frame, [210, 240], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0a0a1a", opacity: fadeOut }}>
+    <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
       <ThreeCanvas linear width={width} height={height}>
-        <color attach="background" args={["#0a0a1a"]} />
+        <color attach="background" args={["#1e1e1e"]} />
         <ambientLight intensity={0.4} />
         <pointLight position={[5, 5, 5]} intensity={1} color="#6ea0ff" />
         <pointLight position={[-5, -3, 3]} intensity={0.5} color="#a06eff" />

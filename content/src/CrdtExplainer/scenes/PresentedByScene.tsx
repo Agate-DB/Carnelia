@@ -149,9 +149,9 @@ export const PresentedByScene: React.FC = () => {
   const fadeOut = interpolate(frame, [145, 170], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0a0a1a", opacity: fadeOut }}>
+    <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
       <ThreeCanvas linear width={width} height={height}>
-        <color attach="background" args={["#0a0a1a"]} />
+        <color attach="background" args={["#1e1e1e"]} />
         <ambientLight intensity={0.3} />
         <pointLight position={[5, 5, 5]} intensity={1} color="#e08060" />
         <pointLight position={[-5, -3, 3]} intensity={0.5} color="#a06eff" />
@@ -191,7 +191,7 @@ export const PresentedByScene: React.FC = () => {
               marginBottom: 16,
             }}
           >
-            Presented by
+            Presented by Agate.
           </p>
 
           {/* "Carnelia" */}

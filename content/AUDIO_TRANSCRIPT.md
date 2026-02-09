@@ -1,7 +1,10 @@
 # CRDT Explainer — Audio Transcript
 
 Record each segment as a separate audio file and place them in `content/public/audio/`.
-The composition will use `<Audio>` from `@remotion/media` with `<Sequence>` timing.
+The composition uses `<Audio>` from Remotion with `<Sequence>` timing.
+
+**Subtitles** are embedded directly in the composition via `SubtitleOverlay` segments
+in `CrdtExplainer.tsx`. They fade in/out automatically with each scene.
 
 ---
 
@@ -54,23 +57,31 @@ The composition will use `<Audio>` from `@remotion/media` with `<Sequence>` timi
 
 ---
 
-## Scene 7 — CRDT Limitations (0:44.2 – 0:54.9)
+## Scene 7 — Real-World CRDT Examples (0:44.2 – 0:54.2)
+**File:** `realworld_narration.mp3`
+**Duration:** ~10 seconds
+
+> CRDTs aren't just theory — they power some of the most popular collaboration tools today. Figma uses a custom CRDT for multiplayer design. Google Docs runs on Operational Transformation — a related approach — with a central server. Apple Notes syncs across devices with CRDTs. Linear uses them for real-time issue tracking. And VS Code Live Share enables collaborative coding with CRDT-backed shared state. The pattern is the same: local-first writes with automatic convergence. But most of these rely on a central server. Carnelia goes fully peer-to-peer.
+
+---
+
+## Scene 8 — CRDT Limitations (0:54.2 – 1:06.9)
 **File:** `limitations_narration.mp3`
-**Duration:** ~10.7 seconds
+**Duration:** ~12.7 seconds
 
-> But traditional CRDTs have real-world problems. First, state bloat: state-based CRDTs must ship the entire object on every sync — and that payload only grows. Second, tombstone accumulation: many systems mark deletions with permanent markers that never get cleaned up. Third, vector clock fragility: their metadata scales linearly with replicas and is vulnerable to Byzantine manipulation. And fourth, transport assumptions: operation-based CRDTs demand reliable, exactly-once, causal delivery — a guarantee that rarely holds in peer-to-peer networks.
+> But traditional CRDTs have real-world problems. First, state bloat: state-based CRDTs must ship the entire object on every sync — and that payload only grows. Second, tombstone accumulation: many systems mark deletions with permanent markers that never get cleaned up. Third, vector clock fragility: their metadata scales linearly with replicas and is vulnerable to Byzantine manipulation. Fourth, transport assumptions: operation-based CRDTs demand reliable, exactly-once, causal delivery — a guarantee that rarely holds in peer-to-peer networks. And fifth, network partition fragility: when connectivity degrades, replica groups diverge with no built-in mechanism for automatic repair after the partition heals.
 
 ---
 
-## Scene 8 — How Carnelia Fixes It (0:54.9 – 1:05.6)
+## Scene 9 — How Carnelia Fixes It (1:06.9 – 1:18.9)
 **File:** `solution_narration.mp3`
-**Duration:** ~10.7 seconds
+**Duration:** ~12 seconds
 
-> Carnelia's Merkle-Delta architecture addresses each of these problems directly. Instead of full state, we ship compact delta mutations — idempotent and commutative. Instead of tombstones, we use a dot store and causal context — absence is the deletion record, keeping metadata bounded. Instead of vector clocks, we use a Merkle-Clock DAG — content-addressed, tamper-proof, and independent of replica count. And instead of hoping for reliable transport, the DAG-Syncer performs pull-based gap repair — fetching exactly the missing blocks by hash.
+> Carnelia's Merkle-Delta architecture addresses each of these problems directly. Instead of full state, we ship compact delta mutations — idempotent and commutative. Instead of tombstones, we use a dot store and causal context — absence is the deletion record, keeping metadata bounded. Instead of vector clocks, we use a Merkle-Clock DAG — content-addressed, tamper-proof, and independent of replica count. Instead of hoping for reliable transport, the DAG-Syncer performs pull-based gap repair — fetching exactly the missing blocks by hash. And for network partitions, the anti-entropy gossip protocol broadcasts head CIDs and repairs gaps automatically when connectivity returns.
 
 ---
 
-## Scene 9 — Tombstone-Free Removal (1:05.6 – 1:13.6)
+## Scene 10 — Tombstone-Free Removal (1:18.9 – 1:26.9)
 **File:** `dotstore_narration.mp3`
 **Duration:** ~8 seconds
 
@@ -78,7 +89,7 @@ The composition will use `<Audio>` from `@remotion/media` with `<Sequence>` timi
 
 ---
 
-## Scene 10 — Merkle-Clock DAG (1:13.6 – 1:23.6)
+## Scene 11 — Merkle-Clock DAG (1:26.9 – 1:36.9)
 **File:** `merkle_narration.mp3`
 **Duration:** ~10 seconds
 
@@ -86,9 +97,46 @@ The composition will use `<Audio>` from `@remotion/media` with `<Sequence>` timi
 
 ---
 
+## Scene 12 — Carnelia Offline Sync (1:36.9 – 1:50.2)
+**File:** `sync_narration.mp3`
+**Duration:** ~13.3 seconds
+
+> Let's see how Carnelia handles offline sync. Two devices — say a desktop and a mobile phone — start connected, editing the same document. Now the mobile goes offline. Both continue making edits independently — the document diverges. When connectivity returns, Carnelia's anti-entropy protocol kicks in. Step one: each replica gossips the CIDs of its DAG heads to peers. Step two: the DAG-Syncer compares these against its local graph. Step three: it fetches any missing blocks by hash — walking backward through predecessor links until it finds a common ancestor. Step four: the fetched deltas are applied in topological order. Both replicas converge — identical state, zero conflicts, no server required.
+
+---
+
+## Scene 13 — Collaborative Editing Demo (1:50.2 – 2:03.9)
+**File:** `collab_narration.mp3`
+**Duration:** ~13.7 seconds
+
+> Now let's contrast Carnelia's approach to collaborative editing with traditional tools. In Figma or Google Docs, every edit routes through a central server — the server mediates conflicts, and you need an internet connection. In Carnelia, there is no server. Three team members — a project manager, a developer, and a designer — can all edit the same JSON configuration concurrently. One sets the project name and version, another adds the tech stack, a third defines the UI theme. When their replicas sync, the CRDT merge produces a single, consistent document with zero conflicts. The same principle applies to the rich text layer — concurrent character insertions resolve via unique position IDs in the RGA sequence, with no server arbitration needed.
+
+---
+
+## Scene 14 — PNCounter Step-by-Step Demo (2:03.9 – 2:17.9)
+**File:** `increment_narration.mp3`
+**Duration:** ~14 seconds
+
+> Let's walk through a concrete example. Alice and Bob each have a replica tracking page views and likes. In phase one, Alice increments page views by five, then by three — her local counter reads eight. In phase two, Bob independently increments page views by ten and likes by two. Neither knows about the other's changes. In phase three, they sync — bob syncs to alice, alice syncs to bob. The CRDT merge resolves both replicas' contributions. The result: both replicas converge to page views equals ten, likes equals two. Identical state, arrived at independently, with no coordination.
+
+---
+
 ## Audio Integration
 
-Once you've recorded the files, place them at:
+### Background Soundtrack
+
+Place the ambient background music at:
+```
+content/public/ambient_bg_soundtrack.mp3
+```
+
+This plays across **all 14 scenes** at low volume (18%) as an ambient bed.
+It is loaded via `<Audio src={staticFile("ambient_bg_soundtrack.mp3")} volume={0.18} />`
+in the root `CrdtExplainer.tsx` composition.
+
+### Per-Scene Narration (optional)
+
+Once you've recorded the narration files, place them at:
 ```
 content/public/audio/presentedby_narration.mp3
 content/public/audio/intro_narration.mp3
@@ -96,11 +144,20 @@ content/public/audio/replicas_narration.mp3
 content/public/audio/semilattice_narration.mp3
 content/public/audio/delta_narration.mp3
 content/public/audio/merge_narration.mp3
+content/public/audio/realworld_narration.mp3
 content/public/audio/limitations_narration.mp3
 content/public/audio/solution_narration.mp3
 content/public/audio/dotstore_narration.mp3
 content/public/audio/merkle_narration.mp3
+content/public/audio/sync_narration.mp3
+content/public/audio/collab_narration.mp3
+content/public/audio/increment_narration.mp3
 ```
 
-Then I can add `<Audio>` elements wrapped in `<Sequence>` components to each scene in
-the `CrdtExplainer.tsx` composition, timed to the scene offsets.
+Add per-scene `<Audio>` elements as `<Sequence>` children once recorded.
+
+### Subtitles
+
+Subtitles are already embedded in the composition via the `SUBTITLES` array
+in `CrdtExplainer.tsx`. Each scene has 1–4 timed text segments that appear
+as a semi-transparent overlay at the bottom of the frame.

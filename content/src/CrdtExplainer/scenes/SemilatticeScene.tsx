@@ -171,9 +171,9 @@ export const SemilatticeScene: React.FC = () => {
   const fadeOut = interpolate(frame, [200, 225], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0a0a1a", opacity: fadeOut }}>
+    <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
       <ThreeCanvas linear width={width} height={height}>
-        <color attach="background" args={["#0a0a1a"]} />
+        <color attach="background" args={["#1e1e1e"]} />
         <ambientLight intensity={0.4} />
         <pointLight position={[5, 5, 5]} intensity={1} color="#6ea0ff" />
         <pointLight position={[-5, -3, 3]} intensity={0.5} color="#a06eff" />
@@ -183,7 +183,7 @@ export const SemilatticeScene: React.FC = () => {
         <LatticeParticleField count={20} entrance={bottomEnt} />
 
         {/* Bottom node (⊥) */}
-        <LatticeNode position={positions.bottom} color="#4a5a7a" label="⊥" entrance={bottomEnt} scale={0.22} glow={0.15} />
+        <LatticeNode position={positions.bottom} color="#c9a0ff" label="⊥" entrance={bottomEnt} scale={0.22} glow={0.35} />
         {/* S₁ */}
         <LatticeNode position={positions.s1} color="#4a9eff" label="S₁" entrance={s1Ent} />
         {/* S₂ */}
@@ -212,7 +212,7 @@ export const SemilatticeScene: React.FC = () => {
 
         {/* Node labels */}
         <div style={{ position: "absolute", left: "47%", bottom: "14%", opacity: labelOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#4a5a7a" }}>⊥ bottom</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#51a877" }}>⊥ bottom</span>
         </div>
         <div style={{ position: "absolute", left: "23%", top: "42%", opacity: labelOpacity }}>
           <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#4a9eff" }}>State S₁</span>

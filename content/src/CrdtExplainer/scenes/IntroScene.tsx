@@ -125,9 +125,9 @@ export const IntroScene: React.FC = () => {
   });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0a0a1a", opacity: fadeOut }}>
+    <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
       <ThreeCanvas linear width={width} height={height}>
-        <color attach="background" args={["#0a0a1a"]} />
+        <color attach="background" args={["#1e1e1e"]} />
         <ambientLight intensity={0.5} color={0xffffff} />
         <pointLight position={[5, 5, 5]} intensity={1.2} color="#6ea0ff" />
         <pointLight position={[-5, -3, 3]} intensity={0.6} color="#a06eff" />

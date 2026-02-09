@@ -185,16 +185,16 @@ export const MerkleScene: React.FC = () => {
   const fadeOut = interpolate(frame, [240, 270], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0a0a1a", opacity: fadeOut }}>
+    <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
       <ThreeCanvas linear width={width} height={height}>
-        <color attach="background" args={["#0a0a1a"]} />
+        <color attach="background" args={["#1e1e1e"]} />
         <ambientLight intensity={0.4} />
         <pointLight position={[5, 5, 5]} intensity={1} color="#6ea0ff" />
         <pointLight position={[-5, -3, 3]} intensity={0.5} color="#a06eff" />
         <directionalLight position={[0, 5, 5]} intensity={0.3} />
 
         {/* Nodes */}
-        <DAGNode position={positions.hA} color="#4a5a7a" entrance={entA} />
+        <DAGNode position={positions.hA} color="#51a877" entrance={entA} />
         <DAGNode position={positions.hB} color="#4a9eff" entrance={entB} />
         <DAGNode position={positions.hC} color="#ff6a9e" entrance={entC} />
         <DAGNode position={positions.hD} color="#c9a0ff" entrance={entD} isHead glow={dGlow} />
@@ -222,7 +222,7 @@ export const MerkleScene: React.FC = () => {
 
         {/* Node Hash Labels */}
         <div style={{ position: "absolute", left: "47%", bottom: "16%", opacity: labelOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#4a5a7a" }}>H(A)</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#51a877" }}>H(A)</span>
         </div>
         <div style={{ position: "absolute", left: "22%", top: "43%", opacity: interpolate(frame, [28, 40], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>
           <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#4a9eff" }}>H(B)</span>

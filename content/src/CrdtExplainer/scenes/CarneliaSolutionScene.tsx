@@ -57,7 +57,7 @@ const FixArrow: React.FC<{
 const ProblemIcon: React.FC<{
   position: [number, number, number];
   entrance: number;
-  geometry: "cube" | "stack" | "ring" | "channel";
+  geometry: "cube" | "stack" | "ring" | "channel" | "partition";
 }> = ({ position, entrance, geometry }) => {
   const frame = useCurrentFrame();
   const s = entrance * 0.16;
@@ -67,7 +67,7 @@ const ProblemIcon: React.FC<{
       {geometry === "cube" && (
         <mesh scale={[s, s, s]} rotation={[0.3, frame * 0.004, 0.1]}>
           <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color="#ff4444" emissive="#ff4444" emissiveIntensity={0.4} transparent opacity={entrance * 0.5} roughness={0.3} />
+          <meshStandardMaterial color="#ff7766" emissive="#ff7766" emissiveIntensity={0.5} transparent opacity={entrance * 0.65} roughness={0.3} />
         </mesh>
       )}
       {geometry === "stack" && (
@@ -75,7 +75,7 @@ const ProblemIcon: React.FC<{
           {[0, 0.08, 0.16, 0.24].map((y, i) => (
             <mesh key={i} position={[0, y - 0.12, 0]} scale={[s * 0.7, s * 0.3, s * 0.3]}>
               <boxGeometry args={[1, 1, 1]} />
-              <meshStandardMaterial color="#888888" emissive="#666666" emissiveIntensity={0.2} transparent opacity={entrance * 0.5} />
+              <meshStandardMaterial color="#d4c4a8" emissive="#d4c4a8" emissiveIntensity={0.45} transparent opacity={entrance * 0.7} />
             </mesh>
           ))}
         </group>
@@ -83,18 +83,36 @@ const ProblemIcon: React.FC<{
       {geometry === "ring" && (
         <mesh rotation={[Math.PI / 2, 0, frame * 0.005]} scale={[s, s, s]}>
           <torusGeometry args={[0.8, 0.06, 8, 16]} />
-          <meshStandardMaterial color="#ffc46a" emissive="#ffc46a" emissiveIntensity={0.3} transparent opacity={entrance * 0.4} />
+          <meshStandardMaterial color="#ffd88a" emissive="#ffd88a" emissiveIntensity={0.45} transparent opacity={entrance * 0.55} />
         </mesh>
       )}
       {geometry === "channel" && (
         <group>
           <mesh scale={[s * 2, 0.008, 0.008]}>
             <boxGeometry args={[1, 1, 1]} />
-            <meshBasicMaterial color="#4a9eff" transparent opacity={entrance * 0.3} />
+            <meshBasicMaterial color="#7ebfff" transparent opacity={entrance * 0.4} />
           </mesh>
           <mesh position={[0, 0.06, 0]} scale={[s * 0.3, s * 0.3, s * 0.3]}>
             <octahedronGeometry args={[1, 0]} />
-            <meshStandardMaterial color="#ff4444" transparent opacity={entrance * 0.4 * (0.5 + Math.sin(frame * 0.1) * 0.5)} />
+            <meshStandardMaterial color="#ff7766" emissive="#ff7766" emissiveIntensity={0.3} transparent opacity={entrance * 0.55 * (0.5 + Math.sin(frame * 0.1) * 0.5)} />
+          </mesh>
+        </group>
+      )}
+      {geometry === "partition" && (
+        <group>
+          {/* Two node clusters drifting apart */}
+          <mesh position={[-0.1, 0, 0]} scale={[s * 0.35, s * 0.35, s * 0.35]}>
+            <sphereGeometry args={[1, 8, 8]} />
+            <meshStandardMaterial color="#ff9988" emissive="#ff9988" emissiveIntensity={0.45} transparent opacity={entrance * 0.65} />
+          </mesh>
+          <mesh position={[0.1, 0, 0]} scale={[s * 0.35, s * 0.35, s * 0.35]}>
+            <sphereGeometry args={[1, 8, 8]} />
+            <meshStandardMaterial color="#ff9988" emissive="#ff9988" emissiveIntensity={0.45} transparent opacity={entrance * 0.65} />
+          </mesh>
+          {/* Broken link */}
+          <mesh scale={[s * 0.5, 0.006, 0.006]}>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial color="#ff9988" transparent opacity={entrance * 0.3 * (0.5 + Math.sin(frame * 0.15) * 0.5)} />
           </mesh>
         </group>
       )}
@@ -106,7 +124,7 @@ const ProblemIcon: React.FC<{
 const SolutionIcon: React.FC<{
   position: [number, number, number];
   entrance: number;
-  geometry: "delta" | "dotstore" | "merkle" | "syncer";
+  geometry: "delta" | "dotstore" | "merkle" | "syncer" | "healer";
 }> = ({ position, entrance, geometry }) => {
   const frame = useCurrentFrame();
   const s = entrance * 0.18;
@@ -176,6 +194,29 @@ const SolutionIcon: React.FC<{
           </mesh>
         </group>
       )}
+      {geometry === "healer" && (
+        <group>
+          {/* Two nodes reconnecting */}
+          <mesh position={[-0.1, 0, 0]} scale={[s * 0.3, s * 0.3, s * 0.3]}>
+            <sphereGeometry args={[1, 8, 8]} />
+            <meshStandardMaterial color="#6eff9e" emissive="#6eff9e" emissiveIntensity={0.6} transparent opacity={entrance * 0.8} />
+          </mesh>
+          <mesh position={[0.1, 0, 0]} scale={[s * 0.3, s * 0.3, s * 0.3]}>
+            <sphereGeometry args={[1, 8, 8]} />
+            <meshStandardMaterial color="#6eff9e" emissive="#6eff9e" emissiveIntensity={0.6} transparent opacity={entrance * 0.8} />
+          </mesh>
+          {/* Healed connection */}
+          <mesh scale={[s * 0.8, 0.01, 0.01]}>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#6eff9e" emissive="#6eff9e" emissiveIntensity={1.0} transparent opacity={entrance * 0.6} />
+          </mesh>
+          {/* Repair pulse */}
+          <mesh position={[0, 0, 0]} scale={[s * breathe * 1.5, s * breathe * 1.5, s * breathe * 0.3]}>
+            <ringGeometry args={[0.5, 0.55, 16]} />
+            <meshBasicMaterial color="#6eff9e" transparent opacity={entrance * 0.15} />
+          </mesh>
+        </group>
+      )}
     </group>
   );
 };
@@ -184,26 +225,27 @@ export const CarneliaSolutionScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
 
-  // Four rows, each with problem → arrow → solution
+  // Five rows, each with problem → arrow → solution
   const rows = [
-    { y: 1.2, delay: 5, arrowDelay: 30, solDelay: 45, probGeo: "cube", solGeo: "delta", label: "State Bloat", fix: "δ-CRDT Deltas", fixDesc: "Ship only what changed — Δ ≪ S", fixColor: "#6eff9e" },
-    { y: 0.4, delay: 55, arrowDelay: 80, solDelay: 95, probGeo: "stack", solGeo: "dotstore", label: "Tombstones", fix: "Dot Store + Context", fixDesc: "Absence in store = deleted, no markers", fixColor: "#ffc46a" },
-    { y: -0.4, delay: 105, arrowDelay: 130, solDelay: 145, probGeo: "ring", solGeo: "merkle", label: "Vector Clocks", fix: "Merkle-Clock DAG", fixDesc: "Content-addressed, Byzantine-resistant", fixColor: "#c9a0ff" },
-    { y: -1.2, delay: 155, arrowDelay: 180, solDelay: 195, probGeo: "channel", solGeo: "syncer", label: "Transport", fix: "DAG-Syncer", fixDesc: "Pull-based, idempotent, tolerates loss", fixColor: "#6affea" },
+    { y: 1.4, delay: 5, arrowDelay: 30, solDelay: 45, probGeo: "cube", solGeo: "delta", label: "State Bloat", fix: "δ-CRDT Deltas", fixDesc: "Ship only what changed — Δ ≪ S", fixColor: "#6eff9e" },
+    { y: 0.7, delay: 45, arrowDelay: 65, solDelay: 80, probGeo: "stack", solGeo: "dotstore", label: "Tombstones", fix: "Dot Store + Context", fixDesc: "Absence in store = deleted, no markers", fixColor: "#ffc46a" },
+    { y: 0.0, delay: 85, arrowDelay: 105, solDelay: 120, probGeo: "ring", solGeo: "merkle", label: "Vector Clocks", fix: "Merkle-Clock DAG", fixDesc: "Content-addressed, Byzantine-resistant", fixColor: "#c9a0ff" },
+    { y: -0.7, delay: 125, arrowDelay: 145, solDelay: 160, probGeo: "channel", solGeo: "syncer", label: "Transport", fix: "DAG-Syncer", fixDesc: "Pull-based, idempotent, tolerates loss", fixColor: "#6affea" },
+    { y: -1.4, delay: 165, arrowDelay: 185, solDelay: 200, probGeo: "partition", solGeo: "healer", label: "Net. Partitions", fix: "Anti-Entropy Gossip", fixDesc: "Head CID gossip + gap repair after heal", fixColor: "#6eff9e" },
   ] as const;
 
   const titleOpacity = interpolate(frame, [5, 20], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   // Carnelia branding callout
-  const brandOpacity = interpolate(frame, [220, 245], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const brandY = interpolate(spring({ frame, fps, delay: 220, config: { damping: 200 } }), [0, 1], [12, 0]);
+  const brandOpacity = interpolate(frame, [240, 265], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const brandY = interpolate(spring({ frame, fps, delay: 240, config: { damping: 200 } }), [0, 1], [12, 0]);
 
-  const fadeOut = interpolate(frame, [290, 320], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [330, 360], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0a0a1a", opacity: fadeOut }}>
+    <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
       <ThreeCanvas linear width={width} height={height}>
-        <color attach="background" args={["#0a0a1a"]} />
+        <color attach="background" args={["#1e1e1e"]} />
         <ambientLight intensity={0.4} />
         <pointLight position={[5, 5, 5]} intensity={0.8} color="#6ea0ff" />
         <pointLight position={[-5, -3, 3]} intensity={0.5} color="#a06eff" />
@@ -238,7 +280,7 @@ export const CarneliaSolutionScene: React.FC = () => {
           const solOpacity = interpolate(frame, [row.solDelay + 5, row.solDelay + 20], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
           // Map y to screen percentage (approximate)
-          const topPct = interpolate(row.y, [-1.2, 1.2], [72, 18]);
+          const topPct = interpolate(row.y, [-1.4, 1.4], [78, 12]);
 
           return (
             <React.Fragment key={i}>
