@@ -116,7 +116,7 @@ const products = [
     geometry: "box" as const,
     pos: [-2.8, 0.8, 0] as [number, number, number],
     delay: 10,
-    labelPos: { left: "4%", top: "18%" },
+    labelPos: { left: "6%", top: "24%" },
   },
   {
     name: "Google Docs",
@@ -126,7 +126,7 @@ const products = [
     geometry: "sphere" as const,
     pos: [2.8, 0.8, 0] as [number, number, number],
     delay: 45,
-    labelPos: { right: "4%", top: "18%" },
+    labelPos: { right: "6%", top: "22%" },
   },
   {
     name: "Apple Notes",
@@ -142,7 +142,7 @@ const products = [
     name: "Linear",
     desc: "Real-time issue tracking with instant offline support",
     approach: "Offline-first CRDT",
-    color: "#5e6ad2",
+    color: "#7e8aff",
     geometry: "octahedron" as const,
     pos: [1.8, -0.8, 0] as [number, number, number],
     delay: 115,
@@ -156,7 +156,7 @@ const products = [
     geometry: "dodecahedron" as const,
     pos: [0, -2.0, 0] as [number, number, number],
     delay: 150,
-    labelPos: { left: "50%", bottom: "8%", transform: "translateX(-50%)" },
+    labelPos: { left: "50%", bottom: "11%", transform: "translateX(-50%)" },
   },
 ];
 
@@ -173,7 +173,7 @@ export const RealWorldCrdtScene: React.FC = () => {
   // Web entrance
   const webEntrance = interpolate(frame, [30, 80], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
-  const fadeOut = interpolate(frame, [270, 300], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [380, 410], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -203,7 +203,7 @@ export const RealWorldCrdtScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "rgba(255,255,255,0.9)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
             CRDTs in the Real World
           </span>
         </div>
@@ -223,16 +223,16 @@ export const RealWorldCrdtScene: React.FC = () => {
           return (
             <div key={i} style={posStyle}>
               <div style={{
-                fontFamily: FONT_PRIMARY, fontSize: 15, color: p.color, fontWeight: 500,
+                fontFamily: FONT_PRIMARY, fontSize: 18, color: p.color, fontWeight: 500,
                 marginBottom: 3,
               }}>
                 {p.name}
               </div>
-              <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.5 }}>
                 {p.desc}
               </p>
               <span style={{
-                fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.25)",
+                fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.25)",
                 marginTop: 3, display: "inline-block",
                 padding: "2px 8px", border: "1px solid rgba(255,255,255,0.08)",
                 borderRadius: 4,
@@ -248,10 +248,10 @@ export const RealWorldCrdtScene: React.FC = () => {
           position: "absolute", bottom: 45, left: 0, right: 0, textAlign: "center",
           opacity: patternOpacity, transform: `translateY(${patternY}px)`,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "white", margin: 0 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 20, color: "white", margin: 0 }}>
             The pattern: <span style={{ color: "#6eff9e" }}>local-first</span> writes + <span style={{ color: "#c9a0ff" }}>automatic convergence</span>
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "rgba(255,255,255,0.35)", marginTop: 6 }}>
             But most rely on central servers — Carnelia goes fully peer-to-peer
           </p>
         </div>

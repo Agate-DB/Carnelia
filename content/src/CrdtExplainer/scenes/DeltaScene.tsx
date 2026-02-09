@@ -201,7 +201,7 @@ export const DeltaScene: React.FC = () => {
   const calloutopacity = interpolate(frame, [110, 130], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const calloutY = interpolate(spring({ frame, fps, delay: 110, config: { damping: 200 } }), [0, 1], [15, 0]);
 
-  const fadeOut = interpolate(frame, [210, 240], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [400, 430], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -232,29 +232,29 @@ export const DeltaScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "rgba(255,255,255,0.9)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
             δ-CRDT: Delta Mutations
           </span>
         </div>
 
         {/* Node labels */}
         <div style={{ position: "absolute", left: "15%", top: "54%", opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#4a9eff" }}>Replica A</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#4a9eff" }}>Replica A</span>
         </div>
         <div style={{ position: "absolute", right: "15%", top: "54%", opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#ff6a9e" }}>Replica B</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#ff6a9e" }}>Replica B</span>
         </div>
 
         {/* Delta label on the particle path */}
         <div style={{ position: "absolute", left: "46%", top: "36%", opacity: deltaLblOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 15, color: "#6eff9e" }}>Δ (delta)</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "#6eff9e" }}>Δ (delta)</span>
         </div>
 
         {/* Full state "not this" with cross */}
         <div style={{ position: "absolute", left: "43%", top: "22%", opacity: crossOpacity }}>
           <span style={{
             fontFamily: FONT_PRIMARY,
-            fontSize: 13,
+            fontSize: 16,
             color: "#ff4444",
             textDecoration: "line-through",
           }}>full state S</span>
@@ -271,8 +271,8 @@ export const DeltaScene: React.FC = () => {
           borderRadius: 10,
           padding: "10px 16px",
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, marginBottom: 4 }}>delta-mutator</p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#6eff9e", margin: 0 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, marginBottom: 4 }}>delta-mutator</p>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#6eff9e", margin: 0 }}>
             m(X) = X ⊔ mδ(X)
           </p>
         </div>
@@ -289,7 +289,7 @@ export const DeltaScene: React.FC = () => {
         }}>
           <div style={{
             fontFamily: FONT_PRIMARY,
-            fontSize: 22,
+            fontSize: 26,
             color: "white",
             display: "flex",
             justifyContent: "center",
@@ -297,20 +297,20 @@ export const DeltaScene: React.FC = () => {
             gap: 16,
           }}>
             <span style={{ color: "#6eff9e" }}>Δ</span>
-            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 18 }}>≪</span>
-            <span style={{ color: "#ff4444", textDecoration: "line-through", opacity: 0.5, fontSize: 18 }}>S</span>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 22 }}>≪</span>
+            <span style={{ color: "#ff4444", textDecoration: "line-through", opacity: 0.5, fontSize: 22 }}>S</span>
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 40, height: 6, background: "#ff4444", borderRadius: 3, opacity: 0.5 }} />
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>full state</span>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.35)" }}>full state</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 10, height: 6, background: "#6eff9e", borderRadius: 3 }} />
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>delta Δ</span>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.35)" }}>delta Δ</span>
             </div>
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "rgba(255,255,255,0.45)", marginTop: 8 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "rgba(255,255,255,0.45)", marginTop: 8 }}>
             Ship only what changed — idempotent, commutative, associative
           </p>
         </div>

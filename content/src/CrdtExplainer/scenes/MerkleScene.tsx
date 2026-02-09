@@ -182,7 +182,7 @@ export const MerkleScene: React.FC = () => {
   const calloutOpacity = interpolate(frame, [170, 190], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const calloutY = interpolate(spring({ frame, fps, delay: 170, config: { damping: 200 } }), [0, 1], [12, 0]);
 
-  const fadeOut = interpolate(frame, [240, 270], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [360, 390], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -194,7 +194,7 @@ export const MerkleScene: React.FC = () => {
         <directionalLight position={[0, 5, 5]} intensity={0.3} />
 
         {/* Nodes */}
-        <DAGNode position={positions.hA} color="#51a877" entrance={entA} />
+        <DAGNode position={positions.hA} color="#5ee8a0" entrance={entA} />
         <DAGNode position={positions.hB} color="#4a9eff" entrance={entB} />
         <DAGNode position={positions.hC} color="#ff6a9e" entrance={entC} />
         <DAGNode position={positions.hD} color="#c9a0ff" entrance={entD} isHead glow={dGlow} />
@@ -215,30 +215,30 @@ export const MerkleScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "rgba(255,255,255,0.9)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
             Merkle-Clock DAG
           </span>
         </div>
 
         {/* Node Hash Labels */}
         <div style={{ position: "absolute", left: "47%", bottom: "16%", opacity: labelOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#51a877" }}>H(A)</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#5ee8a0" }}>H(A)</span>
         </div>
         <div style={{ position: "absolute", left: "22%", top: "43%", opacity: interpolate(frame, [28, 40], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#4a9eff" }}>H(B)</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#4a9eff" }}>H(B)</span>
         </div>
         <div style={{ position: "absolute", right: "22%", top: "43%", opacity: interpolate(frame, [38, 50], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#ff6a9e" }}>H(C)</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#ff6a9e" }}>H(C)</span>
         </div>
         <div style={{ position: "absolute", left: "46%", top: "17%", opacity: mergeLabel }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#c9a0ff" }}>H(D) — head</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#c9a0ff" }}>H(D) — head</span>
         </div>
 
         {/* "Concurrent" fork annotation */}
         <div style={{ position: "absolute", right: 60, top: "30%", opacity: forkLabel }}>
           <div style={{
             fontFamily: FONT_PRIMARY,
-            fontSize: 12,
+            fontSize: 14,
             color: "rgba(255,255,255,0.5)",
             padding: "6px 12px",
             border: "1px solid rgba(255,255,255,0.08)",
@@ -253,7 +253,7 @@ export const MerkleScene: React.FC = () => {
         <div style={{ position: "absolute", left: 60, top: "30%", opacity: gapRepairOpacity, transform: `translateY(${grY}px)` }}>
           <div style={{
             fontFamily: FONT_PRIMARY,
-            fontSize: 13,
+            fontSize: 16,
             color: "#6affea",
             padding: "8px 14px",
             border: "1px solid rgba(106,255,234,0.2)",
@@ -262,7 +262,7 @@ export const MerkleScene: React.FC = () => {
           }}>
             DAG-Syncer: gap repair
             <br />
-            <span style={{ fontSize: 11, opacity: 0.6 }}>
+            <span style={{ fontSize: 13, opacity: 0.6 }}>
               fetch missing blocks by CID
             </span>
           </div>
@@ -278,10 +278,10 @@ export const MerkleScene: React.FC = () => {
           opacity: calloutOpacity,
           transform: `translateY(${calloutY}px)`,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "white", margin: 0 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 22, color: "white", margin: 0 }}>
             Content-addressed, immutable, verifiable history
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.4)", marginTop: 6 }}>
             Same head CIDs → guaranteed identical causal history
           </p>
         </div>

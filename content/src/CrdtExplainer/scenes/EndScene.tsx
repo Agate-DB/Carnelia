@@ -14,12 +14,12 @@ import { FONT_PRIMARY, FONT_DISPLAY } from "../fonts";
  *
  * Summarizes what was covered, reiterates Carnelia's value, and closes.
  *
- * Timeline (360 frames @ 30fps = 12s):
- *   0–60:    Title fade in — "What We Covered"
- *   30–200:  Key takeaways appear one by one
- *   200–280: Carnelia value prop block
- *   260–340: CTA / links
- *   320–360: Fade out
+ * Timeline (230 frames @ 20fps = 11.5s):
+ *   0–30:    Title fade in — "What We Covered"
+ *   20–120:  Key takeaways appear one by one
+ *   120–170: Carnelia value prop block
+ *   155–210: CTA / links
+ *   200–230: Fade out
  *
  * AUDIO CUE: end_narration.mp3
  */
@@ -59,12 +59,12 @@ export const EndScene: React.FC = () => {
   const { width, height, fps } = useVideoConfig();
 
   /* ── entrances ── */
-  const titleEnt = spring({ frame, fps, delay: 10, config: { damping: 16 } });
-  const fadeOut = interpolate(frame, [340, 360], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const titleEnt = spring({ frame, fps, delay: 5, config: { damping: 16 } });
+  const fadeOut = interpolate(frame, [250, 270], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   /* Carnelia block entrance */
-  const carneliEnt = spring({ frame, fps, delay: 200, config: { damping: 14 } });
-  const ctaEnt = spring({ frame, fps, delay: 260, config: { damping: 14 } });
+  const carneliEnt = spring({ frame, fps, delay: 120, config: { damping: 14 } });
+  const ctaEnt = spring({ frame, fps, delay: 155, config: { damping: 14 } });
 
   return (
     <AbsoluteFill style={{ backgroundColor: BG, opacity: fadeOut }}>
@@ -122,7 +122,7 @@ export const EndScene: React.FC = () => {
             transform: `translateY(${(1 - titleEnt) * 12}px)`,
           }}
         >
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "rgba(255,255,255,0.9)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
             What We Covered
           </span>
         </div>
@@ -141,7 +141,7 @@ export const EndScene: React.FC = () => {
           }}
         >
           {TAKEAWAYS.map((t, i) => {
-            const ent = spring({ frame, fps, delay: 40 + i * 25, config: { damping: 14 } });
+            const ent = spring({ frame, fps, delay: 25 + i * 16, config: { damping: 14 } });
             return (
               <div
                 key={i}
@@ -157,14 +157,14 @@ export const EndScene: React.FC = () => {
                   padding: "6px 14px",
                 }}
               >
-                <span style={{ fontFamily: FONT_DISPLAY, fontSize: 18, color: BRAND, width: 24, textAlign: "center" }}>
+                <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: BRAND, width: 24, textAlign: "center" }}>
                   {t.icon}
                 </span>
                 <div>
-                  <span style={{ fontFamily: FONT_DISPLAY, fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
+                  <span style={{ fontFamily: FONT_DISPLAY, fontSize: 16, color: "rgba(255,255,255,0.8)" }}>
                     {t.label}
                   </span>
-                  <span style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>
+                  <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>
                     {t.desc}
                   </span>
                 </div>
@@ -195,13 +195,13 @@ export const EndScene: React.FC = () => {
               maxWidth: 620,
             }}
           >
-            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 18, color: BRAND, marginBottom: 6 }}>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: BRAND, marginBottom: 6 }}>
               Carnelia — Merkle-Delta CRDT Store
             </div>
-            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
+            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
               Open-membership · Offline-first · Peer-to-peer · Byzantine-tolerant
             </div>
-            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>
+            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>
               Strong eventual consistency without consensus.
             </div>
           </div>
@@ -218,7 +218,7 @@ export const EndScene: React.FC = () => {
             opacity: ctaEnt,
           }}
         >
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.4)" }}>
             github.com/Agate-DB/Carnelia
           </span>
         </div>

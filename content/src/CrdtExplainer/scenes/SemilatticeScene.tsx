@@ -168,7 +168,7 @@ export const SemilatticeScene: React.FC = () => {
   const lubLabelOpacity = interpolate(frame, [100, 115], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   // Fade out
-  const fadeOut = interpolate(frame, [200, 225], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [310, 335], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -205,23 +205,23 @@ export const SemilatticeScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "rgba(255,255,255,0.9)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
             Join-Semilattice
           </span>
         </div>
 
         {/* Node labels */}
         <div style={{ position: "absolute", left: "47%", bottom: "14%", opacity: labelOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#51a877" }}>⊥ bottom</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#51a877" }}>⊥ bottom</span>
         </div>
         <div style={{ position: "absolute", left: "23%", top: "42%", opacity: labelOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#4a9eff" }}>State S₁</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#4a9eff" }}>State S₁</span>
         </div>
         <div style={{ position: "absolute", right: "23%", top: "42%", opacity: labelOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#ff6a9e" }}>State S₂</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#ff6a9e" }}>State S₂</span>
         </div>
         <div style={{ position: "absolute", left: "45%", top: "14%", opacity: lubLabelOpacity }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 15, color: "#c9a0ff" }}>S₁ ⊔ S₂ = LUB</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "#c9a0ff" }}>S₁ ⊔ S₂ = LUB</span>
         </div>
 
         {/* Formal definition box */}
@@ -237,28 +237,28 @@ export const SemilatticeScene: React.FC = () => {
           padding: "12px 18px",
           maxWidth: 260,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.5)", margin: 0, marginBottom: 6 }}>Formal definition</p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#4a9eff", margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0, marginBottom: 6 }}>Formal definition</p>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#4a9eff", margin: 0, lineHeight: 1.6 }}>
             a ⊔ b = b ⊔ a
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#ff6a9e", margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#ff6a9e", margin: 0, lineHeight: 1.6 }}>
             (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c)
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#6eff9e", margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#6eff9e", margin: 0, lineHeight: 1.6 }}>
             a ⊔ a = a
           </p>
         </div>
 
         {/* Properties */}
         <div style={{ position: "absolute", bottom: 60, left: 0, right: 0, textAlign: "center", opacity: propOpacity, transform: `translateY(${propY}px)` }}>
-          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "white", display: "flex", justifyContent: "center", gap: 40 }}>
+          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 20, color: "white", display: "flex", justifyContent: "center", gap: 40 }}>
             <span style={{ color: "#4a9eff" }}>commutative</span>
             <span style={{ color: "rgba(255,255,255,0.3)" }}>·</span>
             <span style={{ color: "#ff6a9e" }}>associative</span>
             <span style={{ color: "rgba(255,255,255,0.3)" }}>·</span>
             <span style={{ color: "#6eff9e" }}>idempotent</span>
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.35)", marginTop: 10 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.35)", marginTop: 10 }}>
             Merge in any order, any number of times — always converges
           </p>
         </div>

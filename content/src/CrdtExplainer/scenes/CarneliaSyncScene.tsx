@@ -181,7 +181,7 @@ export const CarneliaSyncScene: React.FC = () => {
   const resultOpacity = interpolate(frame, [325, 345], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const resultY = interpolate(spring({ frame, fps, delay: 325, config: { damping: 200 } }), [0, 1], [12, 0]);
 
-  const fadeOut = interpolate(frame, [370, 400], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [560, 590], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -217,19 +217,19 @@ export const CarneliaSyncScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "#e06040" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "#e06040" }}>
             Carnelia: Offline Sync & Anti-Entropy
           </span>
         </div>
 
         {/* Device labels */}
         <div style={{ position: "absolute", left: "12%", top: "54%", opacity: mobileEnt }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#4a9eff" }}>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#4a9eff" }}>
             Mobile {isOffline ? "📵" : "📶"}
           </span>
         </div>
         <div style={{ position: "absolute", right: "12%", top: "54%", opacity: desktopEnt }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#ff6a9e" }}>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#ff6a9e" }}>
             Desktop 📶
           </span>
         </div>
@@ -237,13 +237,13 @@ export const CarneliaSyncScene: React.FC = () => {
         {/* Phase 1 indicator */}
         <div style={{ position: "absolute", top: 80, right: 50, opacity: phase1 }}>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 14, color: "#6eff9e",
+            fontFamily: FONT_PRIMARY, fontSize: 17, color: "#6eff9e",
             padding: "8px 16px", border: "1px solid rgba(110,255,158,0.2)",
             borderRadius: 8, background: "rgba(110,255,158,0.04)",
           }}>
             Phase 1: Both Online
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 6, maxWidth: 240, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 6, maxWidth: 240, lineHeight: 1.5 }}>
             Initial state synced via CRDT merge — both replicas identical
           </p>
         </div>
@@ -251,17 +251,17 @@ export const CarneliaSyncScene: React.FC = () => {
         {/* Phase 2 indicator */}
         <div style={{ position: "absolute", top: 80, right: 50, opacity: phase2 }}>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 14, color: "#ff6a6a",
+            fontFamily: FONT_PRIMARY, fontSize: 17, color: "#ff6a6a",
             padding: "8px 16px", border: "1px solid rgba(255,106,106,0.2)",
             borderRadius: 8, background: "rgba(255,106,106,0.04)",
           }}>
             Phase 2: Network Partition
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 6, maxWidth: 240, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 6, maxWidth: 240, lineHeight: 1.5 }}>
             Mobile goes offline — both devices keep editing locally. States diverge.
           </p>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.3)",
+            fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.3)",
             marginTop: 8, padding: "6px 10px", border: "1px solid rgba(255,255,255,0.06)",
             borderRadius: 6, background: "rgba(255,255,255,0.02)",
           }}>
@@ -273,17 +273,17 @@ export const CarneliaSyncScene: React.FC = () => {
         {/* Phase 3 indicator */}
         <div style={{ position: "absolute", top: 80, right: 50, opacity: phase3 }}>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 14, color: "#6affea",
+            fontFamily: FONT_PRIMARY, fontSize: 17, color: "#6affea",
             padding: "8px 16px", border: "1px solid rgba(106,255,234,0.2)",
             borderRadius: 8, background: "rgba(106,255,234,0.04)",
           }}>
             Phase 3: Reconnection & Merge
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 6, maxWidth: 240, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 6, maxWidth: 240, lineHeight: 1.5 }}>
             DAG-Syncer performs bidirectional gap repair — replicas exchange missing deltas
           </p>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.3)",
+            fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.3)",
             marginTop: 8, padding: "6px 10px", border: "1px solid rgba(255,255,255,0.06)",
             borderRadius: 6, background: "rgba(255,255,255,0.02)", lineHeight: 1.6,
           }}>
@@ -299,8 +299,8 @@ export const CarneliaSyncScene: React.FC = () => {
           background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
           borderRadius: 10, padding: "10px 16px", maxWidth: 300,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.5)", margin: 0, marginBottom: 4 }}>Anti-Entropy Protocol</p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "#6affea", margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, marginBottom: 4 }}>Anti-Entropy Protocol</p>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#6affea", margin: 0, lineHeight: 1.6 }}>
             1. Gossip head CIDs to peers<br />
             2. Compare against local DAG<br />
             3. Fetch missing blocks by hash<br />
@@ -313,10 +313,10 @@ export const CarneliaSyncScene: React.FC = () => {
           position: "absolute", bottom: 35, left: 0, right: 0, textAlign: "center",
           opacity: resultOpacity, transform: `translateY(${resultY}px)`,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "#6eff9e", margin: 0 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 22, color: "#6eff9e", margin: 0 }}>
             ✓ All replicas converged — zero data loss
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "rgba(255,255,255,0.35)", marginTop: 6 }}>
             Both devices' edits preserved automatically via CRDT merge semantics
           </p>
         </div>

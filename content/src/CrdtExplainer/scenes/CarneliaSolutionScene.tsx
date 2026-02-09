@@ -227,11 +227,11 @@ export const CarneliaSolutionScene: React.FC = () => {
 
   // Five rows, each with problem → arrow → solution
   const rows = [
-    { y: 1.4, delay: 5, arrowDelay: 30, solDelay: 45, probGeo: "cube", solGeo: "delta", label: "State Bloat", fix: "δ-CRDT Deltas", fixDesc: "Ship only what changed — Δ ≪ S", fixColor: "#6eff9e" },
-    { y: 0.7, delay: 45, arrowDelay: 65, solDelay: 80, probGeo: "stack", solGeo: "dotstore", label: "Tombstones", fix: "Dot Store + Context", fixDesc: "Absence in store = deleted, no markers", fixColor: "#ffc46a" },
+    { y: 1.8, delay: 5, arrowDelay: 30, solDelay: 45, probGeo: "cube", solGeo: "delta", label: "State Bloat", fix: "δ-CRDT Deltas", fixDesc: "Ship only what changed — Δ ≪ S", fixColor: "#6eff9e" },
+    { y: 0.9, delay: 45, arrowDelay: 65, solDelay: 80, probGeo: "stack", solGeo: "dotstore", label: "Tombstones", fix: "Dot Store + Context", fixDesc: "Absence in store = deleted, no markers", fixColor: "#ffc46a" },
     { y: 0.0, delay: 85, arrowDelay: 105, solDelay: 120, probGeo: "ring", solGeo: "merkle", label: "Vector Clocks", fix: "Merkle-Clock DAG", fixDesc: "Content-addressed, Byzantine-resistant", fixColor: "#c9a0ff" },
-    { y: -0.7, delay: 125, arrowDelay: 145, solDelay: 160, probGeo: "channel", solGeo: "syncer", label: "Transport", fix: "DAG-Syncer", fixDesc: "Pull-based, idempotent, tolerates loss", fixColor: "#6affea" },
-    { y: -1.4, delay: 165, arrowDelay: 185, solDelay: 200, probGeo: "partition", solGeo: "healer", label: "Net. Partitions", fix: "Anti-Entropy Gossip", fixDesc: "Head CID gossip + gap repair after heal", fixColor: "#6eff9e" },
+    { y: -0.9, delay: 125, arrowDelay: 145, solDelay: 160, probGeo: "channel", solGeo: "syncer", label: "Transport", fix: "DAG-Syncer", fixDesc: "Pull-based, idempotent, tolerates loss", fixColor: "#6affea" },
+    { y: -1.8, delay: 165, arrowDelay: 185, solDelay: 200, probGeo: "partition", solGeo: "healer", label: "Net. Partitions", fix: "Anti-Entropy Gossip", fixDesc: "Head CID gossip + gap repair after heal", fixColor: "#6eff9e" },
   ] as const;
 
   const titleOpacity = interpolate(frame, [5, 20], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
@@ -240,7 +240,7 @@ export const CarneliaSolutionScene: React.FC = () => {
   const brandOpacity = interpolate(frame, [240, 265], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const brandY = interpolate(spring({ frame, fps, delay: 240, config: { damping: 200 } }), [0, 1], [12, 0]);
 
-  const fadeOut = interpolate(frame, [330, 360], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [430, 460], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -269,7 +269,7 @@ export const CarneliaSolutionScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "#e06040" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "#e06040" }}>
             How Carnelia Fixes This
           </span>
         </div>
@@ -280,14 +280,14 @@ export const CarneliaSolutionScene: React.FC = () => {
           const solOpacity = interpolate(frame, [row.solDelay + 5, row.solDelay + 20], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
           // Map y to screen percentage (approximate)
-          const topPct = interpolate(row.y, [-1.4, 1.4], [78, 12]);
+          const topPct = interpolate(row.y, [-2.4, 2.4], [83, 10]);
 
           return (
             <React.Fragment key={i}>
               {/* Problem label */}
               <div style={{ position: "absolute", left: "3%", top: `${topPct}%`, opacity: rowOpacity }}>
                 <span style={{
-                  fontFamily: FONT_PRIMARY, fontSize: 13, color: "#ff6a6a",
+                  fontFamily: FONT_PRIMARY, fontSize: 16, color: "#ff6a6a",
                   textDecoration: "line-through", textDecorationColor: "rgba(255,106,106,0.5)",
                 }}>
                   {row.label}
@@ -295,10 +295,10 @@ export const CarneliaSolutionScene: React.FC = () => {
               </div>
               {/* Solution label */}
               <div style={{ position: "absolute", right: "3%", top: `${topPct}%`, opacity: solOpacity, maxWidth: 260 }}>
-                <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: row.fixColor, fontWeight: 400 }}>
+                <span style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: row.fixColor, fontWeight: 400 }}>
                   {row.fix}
                 </span>
-                <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.35)", margin: 0, marginTop: 3, lineHeight: 1.5 }}>
+                <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.35)", margin: 0, marginTop: 3, lineHeight: 1.5 }}>
                   {row.fixDesc}
                 </p>
               </div>
@@ -311,10 +311,10 @@ export const CarneliaSolutionScene: React.FC = () => {
           position: "absolute", bottom: 35, left: 0, right: 0, textAlign: "center",
           opacity: brandOpacity, transform: `translateY(${brandY}px)`,
         }}>
-          <p style={{ fontFamily: FONT_DISPLAY, fontSize: 20, color: "#e06040", margin: 0 }}>
+          <p style={{ fontFamily: FONT_DISPLAY, fontSize: 24, color: "#e06040", margin: 0 }}>
             Carnelia — a complete architectural synthesis
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.4)", marginTop: 6 }}>
             Open-membership · Byzantine-tolerant · Bandwidth-efficient
           </p>
         </div>

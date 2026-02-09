@@ -21,28 +21,28 @@ import { FONT_PRIMARY } from "./fonts";
 /**
  * CrdtExplainer — main composition
  *
- * 15 scenes at 30 fps ≈ 149.8 seconds
- *   1. Presented by Carnelia            170 frames  (5.7s)
- *   2. Intro & problem statement        210 frames  (7s)
- *   3. Optimistic replication           240 frames  (8s)
- *   4. Join-semilattice                 225 frames  (7.5s)
- *   5. δ-CRDT delta mutations           240 frames  (8s)
- *   6. Strong eventual consistency      240 frames  (8s)
- *   7. Real-world CRDT examples         300 frames  (10s)
- *   8. CRDT Limitations                 380 frames  (12.7s)
- *   9. Carnelia's Solutions             360 frames  (12s)
- *  10. Tombstone-free (dot store)       240 frames  (8s)
- *  11. Merkle-Clock DAG                 300 frames  (10s)
- *  12. Carnelia offline sync            400 frames  (13.3s)
- *  13. Collab demo (JSON + text)        410 frames  (13.7s)
- *  14. PNCounter increment demo         420 frames  (14s)
- *  15. End screen / summary             360 frames  (12s)
+ * 15 scenes at 20 fps
+ *   1. Presented by Carnelia            220 frames  (11s)
+ *   2. Intro & problem statement        280 frames  (14s)
+ *   3. Optimistic replication           320 frames  (16s)
+ *   4. Join-semilattice                 335 frames  (16.75s)
+ *   5. δ-CRDT delta mutations           430 frames  (21.5s)
+ *   6. Strong eventual consistency      330 frames  (16.5s)
+ *   7. Real-world CRDT examples         410 frames  (20.5s)
+ *   8. CRDT Limitations                 440 frames  (22s)
+ *   9. Carnelia's Solutions             460 frames  (23s)
+ *  10. Tombstone-free (dot store)       330 frames  (16.5s)
+ *  11. Merkle-Clock DAG                 390 frames  (19.5s)
+ *  12. Carnelia offline sync            590 frames  (29.5s)
+ *  13. Collab demo (JSON + text)        460 frames  (23s)
+ *  14. PNCounter increment demo         590 frames  (29.5s)
+ *  15. End screen / summary             270 frames  (13.5s)
  *                                     ──────
- *                              total: 4495 frames (~149.8s)
+ *                              total: 5855 frames (~292.75s / ~4:53)
  */
 
 /* ── Scene durations ────────────────────────────────────── */
-const SCENE_DURATIONS = [170, 210, 240, 225, 240, 240, 300, 380, 360, 240, 300, 400, 410, 420, 360] as const;
+const SCENE_DURATIONS = [220, 280, 320, 335, 430, 330, 410, 440, 460, 330, 390, 590, 460, 590, 270] as const;
 
 /* ── Subtitle segments: each mapped to a scene ────────── */
 /*  pos: "bottom" (default) | "top" | "topLeft" | "topRight"       */
@@ -55,14 +55,14 @@ const SUBTITLES: SubSeg[][] = [
   /* 5  Delta */        [{ text: "Traditional state-based CRDTs ship the entire object every sync — expensive.", fadeIn: 10, fadeOut: 90 }, { text: "Delta CRDTs generate tiny incremental mutations. Far smaller than full state, dramatically reducing bandwidth.", fadeIn: 90, fadeOut: 170, pos: "top" }, { text: "Idempotent and commutative — they tolerate loss, duplication, and reordering.", fadeIn: 170, fadeOut: 225, pos: "top" }],
   /* 6  Merge/SEC */    [{ text: "The payoff: Strong Eventual Consistency.", fadeIn: 10, fadeOut: 80 }, { text: "Once all replicas receive the same updates — regardless of delivery order — they converge to an identical state.", fadeIn: 80, fadeOut: 170, pos: "top" }, { text: "No coordination, no consensus protocol, no conflict resolution needed.", fadeIn: 170, fadeOut: 225, pos: "top" }],
   /* 7  RealWorld */    [{ text: "CRDTs power some of the most popular collaboration tools today.", fadeIn: 10, fadeOut: 80 }, { text: "Figma, Google Docs, Apple Notes, Linear, VS Code Live Share — local-first writes with automatic convergence.", fadeIn: 80, fadeOut: 200, pos: "top" }, { text: "But most rely on a central server. Carnelia goes fully peer-to-peer.", fadeIn: 200, fadeOut: 285, pos: "top" }],
-  /* 8  Limitations */  [{ text: "But traditional CRDTs have real-world problems.", fadeIn: 10, fadeOut: 60, pos: "top" }, { text: "State bloat, tombstone accumulation, vector clock fragility, transport assumptions…", fadeIn: 60, fadeOut: 180, pos: "top" }, { text: "…and network partition fragility — poor connectivity splits replica groups with no automatic repair.", fadeIn: 180, fadeOut: 310, pos: "top" }, { text: "These gaps prevent production deployment in open-membership networks.", fadeIn: 310, fadeOut: 365, pos: "top" }],
-  /* 9  Solution */     [{ text: "Carnelia's Merkle-Delta architecture addresses each problem directly.", fadeIn: 10, fadeOut: 70, pos: "top" }, { text: "δ-CRDT deltas instead of full state. Dot store instead of tombstones. Merkle-Clock instead of vector clocks.", fadeIn: 70, fadeOut: 180, pos: "top" }, { text: "DAG-Syncer for reliable transport. Anti-entropy gossip for partition recovery.", fadeIn: 180, fadeOut: 280, pos: "top" }, { text: "A complete architectural synthesis.", fadeIn: 280, fadeOut: 345, pos: "top" }],
+  /* 8  Limitations */  [{ text: "But traditional CRDTs have real-world problems.", fadeIn: 10, fadeOut: 60, pos: "top" }, { text: "State bloat, tombstone accumulation, vector clock fragility, transport assumptions and network partition fragility", fadeIn: 60, fadeOut: 200, pos: "top" }, { text: "These gaps prevent production deployment in open-membership networks.", fadeIn: 210, fadeOut: 365, pos: "top" }],
+  /* 9  Solution */     [{ text: "Carnelia's Merkle-Delta architecture addresses each problem directly.", fadeIn: 10, fadeOut: 70, pos: "top" }, { text: "δ-CRDT deltas instead of full state. Dot store instead of tombstones. Merkle-Clock instead of vector clocks.", fadeIn: 70, fadeOut: 220, pos: "top" }, { text: "DAG-Syncer for reliable transport. Anti-entropy gossip for partition recovery.", fadeIn: 230, fadeOut: 330, pos: "top" }, { text: "A complete architectural synthesis.", fadeIn: 330, fadeOut: 355, pos: "top" }],
   /* 10 DotStore */     [{ text: "Many systems use tombstones — markers that say 'this was deleted' — and they accumulate forever.", fadeIn: 10, fadeOut: 100 }, { text: "MDCS uses a causal context and a dot store. Absence in the store means deleted. No tombstones, bounded metadata.", fadeIn: 100, fadeOut: 225, pos: "top" }],
   /* 11 Merkle */       [{ text: "Instead of vector clocks, the MDCS uses a Merkle-Clock — an immutable DAG of hashed updates.", fadeIn: 10, fadeOut: 110 }, { text: "Concurrent updates fork the DAG; merges rejoin it. The DAG-Syncer fetches missing blocks by content ID.", fadeIn: 110, fadeOut: 210, pos: "top" }, { text: "Same head hashes = identical causal histories. Guaranteed.", fadeIn: 210, fadeOut: 285, pos: "top" }],
-  /* 12 Sync */         [{ text: "Two devices start connected, editing the same document. Then the mobile goes offline.", fadeIn: 10, fadeOut: 100 }, { text: "Both continue editing independently — the document diverges.", fadeIn: 100, fadeOut: 200, pos: "topRight" }, { text: "When connectivity returns, the anti-entropy protocol kicks in: gossip head CIDs, fetch missing blocks, apply deltas in topological order.", fadeIn: 200, fadeOut: 320, pos: "top" }, { text: "Both replicas converge — identical state, zero conflicts, no server required.", fadeIn: 320, fadeOut: 385, pos: "top" }],
-  /* 13 Collab */       [{ text: "In Figma or Google Docs, every edit routes through a central server.", fadeIn: 10, fadeOut: 100 }, { text: "In Carnelia, there is no server. Three team members edit JSON config concurrently.", fadeIn: 100, fadeOut: 210, pos: "top" }, { text: "After CRDT merge: a single consistent document with zero conflicts.", fadeIn: 210, fadeOut: 300, pos: "top" }, { text: "Rich text works the same way — concurrent insertions resolve via unique position IDs.", fadeIn: 300, fadeOut: 395, pos: "top" }],
-  /* 14 Increment */    [{ text: "Alice increments page_views by 5, then 3 — her local counter reads 8.", fadeIn: 10, fadeOut: 100, pos: "topLeft" }, { text: "Bob independently increments page_views by 10 and likes by 2. Neither knows about the other.", fadeIn: 100, fadeOut: 200, pos: "topRight" }, { text: "They sync — bob to alice, alice to bob. Bidirectional CRDT merge via delta exchange.", fadeIn: 200, fadeOut: 320, pos: "top" }, { text: "Both replicas converge: page_views = 10, likes = 2. Identical state, no coordination.", fadeIn: 320, fadeOut: 405, pos: "top" }],
-  /* 15 End */           [{ text: "CRDTs guarantee convergence without consensus — and Carnelia makes it practical.", fadeIn: 30, fadeOut: 180 }, { text: "Open-membership, offline-first, peer-to-peer, Byzantine-tolerant.", fadeIn: 180, fadeOut: 280, pos: "topRight" }, { text: "github.com/Agate-DB/Carnelia", fadeIn: 280, fadeOut: 345, pos: "topRight" }],
+  /* 12 Sync */         [{ text: "Two devices start connected, editing the same document. Then the mobile goes offline.", fadeIn: 10, fadeOut: 100 }, { text: "Both continue editing independently — the document diverges.", fadeIn: 100, fadeOut: 200, pos: "top" }, { text: "When connectivity returns, the anti-entropy protocol kicks in: gossip head CIDs, fetch missing blocks, apply deltas in topological order.", fadeIn: 200, fadeOut: 320, pos: "top" }, { text: "Both replicas converge — identical state, zero conflicts, no server required.", fadeIn: 320, fadeOut: 425, pos: "top" }],
+  /* 13 Collab */       [{ text: "In Figma or Google Docs, every edit routes through a central server.", fadeIn: 10, fadeOut: 100 }, { text: "In Carnelia, there is no server. Three team members edit JSON config concurrently.", fadeIn: 100, fadeOut: 210 }, { text: "After CRDT merge: a single consistent document with zero conflicts.", fadeIn: 210, fadeOut: 300 }, { text: "Rich text works the same way — concurrent insertions resolve via unique position IDs.", fadeIn: 300, fadeOut: 395, pos: "top" }],
+  /* 14 Increment */    [{ text: "Let's walk through a concrete example — a PNCounter.", fadeIn: 5, fadeOut: 48 }, { text: "Alice increments page_views by 5, then 3 — her local counter reads 8.", fadeIn: 55, fadeOut: 140, pos: "topLeft" }, { text: "Bob independently increments page_views by 10 and likes by 2. Neither knows about the other.", fadeIn: 140, fadeOut: 240, pos: "topRight" }, { text: "They sync — bob to alice, alice to bob. Bidirectional CRDT merge via delta exchange.", fadeIn: 240, fadeOut: 360, pos: "top" }, { text: "Both replicas converge: page_views = 10, likes = 2. Identical state, no coordination.", fadeIn: 360, fadeOut: 455, pos: "top" }],
+  /* 15 End */          [{ text: "CRDTs guarantee convergence without consensus — and Carnelia makes it practical.", fadeIn: 20, fadeOut: 100 }, { text: "lock-free, Open-membership, offline-first, peer-to-peer and Byzantine-tolerance.", fadeIn: 100, fadeOut: 170, pos: "topRight" }, { text: "github.com/Agate-DB/Carnelia", fadeIn: 170, fadeOut: 220, pos: "topRight" }],
 ];
 
 /** Subtitle overlay — renders the narration text for a given scene */
@@ -132,8 +132,8 @@ const SubtitleOverlay: React.FC<{
 
 export const crdtExplainerSchema = z.object({});
 
-export const CRDT_EXPLAINER_DURATION = 4495;
-export const CRDT_EXPLAINER_FPS = 30;
+export const CRDT_EXPLAINER_DURATION = 5855;
+export const CRDT_EXPLAINER_FPS = 20;
 
 export const CrdtExplainer: React.FC<z.infer<typeof crdtExplainerSchema>> = () => {
   /* Compute cumulative offsets for subtitle sequences */
@@ -149,69 +149,84 @@ export const CrdtExplainer: React.FC<z.infer<typeof crdtExplainerSchema>> = () =
       {/* Background soundtrack — loops across entire composition */}
       <Audio
         src={staticFile("ambient_bg_soundtrack.mp3")}
-        volume={0.18}
+        volume={0.10}
         startFrom={0}
       />
 
       <Series>
-        <Series.Sequence durationInFrames={170}>
+        <Series.Sequence durationInFrames={220}>
           <PresentedByScene />
+          <Audio src={staticFile("audio/presentedby_narration.mp3")} volume={0.9} />
         </Series.Sequence>
 
-        <Series.Sequence durationInFrames={210}>
+        <Series.Sequence durationInFrames={280}>
           <IntroScene />
+          <Audio src={staticFile("audio/intro_narration.mp3")} volume={0.9} />
         </Series.Sequence>
 
-        <Series.Sequence durationInFrames={240}>
+        <Series.Sequence durationInFrames={320}>
           <ReplicaScene />
+          <Audio src={staticFile("audio/replicas_narration.mp3")} volume={0.9} />
         </Series.Sequence>
 
-        <Series.Sequence durationInFrames={225}>
+        <Series.Sequence durationInFrames={335}>
           <SemilatticeScene />
+          <Audio src={staticFile("audio/semilattice_narration.mp3")} volume={0.9} />
         </Series.Sequence>
 
-        <Series.Sequence durationInFrames={240}>
+        <Series.Sequence durationInFrames={430}>
           <DeltaScene />
+          <Audio src={staticFile("audio/delta_narration.mp3")} volume={0.9} />
         </Series.Sequence>
 
-        <Series.Sequence durationInFrames={240}>
+        <Series.Sequence durationInFrames={330}>
           <MergeScene />
-        </Series.Sequence>
-
-        <Series.Sequence durationInFrames={300}>
-          <RealWorldCrdtScene />
-        </Series.Sequence>
-
-        <Series.Sequence durationInFrames={380}>
-          <LimitationsScene />
-        </Series.Sequence>
-
-        <Series.Sequence durationInFrames={360}>
-          <CarneliaSolutionScene />
-        </Series.Sequence>
-
-        <Series.Sequence durationInFrames={240}>
-          <DotStoreScene />
-        </Series.Sequence>
-
-        <Series.Sequence durationInFrames={300}>
-          <MerkleScene />
-        </Series.Sequence>
-
-        <Series.Sequence durationInFrames={400}>
-          <CarneliaSyncScene />
+          <Audio src={staticFile("audio/merge_narration.mp3")} volume={0.9} />
         </Series.Sequence>
 
         <Series.Sequence durationInFrames={410}>
+          <RealWorldCrdtScene />
+          <Audio src={staticFile("audio/realworld_narration.mp3")} volume={0.9} />
+        </Series.Sequence>
+
+        <Series.Sequence durationInFrames={440}>
+          <LimitationsScene />
+          <Audio src={staticFile("audio/limitations_narration.mp3")} volume={0.9} />
+        </Series.Sequence>
+
+        <Series.Sequence durationInFrames={460}>
+          <CarneliaSolutionScene />
+          <Audio src={staticFile("audio/solution_narration.mp3")} volume={0.9} />
+        </Series.Sequence>
+
+        <Series.Sequence durationInFrames={330}>
+          <DotStoreScene />
+          <Audio src={staticFile("audio/dotstore_narration.mp3")} volume={0.9} />
+        </Series.Sequence>
+
+        <Series.Sequence durationInFrames={390}>
+          <MerkleScene />
+          <Audio src={staticFile("audio/merkle_narration.mp3")} volume={0.9} />
+        </Series.Sequence>
+
+        <Series.Sequence durationInFrames={590}>
+          <CarneliaSyncScene />
+          <Audio src={staticFile("audio/sync_narration.mp3")} volume={0.9} />
+        </Series.Sequence>
+
+        <Series.Sequence durationInFrames={460}>
           <CollabDemoScene />
+          <Audio src={staticFile("audio/collab_narration.mp3")} volume={0.9} />
         </Series.Sequence>
 
-        <Series.Sequence durationInFrames={420}>
+        <Series.Sequence durationInFrames={590}>
           <IncrementDemoScene />
+          <Audio src={staticFile("audio/increment_narration.mp3")} volume={0.9} />
         </Series.Sequence>
 
-        <Series.Sequence durationInFrames={360}>
+        <Series.Sequence durationInFrames={270}>
           <EndScene />
+          <Audio src={staticFile("audio/end_narration.mp3")} volume={0.9} />
         </Series.Sequence>
       </Series>
 

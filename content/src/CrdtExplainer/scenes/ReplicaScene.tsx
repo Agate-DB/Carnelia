@@ -201,7 +201,7 @@ export const ReplicaScene: React.FC = () => {
   const descY = interpolate(descProgress, [0, 1], [15, 0]);
 
   // Fade out
-  const fadeOut = interpolate(frame, [210, 240], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [290, 320], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -256,7 +256,7 @@ export const ReplicaScene: React.FC = () => {
               transform: `translateY(${(1 - labelEntrance) * 10}px)`,
             } as React.CSSProperties}
           >
-            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 15, color: colors[i], fontWeight: 400 }}>
+            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: colors[i], fontWeight: 400 }}>
               {labels[i]}
             </span>
           </div>
@@ -265,21 +265,21 @@ export const ReplicaScene: React.FC = () => {
         {/* Counter labels next to nodes */}
         {frame >= 60 && (
           <div style={{ position: "absolute", left: "14%", top: "34%", opacity: interpolate(frame, [60, 75], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>
-            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.5)" }}>
               counter: {Math.round(counterA * 10)}
             </span>
           </div>
         )}
         {frame >= 90 && (
           <div style={{ position: "absolute", right: "14%", top: "34%", opacity: interpolate(frame, [90, 105], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>
-            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.5)" }}>
               counter: {Math.round(counterB * 10)}
             </span>
           </div>
         )}
         {frame >= 120 && (
           <div style={{ position: "absolute", left: "44%", bottom: "22%", opacity: interpolate(frame, [120, 135], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}>
-            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.5)" }}>
               counter: {Math.round(counterC * 10)}
             </span>
           </div>
@@ -289,7 +289,7 @@ export const ReplicaScene: React.FC = () => {
         <div style={{ position: "absolute", top: 50, right: 60, opacity: noCoordOpacity }}>
           <div style={{
             fontFamily: FONT_PRIMARY,
-            fontSize: 13,
+            fontSize: 16,
             color: "#ffc46a",
             padding: "8px 16px",
             border: "1px solid rgba(255,196,106,0.3)",
@@ -302,17 +302,17 @@ export const ReplicaScene: React.FC = () => {
 
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: descOpacity, transform: `translateY(${descY}px)` }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "rgba(255,255,255,0.9)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
             Optimistic Replication
           </span>
         </div>
 
         {/* Bottom description */}
         <div style={{ position: "absolute", bottom: 35, left: 0, right: 0, textAlign: "center", opacity: descOpacity, transform: `translateY(${descY}px)` }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.6)", margin: 0 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 19, color: "rgba(255,255,255,0.6)", margin: 0 }}>
             Each replica accepts writes locally — high availability, partition tolerant
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>
             CAP theorem: CRDTs choose Availability + Partition tolerance
           </p>
         </div>

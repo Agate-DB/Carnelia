@@ -95,7 +95,7 @@ const CounterRow: React.FC<{
       }}>
         {label}
       </span>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginLeft: 4 }}>
         <span style={{
           fontFamily: FONT_DISPLAY, fontSize: 16,
           color: highlight ? "#6eff9e" : "rgba(255,255,255,0.7)",
@@ -117,28 +117,32 @@ export const IncrementDemoScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
 
+  /* ---- intro gate (first 2s) ---- */
+  const introOpacity = interpolate(frame, [0, 8], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) *
+    interpolate(frame, [36, 46], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
   /* ---- phase gates ---- */
   const ph1 = frame >= 0;
-  const ph2 = frame >= 120;
-  const ph3 = frame >= 220;
-  const ph4 = frame >= 330;
+  const ph2 = frame >= 160;
+  const ph3 = frame >= 260;
+  const ph4 = frame >= 370;
 
   /* ---- entrances ---- */
-  const aliceEnt = spring({ frame, fps, delay: 5, config: { damping: 14 } });
-  const bobEnt = spring({ frame, fps, delay: 20, config: { damping: 14 } });
+  const aliceEnt = spring({ frame, fps, delay: 45, config: { damping: 14 } });
+  const bobEnt = spring({ frame, fps, delay: 60, config: { damping: 14 } });
 
   /* ---- alice increments ---- */
-  const alicePv1 = interpolate(frame, [40, 60], [0, 5], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const alicePv2 = interpolate(frame, [80, 100], [5, 8], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const alicePv = ph1 ? (frame < 80 ? alicePv1 : alicePv2) : 0;
+  const alicePv1 = interpolate(frame, [80, 100], [0, 5], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const alicePv2 = interpolate(frame, [120, 140], [5, 8], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const alicePv = ph1 ? (frame < 120 ? alicePv1 : alicePv2) : 0;
 
   /* ---- bob increments ---- */
-  const bobPv = ph2 ? interpolate(frame, [140, 165], [0, 10], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
-  const bobLikes = ph2 ? interpolate(frame, [175, 195], [0, 2], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
+  const bobPv = ph2 ? interpolate(frame, [180, 205], [0, 10], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
+  const bobLikes = ph2 ? interpolate(frame, [215, 235], [0, 2], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
 
   /* ---- sync & merge ---- */
-  const syncProgress = ph3 ? interpolate(frame, [230, 280], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
-  const syncBeamOpacity = ph3 ? interpolate(frame, [225, 240], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) * interpolate(frame, [290, 310], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
+  const syncProgress = ph3 ? interpolate(frame, [270, 320], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
+  const syncBeamOpacity = ph3 ? interpolate(frame, [265, 280], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) * interpolate(frame, [330, 350], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
 
   /* ---- merged values ---- */
   const mergedLikes = ph3 ? interpolate(syncProgress, [0, 1], [0, 2]) : 0;
@@ -146,16 +150,16 @@ export const IncrementDemoScene: React.FC = () => {
   /* ---- phase labels ---- */
   const phaseLabel = ph4 ? "Phase 4 — Converged" : ph3 ? "Phase 3 — Bidirectional Sync" : ph2 ? "Phase 2 — Bob increments" : "Phase 1 — Alice increments";
   const phaseColor = ph4 ? "#6eff9e" : ph3 ? "#c9a0ff" : ph2 ? "#4ab5ff" : "#ffaa44";
-  const phaseOpacity = spring({ frame, fps, delay: ph4 ? 332 : ph3 ? 222 : ph2 ? 122 : 5, config: { damping: 20 } });
+  const phaseOpacity = spring({ frame, fps, delay: ph4 ? 372 : ph3 ? 262 : ph2 ? 162 : 45, config: { damping: 20 } });
 
   /* ---- final result ---- */
-  const resultOpacity = ph4 ? interpolate(frame, [340, 360], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
+  const resultOpacity = ph4 ? interpolate(frame, [380, 400], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 0;
 
   /* ---- layout helpers ---- */
   const alicePos: [number, number, number] = [-2.0, 0, 0];
   const bobPos: [number, number, number] = [2.0, 0, 0];
 
-  const fadeOut = interpolate(frame, [400, 420], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [570, 590], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   /* ---- stepped highlights ---- */
   const aliceHighlight = (ph1 && !ph2) || (ph3 && !ph4) || ph4;
@@ -170,10 +174,10 @@ export const IncrementDemoScene: React.FC = () => {
   const bobPanelLikes = ph4 ? 2 : ph3 ? 2 : bobLikes;
 
   /* ---- per-replica attribution ---- */
-  const alicePvAttrib = (ph4 || (ph3 && syncProgress > 0.5)) ? "(bob:+10)" : (ph1 && !ph2 && frame >= 40) ? `(alice:+${Math.round(alicePv)})` : (ph2 && !ph3) ? "(alice:+8)" : "";
+  const alicePvAttrib = (ph4 || (ph3 && syncProgress > 0.5)) ? "(bob:+10)" : (ph1 && !ph2 && frame >= 80) ? `(alice:+${Math.round(alicePv)})` : (ph2 && !ph3) ? "(alice:+8)" : "";
   const aliceLikesAttrib = (ph3 || ph4) ? "(bob:+2)" : "";
-  const bobPvAttrib = (ph3 || ph4) ? "(bob:+10)" : (ph2 && frame >= 140) ? `(bob:+${Math.round(bobPv)})` : "";
-  const bobLikesAttrib = (ph3 || ph4) ? "(bob:+2)" : (ph2 && frame >= 175) ? `(bob:+${Math.round(bobLikes)})` : "";
+  const bobPvAttrib = (ph3 || ph4) ? "(bob:+10)" : (ph2 && frame >= 180) ? `(bob:+${Math.round(bobPv)})` : "";
+  const bobLikesAttrib = (ph3 || ph4) ? "(bob:+2)" : (ph2 && frame >= 215) ? `(bob:+${Math.round(bobLikes)})` : "";
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -207,27 +211,39 @@ export const IncrementDemoScene: React.FC = () => {
 
         {/* Convergence flash */}
         {ph4 && (
-          <mesh position={[0, 0, -0.5]} scale={[interpolate(frame, [330, 345], [0, 3], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }), interpolate(frame, [330, 345], [0, 3], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }), 1]}>
+          <mesh position={[0, 0, -0.5]} scale={[interpolate(frame, [370, 385], [0, 3], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }), interpolate(frame, [370, 385], [0, 3], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }), 1]}>
             <ringGeometry args={[0.8, 1.0, 40]} />
-            <meshBasicMaterial color="#6eff9e" transparent opacity={interpolate(frame, [330, 355], [0.35, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })} />
+            <meshBasicMaterial color="#6eff9e" transparent opacity={interpolate(frame, [370, 395], [0.35, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })} />
           </mesh>
         )}
       </ThreeCanvas>
 
       <AbsoluteFill style={{ pointerEvents: "none" }}>
+        {/* Intro text */}
+        {frame < 55 && (
+          <div style={{
+            position: "absolute", top: "38%", left: 0, right: 0, textAlign: "center",
+            opacity: introOpacity,
+          }}>
+            <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "#e06040" }}>
+              Let&apos;s walk through an example
+            </span>
+          </div>
+        )}
+
         {/* Phase indicator */}
         <div style={{
           position: "absolute", top: 30, left: 0, right: 0, textAlign: "center",
           opacity: phaseOpacity,
         }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 18, color: phaseColor }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: phaseColor }}>
             {phaseLabel}
           </span>
         </div>
 
         {/* Title */}
         <div style={{ position: "absolute", top: 60, left: 60, opacity: aliceEnt }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 14, color: "rgba(255,255,255,0.3)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 17, color: "rgba(255,255,255,0.3)" }}>
             PNCounter: page_views + likes
           </span>
         </div>
@@ -238,7 +254,7 @@ export const IncrementDemoScene: React.FC = () => {
           background: "rgba(255,170,68,0.04)", border: "1px solid rgba(255,170,68,0.15)",
           borderRadius: 10, padding: "14px 20px", width: 180, opacity: aliceEnt,
         }}>
-          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#ffaa44", marginBottom: 10 }}>
+          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#ffaa44", marginBottom: 10 }}>
             Alice&apos;s Replica
           </div>
           <CounterRow label="page_views" value={10} highlight={aliceHighlight} animValue={alicePanelPv} attrib={alicePvAttrib} />
@@ -246,9 +262,9 @@ export const IncrementDemoScene: React.FC = () => {
 
           {/* Step annotations */}
           {ph1 && !ph2 && (
-            <div style={{ marginTop: 8, fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,170,68,0.5)", lineHeight: 1.5 }}>
-              {frame >= 40 && <div>page_views += 5</div>}
-              {frame >= 80 && <div>page_views += 3  (total: 8)</div>}
+            <div style={{ marginTop: 8, fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,170,68,0.5)", lineHeight: 1.5 }}>
+              {frame >= 80 && <div>page_views += 5</div>}
+              {frame >= 120 && <div>page_views += 3  (total: 8)</div>}
             </div>
           )}
         </div>
@@ -259,7 +275,7 @@ export const IncrementDemoScene: React.FC = () => {
           background: "rgba(74,181,255,0.04)", border: "1px solid rgba(74,181,255,0.15)",
           borderRadius: 10, padding: "14px 20px", width: 180, opacity: bobEnt,
         }}>
-          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#4ab5ff", marginBottom: 10 }}>
+          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#4ab5ff", marginBottom: 10 }}>
             Bob&apos;s Replica
           </div>
           <CounterRow label="page_views" value={10} highlight={bobHighlight} animValue={bobPanelPv} attrib={bobPvAttrib} />
@@ -267,9 +283,9 @@ export const IncrementDemoScene: React.FC = () => {
 
           {/* Step annotations */}
           {ph2 && !ph3 && (
-            <div style={{ marginTop: 8, fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(74,181,255,0.5)", lineHeight: 1.5 }}>
-              {frame >= 140 && <div>page_views += 10</div>}
-              {frame >= 175 && <div>likes += 2</div>}
+            <div style={{ marginTop: 8, fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(74,181,255,0.5)", lineHeight: 1.5 }}>
+              {frame >= 180 && <div>page_views += 10</div>}
+              {frame >= 215 && <div>likes += 2</div>}
             </div>
           )}
         </div>
@@ -282,10 +298,10 @@ export const IncrementDemoScene: React.FC = () => {
             borderRadius: 8, padding: "10px 18px", maxWidth: 200, textAlign: "center",
             opacity: syncBeamOpacity,
           }}>
-            <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "#c9a0ff", margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#c9a0ff", margin: 0, lineHeight: 1.6 }}>
               bob ──sync──▶ alice ✓<br />
               alice ──sync──▶ bob ✓<br />
-              <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>Bidirectional CRDT merge</span>
+              <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>Bidirectional CRDT merge</span>
             </p>
           </div>
         )}
@@ -300,15 +316,15 @@ export const IncrementDemoScene: React.FC = () => {
             border: "1px solid rgba(110,255,158,0.15)", borderRadius: 10,
             padding: "12px 28px", textAlign: "center",
           }}>
-            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 16, color: "#6eff9e", marginBottom: 4 }}>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 19, color: "#6eff9e", marginBottom: 4 }}>
               ✓ ALL REPLICAS CONVERGED
             </div>
-            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "rgba(255,255,255,0.7)" }}>
+            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "rgba(255,255,255,0.7)" }}>
               page_views = <span style={{ color: "#ffaa44" }}>10</span>{" "}
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>(alice:8 + bob:10)</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>(alice:8 + bob:10)</span>
               {" · "}
               likes = <span style={{ color: "#4ab5ff" }}>2</span>{" "}
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>(bob:2)</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>(bob:2)</span>
             </span>
           </div>
         </div>

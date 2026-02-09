@@ -146,7 +146,7 @@ export const PresentedByScene: React.FC = () => {
   const techOpacity = interpolate(frame, [100, 120], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   // Fade out
-  const fadeOut = interpolate(frame, [145, 170], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [195, 220], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -181,7 +181,7 @@ export const PresentedByScene: React.FC = () => {
           <p
             style={{
               fontFamily: FONT_PRIMARY,
-              fontSize: 14,
+              fontSize: 17,
               color: "rgba(255,255,255,0.4)",
               opacity: presentedByOpacity,
               transform: `translateY(${presentedByY}px)`,
@@ -198,7 +198,7 @@ export const PresentedByScene: React.FC = () => {
           <h1
             style={{
               fontFamily: FONT_DISPLAY,
-              fontSize: 96,
+              fontSize: 115,
               fontWeight: 400,
               color: "#e06040",
               opacity: nameOpacity,
@@ -216,7 +216,7 @@ export const PresentedByScene: React.FC = () => {
           <p
             style={{
               fontFamily: FONT_PRIMARY,
-              fontSize: 17,
+              fontSize: 20,
               color: "rgba(255,255,255,0.55)",
               opacity: taglineOpacity,
               transform: `translateY(${taglineY}px)`,
@@ -243,7 +243,7 @@ export const PresentedByScene: React.FC = () => {
                 key={label}
                 style={{
                   fontFamily: FONT_PRIMARY,
-                  fontSize: 11,
+                  fontSize: 13,
                   color: "rgba(224,96,64,0.85)",
                   padding: "5px 14px",
                   border: "1px solid rgba(224,96,64,0.2)",

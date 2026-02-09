@@ -183,7 +183,7 @@ export const MergeScene: React.FC = () => {
   const secOpacity = interpolate(frame, [150, 170], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const secY = interpolate(spring({ frame, fps, delay: 150, config: { damping: 200 } }), [0, 1], [10, 0]);
 
-  const fadeOut = interpolate(frame, [210, 240], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [300, 330], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -232,7 +232,7 @@ export const MergeScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "rgba(255,255,255,0.9)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
             Strong Eventual Consistency
           </span>
         </div>
@@ -249,20 +249,20 @@ export const MergeScene: React.FC = () => {
           padding: "10px 16px",
           maxWidth: 240,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, marginBottom: 4 }}>delivery order</p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#c9a0ff", margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0, marginBottom: 4 }}>delivery order</p>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#c9a0ff", margin: 0, lineHeight: 1.5 }}>
             ABC = BCA = CAB
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.3)", margin: 0, marginTop: 4 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.3)", margin: 0, marginTop: 4 }}>
             any permutation → same result
           </p>
         </div>
 
         {/* Equation */}
-        <div style={{ position: "absolute", top: "15%", right: 60, opacity: eqOpacity, transform: `translateY(${eqY}px)` }}>
+        <div style={{ position: "absolute", top: "18%", right: 60, opacity: eqOpacity, transform: `translateY(${eqY}px)` }}>
           <div style={{
             fontFamily: FONT_PRIMARY,
-            fontSize: 17,
+            fontSize: 20,
             color: "rgba(255,255,255,0.7)",
             background: "rgba(255,255,255,0.03)",
             border: "1px solid rgba(255,255,255,0.08)",
@@ -275,19 +275,19 @@ export const MergeScene: React.FC = () => {
 
         {/* Node labels (fade as they converge) */}
         <div style={{ position: "absolute", left: "14%", top: "38%", opacity: titleOpacity * (1 - convergence) }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#4a9eff" }}>A: {"{ x:1, y:3 }"}</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#4a9eff" }}>A: {"{ x:1, y:3 }"}</span>
         </div>
         <div style={{ position: "absolute", right: "14%", top: "38%", opacity: titleOpacity * (1 - convergence) }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#ff6a9e" }}>B: {"{ x:1, y:5 }"}</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#ff6a9e" }}>B: {"{ x:1, y:5 }"}</span>
         </div>
         <div style={{ position: "absolute", left: "43%", bottom: "18%", opacity: titleOpacity * (1 - convergence) }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#6eff9e" }}>C: {"{ x:2, y:3 }"}</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#6eff9e" }}>C: {"{ x:2, y:3 }"}</span>
         </div>
 
         {/* Merged state label */}
         {convergence > 0.9 && (
           <div style={{ position: "absolute", left: "42%", top: "52%", opacity: secOpacity }}>
-            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#c9a0ff" }}>
+            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#c9a0ff" }}>
               {"{ x:2, y:5 }"}
             </span>
           </div>
@@ -303,10 +303,10 @@ export const MergeScene: React.FC = () => {
           opacity: secOpacity,
           transform: `translateY(${secY}px)`,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "white", margin: 0 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 22, color: "white", margin: 0 }}>
             Same updates delivered → identical state
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.4)", marginTop: 6 }}>
             No coordination, no consensus protocol required
           </p>
         </div>

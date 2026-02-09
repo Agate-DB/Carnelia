@@ -119,7 +119,7 @@ export const IntroScene: React.FC = () => {
     extrapolateRight: "clamp",
   });
 
-  const fadeOut = interpolate(frame, [185, 210], [1, 0], {
+  const fadeOut = interpolate(frame, [255, 280], [1, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -152,7 +152,7 @@ export const IntroScene: React.FC = () => {
           <h1
             style={{
               fontFamily: FONT_DISPLAY,
-              fontSize: 72,
+              fontSize: 86,
               fontWeight: 400,
               color: "white",
               opacity: titleOpacity,
@@ -168,7 +168,7 @@ export const IntroScene: React.FC = () => {
           <p
             style={{
               fontFamily: FONT_PRIMARY,
-              fontSize: 18,
+              fontSize: 22,
               color: "rgba(255,255,255,0.5)",
               opacity: subtitleOpacity,
               transform: `translateY(${subtitleY}px)`,
@@ -183,7 +183,7 @@ export const IntroScene: React.FC = () => {
           <p
             style={{
               fontFamily: FONT_PRIMARY,
-              fontSize: 16,
+              fontSize: 19,
               color: "rgba(255,255,255,0.4)",
               opacity: problemOpacity,
               transform: `translateY(${problemY}px)`,
@@ -214,7 +214,7 @@ export const IntroScene: React.FC = () => {
                 key={label}
                 style={{
                   fontFamily: FONT_PRIMARY,
-                  fontSize: 11,
+                  fontSize: 13,
                   color: "rgba(255,255,255,0.35)",
                   padding: "4px 12px",
                   border: "1px solid rgba(255,255,255,0.08)",

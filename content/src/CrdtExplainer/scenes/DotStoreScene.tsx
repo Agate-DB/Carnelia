@@ -153,7 +153,7 @@ export const DotStoreScene: React.FC = () => {
   const noTombstone = interpolate(frame, [145, 165], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const ntY = interpolate(spring({ frame, fps, delay: 145, config: { damping: 200 } }), [0, 1], [12, 0]);
 
-  const fadeOut = interpolate(frame, [210, 240], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [300, 330], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -187,7 +187,7 @@ export const DotStoreScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "rgba(255,255,255,0.9)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
             Tombstone-Free Removal
           </span>
         </div>
@@ -196,14 +196,14 @@ export const DotStoreScene: React.FC = () => {
         <div style={{ position: "absolute", right: "14%", top: "25%", opacity: contextLabelOpacity }}>
           <div style={{
             fontFamily: FONT_PRIMARY,
-            fontSize: 14,
+            fontSize: 17,
             color: "#ffc46a",
             padding: "6px 14px",
             border: "1px solid rgba(255,196,106,0.2)",
             borderRadius: 6,
             background: "rgba(255,196,106,0.04)",
           }}>
-            Causal Context <span style={{ fontSize: 11, opacity: 0.5 }}>all dots ever</span>
+            Causal Context <span style={{ fontSize: 13, opacity: 0.5 }}>all dots ever</span>
           </div>
         </div>
 
@@ -211,21 +211,21 @@ export const DotStoreScene: React.FC = () => {
         <div style={{ position: "absolute", left: "14%", bottom: "28%", opacity: storeLabelOpacity }}>
           <div style={{
             fontFamily: FONT_PRIMARY,
-            fontSize: 14,
+            fontSize: 17,
             color: "#6eff9e",
             padding: "6px 14px",
             border: "1px solid rgba(110,255,158,0.2)",
             borderRadius: 6,
             background: "rgba(110,255,158,0.04)",
           }}>
-            Dot Store <span style={{ fontSize: 11, opacity: 0.5 }}>live data</span>
+            Dot Store <span style={{ fontSize: 13, opacity: 0.5 }}>live data</span>
           </div>
         </div>
 
         {/* Remove indicator */}
         {frame >= 90 && (
           <div style={{ position: "absolute", left: "47%", top: "62%", opacity: removeIndicator }}>
-            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#ff6a9e" }}>
+            <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "#ff6a9e" }}>
               remove( )
             </span>
           </div>
@@ -234,7 +234,7 @@ export const DotStoreScene: React.FC = () => {
         {/* Explanation */}
         {frame >= 130 && (
           <div style={{ position: "absolute", right: "10%", bottom: "28%", opacity: removeIndicator, maxWidth: 260 }}>
-            <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: 0 }}>
+            <p style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: 0 }}>
               Dot in context, absent from store = deleted
             </p>
           </div>
@@ -250,10 +250,10 @@ export const DotStoreScene: React.FC = () => {
           opacity: noTombstone,
           transform: `translateY(${ntY}px)`,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "white", margin: 0 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 22, color: "white", margin: 0 }}>
             No tombstones — bounded metadata growth
           </p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.4)", marginTop: 6 }}>
             Absence in the dot store IS the deletion record
           </p>
         </div>

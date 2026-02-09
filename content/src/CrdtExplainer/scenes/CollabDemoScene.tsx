@@ -172,7 +172,7 @@ export const CollabDemoScene: React.FC = () => {
   const resultY = interpolate(spring({ frame, fps, delay: 340, config: { damping: 200 } }), [0, 1], [12, 0]);
 
   const titleOpacity = interpolate(frame, [5, 20], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const fadeOut = interpolate(frame, [380, 410], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [430, 460], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   const tradClients: [number, number, number][] = [[-4.0, 1.5, 0], [-4.0, -0.5, 0], [-3.0, -1.5, 0]];
   const p2pNodes: [number, number, number][] = [[2.5, 1.2, 0], [4.0, 0, 0], [2.5, -1.2, 0]];
@@ -189,7 +189,7 @@ export const CollabDemoScene: React.FC = () => {
         <ServerNode position={[-2.5, 0.3, 0]} entrance={tradEnt} />
         <ServerSpokes serverPos={[-2.5, 0.3, 0]} clientPositions={tradClients} entrance={tradEnt} />
         {tradClients.map((pos, i) => (
-          <P2PNode key={`t${i}`} position={pos} entrance={tradEnt} color="#888888" />
+          <P2PNode key={`t${i}`} position={pos} entrance={tradEnt} color="#b0c8e8" />
         ))}
 
         {/* Carnelia: P2P mesh */}
@@ -202,17 +202,17 @@ export const CollabDemoScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: titleOpacity }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "#e06040" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "#e06040" }}>
             Collaborative Editing: Carnelia vs Traditional
           </span>
         </div>
 
         {/* Traditional label */}
         <div style={{ position: "absolute", left: "5%", top: "14%", opacity: tradEnt, maxWidth: 240 }}>
-          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 15, color: "#ff4444", marginBottom: 4 }}>
+          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "#ff4444", marginBottom: 4 }}>
             Figma / Google Docs
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>
             Server-mediated OT/CRDT<br />
             Single point of failure<br />
             Requires internet connection
@@ -221,10 +221,10 @@ export const CollabDemoScene: React.FC = () => {
 
         {/* Carnelia label */}
         <div style={{ position: "absolute", right: "5%", top: "14%", opacity: p2pEnt, maxWidth: 240 }}>
-          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 15, color: "#6eff9e", marginBottom: 4 }}>
+          <div style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "#6eff9e", marginBottom: 4 }}>
             Carnelia (MDCS)
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>
             Peer-to-peer δ-CRDTs<br />
             No single point of failure<br />
             Full offline support
@@ -236,7 +236,7 @@ export const CollabDemoScene: React.FC = () => {
           position: "absolute", left: "50%", top: "15%", opacity: contrastOpacity,
           transform: "translateX(-50%)",
         }}>
-          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 16, color: "rgba(255,255,255,0.6)" }}>vs</span>
+          <span style={{ fontFamily: FONT_PRIMARY, fontSize: 19, color: "rgba(255,255,255,0.6)" }}>vs</span>
         </div>
 
         {/* JSON Collab Example */}
@@ -248,43 +248,43 @@ export const CollabDemoScene: React.FC = () => {
             background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: 12, padding: "16px 24px",
           }}>
-            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "#e06040", marginBottom: 12 }}>
+            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "#e06040", marginBottom: 12 }}>
               JSON Collab Demo — 3 concurrent editors
             </div>
 
             {/* Step 1 */}
             <div style={{ opacity: jsonStep1, marginBottom: 8, transition: "opacity 0.3s" }}>
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "#4a9eff" }}>ProjectManager</span>
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.3)" }}> → </span>
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.5)" }}>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#4a9eff" }}>ProjectManager</span>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.3)" }}> → </span>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
                 set("name", "Project Alpha"), set("version", "1.0.0")
               </span>
             </div>
 
             {/* Step 2 */}
             <div style={{ opacity: jsonStep2, marginBottom: 8 }}>
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "#ff6a9e" }}>Developer</span>
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.3)" }}> → </span>
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.5)" }}>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#ff6a9e" }}>Developer</span>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.3)" }}> → </span>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
                 set("tech.language", "Rust"), set("tech.framework", "MDCS")
               </span>
             </div>
 
             {/* Step 3 */}
             <div style={{ opacity: jsonStep3, marginBottom: 12 }}>
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "#6eff9e" }}>Designer</span>
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.3)" }}> → </span>
-              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.5)" }}>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#6eff9e" }}>Designer</span>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.3)" }}> → </span>
+              <span style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
                 set("ui.theme", "dark"), set("ui.primary_color", "#3498db")
               </span>
             </div>
 
             {/* Result */}
             <div style={{ opacity: jsonStep3, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 10 }}>
-              <div style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>
+              <div style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>
                 After CRDT merge — all 3 clients identical:
               </div>
-              <div style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "#6eff9e", lineHeight: 1.5 }}>
+              <div style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#6eff9e", lineHeight: 1.5 }}>
                 {"{ name, version, status, tech.*, ui.* }"} — 0 conflicts
               </div>
             </div>
@@ -297,8 +297,8 @@ export const CollabDemoScene: React.FC = () => {
           background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
           borderRadius: 10, padding: "10px 16px", maxWidth: 320,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.5)", margin: 0, marginBottom: 4 }}>Rich Text (RGA)</p>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "#c9a0ff", margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0, marginBottom: 4 }}>Rich Text (RGA)</p>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "#c9a0ff", margin: 0, lineHeight: 1.6 }}>
             Concurrent character insertions resolve via<br />
             unique position IDs — no server arbitration
           </p>
@@ -309,7 +309,7 @@ export const CollabDemoScene: React.FC = () => {
           position: "absolute", bottom: 35, left: 0, right: 0, textAlign: "center",
           opacity: resultOpacity, transform: `translateY(${resultY}px)`,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 17, color: "white", margin: 0 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 20, color: "white", margin: 0 }}>
             <span style={{ color: "#ff4444", textDecoration: "line-through", opacity: 0.5 }}>Central server</span>
             {" → "}
             <span style={{ color: "#6eff9e" }}>Peer-to-peer</span>

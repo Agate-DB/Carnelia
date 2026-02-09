@@ -83,10 +83,10 @@ const TombstoneStack: React.FC<{
           <mesh key={i} position={[0, y, 0]} scale={[s, s * 1.4, s * 0.3]}>
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial
-              color="#c8b8a0"
+              color="#e0d0b8"
               roughness={0.4}
               metalness={0.3}
-              emissive="#c8b8a0"
+              emissive="#e0d0b8"
               emissiveIntensity={0.45}
               transparent
               opacity={entrance * 0.85}
@@ -306,7 +306,7 @@ export const LimitationsScene: React.FC = () => {
   const summaryOpacity = interpolate(frame, [290, 310], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const summaryY = interpolate(spring({ frame, fps, delay: 290, config: { damping: 200 } }), [0, 1], [12, 0]);
 
-  const fadeOut = interpolate(frame, [350, 380], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [410, 440], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
@@ -327,7 +327,7 @@ export const LimitationsScene: React.FC = () => {
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         {/* Title */}
         <div style={{ position: "absolute", top: 35, left: 60, opacity: label1 }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: "rgba(255,255,255,0.9)" }}>
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
             Where Traditional CRDTs Fall Short
           </span>
         </div>
@@ -335,13 +335,13 @@ export const LimitationsScene: React.FC = () => {
         {/* Problem 1 label */}
         <div style={{ position: "absolute", left: "8%", top: "16%", opacity: label1, maxWidth: 260 }}>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 14, color: "#ff6a6a",
+            fontFamily: FONT_PRIMARY, fontSize: 17, color: "#ff6a6a",
             padding: "6px 12px", border: "1px solid rgba(255,106,106,0.2)",
             borderRadius: 6, background: "rgba(255,106,106,0.04)",
           }}>
             1. State Bloat
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5 }}>
             CvRDTs ship the entire state every sync — grows linearly with data
           </p>
         </div>
@@ -349,13 +349,13 @@ export const LimitationsScene: React.FC = () => {
         {/* Problem 2 label */}
         <div style={{ position: "absolute", right: "8%", top: "16%", opacity: label2, maxWidth: 260 }}>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 14, color: "#c8b8a0",
+            fontFamily: FONT_PRIMARY, fontSize: 17, color: "#e0d0b8",
             padding: "6px 12px", border: "1px solid rgba(200,184,160,0.25)",
             borderRadius: 6, background: "rgba(200,184,160,0.06)",
           }}>
             2. Tombstone Accumulation
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5 }}>
             Deletion markers never removed — unbounded metadata growth
           </p>
         </div>
@@ -363,13 +363,13 @@ export const LimitationsScene: React.FC = () => {
         {/* Problem 3 label */}
         <div style={{ position: "absolute", left: "8%", top: "46%", opacity: label3, maxWidth: 260 }}>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 14, color: "#ffc46a",
+            fontFamily: FONT_PRIMARY, fontSize: 17, color: "#ffc46a",
             padding: "6px 12px", border: "1px solid rgba(255,196,106,0.2)",
             borderRadius: 6, background: "rgba(255,196,106,0.04)",
           }}>
             3. Vector Clock Fragility
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5 }}>
             Metadata O(n) in replicas — Byzantine nodes can forge causal links
           </p>
         </div>
@@ -377,13 +377,13 @@ export const LimitationsScene: React.FC = () => {
         {/* Problem 4 label */}
         <div style={{ position: "absolute", right: "8%", top: "46%", opacity: label4, maxWidth: 260 }}>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 14, color: "#4a9eff",
+            fontFamily: FONT_PRIMARY, fontSize: 17, color: "#4a9eff",
             padding: "6px 12px", border: "1px solid rgba(74,158,255,0.2)",
             borderRadius: 6, background: "rgba(74,158,255,0.04)",
           }}>
             4. Transport Assumptions
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5 }}>
             CmRDTs require exactly-once, causally-ordered delivery
           </p>
         </div>
@@ -391,14 +391,14 @@ export const LimitationsScene: React.FC = () => {
         {/* Problem 5 label */}
         <div style={{ position: "absolute", left: "50%", bottom: "8%", opacity: label5, maxWidth: 320, transform: "translateX(-50%)" }}>
           <div style={{
-            fontFamily: FONT_PRIMARY, fontSize: 14, color: "#ff9e6a",
+            fontFamily: FONT_PRIMARY, fontSize: 17, color: "#ff9e6a",
             padding: "6px 12px", border: "1px solid rgba(255,158,106,0.2)",
             borderRadius: 6, background: "rgba(255,158,106,0.04)",
             textAlign: "center",
           }}>
             5. Network Partition Fragility
           </div>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5, textAlign: "center" }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4, lineHeight: 1.5, textAlign: "center" }}>
             Poor connectivity splits replica groups — state diverges with no automatic repair
           </p>
         </div>
@@ -408,7 +408,7 @@ export const LimitationsScene: React.FC = () => {
           position: "absolute", bottom: 35, left: 0, right: 0, textAlign: "center",
           opacity: summaryOpacity, transform: `translateY(${summaryY}px)`,
         }}>
-          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "#ff6a6a", margin: 0 }}>
+          <p style={{ fontFamily: FONT_PRIMARY, fontSize: 22, color: "#ff6a6a", margin: 0 }}>
             These gaps prevent production deployment in open-membership networks
           </p>
         </div>
