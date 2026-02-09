@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "biomejs.biome",
+        "ms-vscode-remote.remote-containers",
+        "dsznajder.es7-react-js-snippets",
+        "ms-vscode-remote.remote-wsl",
+        "pandy.bun",
+        "oven.bun-vscode",
+        "rust-lang.rust-analyzer"
+    ]
+}
