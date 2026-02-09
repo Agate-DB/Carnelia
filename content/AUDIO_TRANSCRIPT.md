@@ -1,123 +1,144 @@
-# CRDT Explainer — Audio Transcript
+# CRDT Explainer — Audio Transcript (ElevenLabs TTS)
 
-Record each segment as a separate audio file and place them in `content/public/audio/`.
-The composition uses `<Audio>` from Remotion with `<Sequence>` timing.
+Each scene's narration is stored in `content/public/audio/` and loaded via
+`<Audio>` inside each `<Series.Sequence>` in `CrdtExplainer.tsx`.
 
 **Subtitles** are embedded directly in the composition via `SubtitleOverlay` segments
 in `CrdtExplainer.tsx`. They fade in/out automatically with each scene.
 
+### ElevenLabs Annotation Guide
+
+| Annotation | Effect | Example |
+|---|---|---|
+| `<break time="0.5s"/>` | Pause for X seconds | `idea. <break time="0.8s"/> Now,` |
+| `...` | Soft trailing pause | `and that's the thing...` |
+| `—` | Natural breath pause | `no locks — no consensus` |
+| ALL CAPS on a word | Slight emphasis | `EVERY replica` |
+| Short sentences | Clearer pacing | Split long runs |
+| `?` at end | Rising intonation | Questions sound natural |
+| Commas | Micro-pauses | Use generously |
+
+**Voice settings recommendation:** Stability 0.45–0.55, Similarity 0.70, Style 0.15–0.25, Speaker boost ON.
+
 ---
 
-## Scene 1 — Presented by Carnelia (0:00 – 0:05.7)
-**File:** `presentedby_narration.mp3` *(optional — can be ambient music only)*
-**Duration:** ~5.7 seconds
+## Scene 1 — Presented by Carnelia (0:00 – 0:08.5)
+**File:** `presentedby_narration.mp3`
+**Duration:** ~8.5 seconds
 
-> *(Ambient music / subtle tone. No narration needed — the visuals carry this title card.)*
-> *(If narration is desired:)* Presented by Carnelia — the Merkle-Delta CRDT Store.
+> Presented by Carnelia <break time="0.4s"/> — the Merkle-Delta CRDT Store.
 
 ---
 
-## Scene 2 — Intro (0:05.7 – 0:12.7)
+## Scene 2 — Intro (0:08.5 – 0:19.0)
 **File:** `intro_narration.mp3`
-**Duration:** ~7 seconds
+**Duration:** ~10.5 seconds
 
-> How can distributed replicas — devices, servers, or browsers — update data independently, without any coordination, and still converge to exactly the same state? This is the problem that CRDTs solve.
+> How can distributed replicas update data independently, <break time="0.3s"/> without any coordination, <break time="0.3s"/> and still converge to exactly the same state? <break time="0.5s"/> This is the problem that CRDTs solve.
 
 ---
 
-## Scene 3 — Optimistic Replication (0:12.7 – 0:20.7)
+## Scene 3 — Optimistic Replication (0:19.0 – 0:31.0)
 **File:** `replicas_narration.mp3`
-**Duration:** ~8 seconds
-
-> In optimistic replication, every replica accepts writes locally — no locks, no consensus, no waiting. Each node maintains a full copy of the data and applies updates immediately. This gives us high availability and partition tolerance.
-
----
-
-## Scene 4 — Join-Semilattice (0:20.7 – 0:28.2)
-**File:** `semilattice_narration.mp3`
-**Duration:** ~7.5 seconds
-
-> The mathematical foundation is a join-semilattice. Every state has a merge operation — called "join" — that computes the least upper bound of two divergent states. This merge is commutative, associative, and idempotent. You can apply it in any order, any number of times, and always arrive at the same result.
-
----
-
-## Scene 5 — Delta Mutations (0:28.2 – 0:36.2)
-**File:** `delta_narration.mp3`
-**Duration:** ~8 seconds
-
-> Traditional state-based CRDTs ship the entire object every time they sync — expensive. Delta CRDTs solve this by generating tiny, incremental mutations called deltas. These deltas are far smaller than the full state, dramatically reducing bandwidth. And because they're idempotent and commutative, they tolerate loss, duplication, and reordering on the network.
-
----
-
-## Scene 6 — Strong Eventual Consistency (0:36.2 – 0:44.2)
-**File:** `merge_narration.mp3`
-**Duration:** ~8 seconds
-
-> The payoff: Strong Eventual Consistency. Once all replicas have received the same set of updates — regardless of delivery order — they are mathematically guaranteed to converge to an identical state. No coordination, no consensus protocol, no conflict resolution needed.
-
----
-
-## Scene 7 — Real-World CRDT Examples (0:44.2 – 0:54.2)
-**File:** `realworld_narration.mp3`
-**Duration:** ~10 seconds
-
-> CRDTs aren't just theory — they power some of the most popular collaboration tools today. Figma uses a custom CRDT for multiplayer design. Google Docs runs on Operational Transformation — a related approach — with a central server. Apple Notes syncs across devices with CRDTs. Linear uses them for real-time issue tracking. And VS Code Live Share enables collaborative coding with CRDT-backed shared state. The pattern is the same: local-first writes with automatic convergence. But most of these rely on a central server. Carnelia goes fully peer-to-peer.
-
----
-
-## Scene 8 — CRDT Limitations (0:54.2 – 1:06.9)
-**File:** `limitations_narration.mp3`
-**Duration:** ~12.7 seconds
-
-> But traditional CRDTs have real-world problems. First, state bloat: state-based CRDTs must ship the entire object on every sync — and that payload only grows. Second, tombstone accumulation: many systems mark deletions with permanent markers that never get cleaned up. Third, vector clock fragility: their metadata scales linearly with replicas and is vulnerable to Byzantine manipulation. Fourth, transport assumptions: operation-based CRDTs demand reliable, exactly-once, causal delivery — a guarantee that rarely holds in peer-to-peer networks. And fifth, network partition fragility: when connectivity degrades, replica groups diverge with no built-in mechanism for automatic repair after the partition heals.
-
----
-
-## Scene 9 — How Carnelia Fixes It (1:06.9 – 1:18.9)
-**File:** `solution_narration.mp3`
 **Duration:** ~12 seconds
 
-> Carnelia's Merkle-Delta architecture addresses each of these problems directly. Instead of full state, we ship compact delta mutations — idempotent and commutative. Instead of tombstones, we use a dot store and causal context — absence is the deletion record, keeping metadata bounded. Instead of vector clocks, we use a Merkle-Clock DAG — content-addressed, tamper-proof, and independent of replica count. Instead of hoping for reliable transport, the DAG-Syncer performs pull-based gap repair — fetching exactly the missing blocks by hash. And for network partitions, the anti-entropy gossip protocol broadcasts head CIDs and repairs gaps automatically when connectivity returns.
+> In optimistic replication, every replica accepts writes locally <break time="0.3s"/> — no locks, no consensus, no waiting. <break time="0.5s"/> Each node maintains a full copy and applies updates immediately. <break time="0.3s"/> High availability, <break time="0.2s"/> partition tolerance.
 
 ---
 
-## Scene 10 — Tombstone-Free Removal (1:18.9 – 1:26.9)
+## Scene 4 — Join-Semilattice (0:31.0 – 0:42.25)
+**File:** `semilattice_narration.mp3`
+**Duration:** ~11.25 seconds
+
+> The mathematical foundation is a join-semilattice. <break time="0.3s"/> Every state has a merge operation that computes the least upper bound. <break time="0.5s"/> This merge is commutative, associative, and idempotent <break time="0.3s"/> — apply it in any order, any number of times.
+
+---
+
+## Scene 5 — Delta Mutations (0:42.25 – 0:54.25)
+**File:** `delta_narration.mp3`
+**Duration:** ~12 seconds
+
+> Traditional state-based CRDTs ship the entire object every sync <break time="0.3s"/> — expensive. <break time="0.5s"/> Delta CRDTs generate tiny incremental mutations. <break time="0.3s"/> Far smaller than full state, dramatically reducing bandwidth. <break time="0.5s"/> Idempotent and commutative <break time="0.3s"/> — they tolerate loss, duplication, and reordering.
+
+---
+
+## Scene 6 — Strong Eventual Consistency (0:54.25 – 1:06.25)
+**File:** `merge_narration.mp3`
+**Duration:** ~12 seconds
+
+> The payoff: <break time="0.3s"/> Strong Eventual Consistency. <break time="0.5s"/> Once all replicas receive the same updates <break time="0.3s"/> — regardless of delivery order — they converge to an identical state. <break time="0.5s"/> No coordination, no consensus protocol, no conflict resolution needed.
+
+---
+
+## Scene 7 — Real-World CRDT Examples (1:06.25 – 1:21.25)
+**File:** `realworld_narration.mp3`
+**Duration:** ~15 seconds
+
+> CRDTs power some of the most popular collaboration tools today. <break time="0.4s"/> Figma, Google Docs, Apple Notes, Linear, VS Code Live Share <break time="0.3s"/> — local-first writes with automatic convergence. <break time="0.5s"/> But most rely on a central server. <break time="0.3s"/> Carnelia goes fully peer-to-peer.
+
+---
+
+## Scene 8 — CRDT Limitations (1:21.25 – 1:40.25)
+**File:** `limitations_narration.mp3`
+**Duration:** ~19 seconds
+
+> But traditional CRDTs have real-world problems. <break time="0.4s"/> State bloat, <break time="0.2s"/> tombstone accumulation, <break time="0.2s"/> vector clock fragility, <break time="0.2s"/> transport assumptions. <break time="0.5s"/> And network partition fragility <break time="0.5s"/> These gaps prevent production deployment in open-membership networks.
+
+---
+
+## Scene 9 — How Carnelia Fixes It (1:40.25 – 1:58.25)
+**File:** `solution_narration.mp3`
+**Duration:** ~18 seconds
+
+> Carnelia's Merkle-Delta architecture addresses each problem directly. <break time="0.4s"/> Delta-CRDT deltas instead of full state. <break time="0.3s"/> Dot store instead of tombstones. <break time="0.3s"/> Merkle-Clock instead of vector clocks. <break time="0.5s"/> DAG-Syncer for reliable transport. <break time="0.3s"/> Anti-entropy gossip for partition recovery. <break time="0.5s"/> A complete architectural synthesis.
+
+---
+
+## Scene 10 — Tombstone-Free Removal (1:58.25 – 2:10.25)
 **File:** `dotstore_narration.mp3`
-**Duration:** ~8 seconds
+**Duration:** ~12 seconds
 
-> Deletion in CRDTs is tricky. Many systems use tombstones — markers that say "this was deleted" — and they accumulate forever. The MDCS architecture avoids this entirely. It uses a causal context that tracks every event ever created, and a dot store that holds only the live data. If a dot exists in the context but not in the store, it's been removed. No tombstones, bounded metadata.
+> Many systems use tombstones <break time="0.3s"/> — markers that say "this was deleted" — and they accumulate forever. <break time="0.5s"/> MDCS uses a causal context and a dot store. <break time="0.3s"/> Absence in the store means deleted. <break time="0.3s"/> No tombstones, <break time="0.2s"/> bounded metadata.
 
 ---
 
-## Scene 11 — Merkle-Clock DAG (1:26.9 – 1:36.9)
+## Scene 11 — Merkle-Clock DAG (2:10.25 – 2:25.25)
 **File:** `merkle_narration.mp3`
-**Duration:** ~10 seconds
+**Duration:** ~15 seconds
 
-> Finally, causality. Instead of vector clocks — which grow with the number of replicas and are vulnerable to Byzantine manipulation — the MDCS uses a Merkle-Clock. Every update is hashed and linked to its predecessors, forming an immutable directed acyclic graph. Concurrent updates fork the DAG; merges rejoin it. When a new replica joins, the DAG-Syncer walks backward from the head, fetching any missing blocks by their content identifiers. Two replicas that share the same head hashes are guaranteed to have identical causal histories.
+> Instead of vector clocks, the MDCS uses a Merkle-Clock <break time="0.3s"/> — an immutable DAG of hashed updates. <break time="0.5s"/> Concurrent updates fork the DAG; <break time="0.3s"/> merges rejoin it. <break time="0.3s"/> The DAG-Syncer fetches missing blocks by content ID. <break time="0.5s"/> Same head hashes equals identical causal histories. <break time="0.3s"/> Guaranteed.
 
 ---
 
-## Scene 12 — Carnelia Offline Sync (1:36.9 – 1:50.2)
+## Scene 12 — Carnelia Offline Sync (2:25.25 – 2:45.25)
 **File:** `sync_narration.mp3`
-**Duration:** ~13.3 seconds
+**Duration:** ~20 seconds
 
-> Let's see how Carnelia handles offline sync. Two devices — say a desktop and a mobile phone — start connected, editing the same document. Now the mobile goes offline. Both continue making edits independently — the document diverges. When connectivity returns, Carnelia's anti-entropy protocol kicks in. Step one: each replica gossips the CIDs of its DAG heads to peers. Step two: the DAG-Syncer compares these against its local graph. Step three: it fetches any missing blocks by hash — walking backward through predecessor links until it finds a common ancestor. Step four: the fetched deltas are applied in topological order. Both replicas converge — identical state, zero conflicts, no server required.
+> Two devices start connected, editing the same document. <break time="0.3s"/> Then the mobile goes offline. <break time="0.5s"/> Both continue editing independently — the document diverges. <break time="0.6s"/> When connectivity returns, the anti-entropy protocol kicks in: <break time="0.3s"/> gossip head CIDs, fetch missing blocks, apply deltas in topological order. <break time="0.5s"/> Both replicas converge <break time="0.3s"/> — identical state, zero conflicts, no server required.
 
 ---
 
-## Scene 13 — Collaborative Editing Demo (1:50.2 – 2:03.9)
+## Scene 13 — Collaborative Editing Demo (2:45.25 – 3:05.75)
 **File:** `collab_narration.mp3`
-**Duration:** ~13.7 seconds
+**Duration:** ~20.5 seconds
 
-> Now let's contrast Carnelia's approach to collaborative editing with traditional tools. In Figma or Google Docs, every edit routes through a central server — the server mediates conflicts, and you need an internet connection. In Carnelia, there is no server. Three team members — a project manager, a developer, and a designer — can all edit the same JSON configuration concurrently. One sets the project name and version, another adds the tech stack, a third defines the UI theme. When their replicas sync, the CRDT merge produces a single, consistent document with zero conflicts. The same principle applies to the rich text layer — concurrent character insertions resolve via unique position IDs in the RGA sequence, with no server arbitration needed.
+> In Figma or Google Docs, every edit routes through a central server. <break time="0.5s"/> In Carnelia, there is no server. <break time="0.3s"/> Three team members edit JSON config concurrently. <break time="0.5s"/> After CRDT merge: <break time="0.3s"/> a single consistent document with zero conflicts. <break time="0.5s"/> Rich text works the same way <break time="0.3s"/> — concurrent insertions resolve via unique position IDs.
 
 ---
 
-## Scene 14 — PNCounter Step-by-Step Demo (2:03.9 – 2:17.9)
+## Scene 14 — PNCounter Step-by-Step Demo (3:05.75 – 3:26.75)
 **File:** `increment_narration.mp3`
-**Duration:** ~14 seconds
+**Duration:** ~21 seconds
 
-> Let's walk through a concrete example. Alice and Bob each have a replica tracking page views and likes. In phase one, Alice increments page views by five, then by three — her local counter reads eight. In phase two, Bob independently increments page views by ten and likes by two. Neither knows about the other's changes. In phase three, they sync — bob syncs to alice, alice syncs to bob. The CRDT merge resolves both replicas' contributions. The result: both replicas converge to page views equals ten, likes equals two. Identical state, arrived at independently, with no coordination.
+> Alice increments page views by five, then three <break time="0.3s"/> — her local counter reads eight. <break time="0.5s"/> Bob independently increments page views by ten and likes by two. <break time="0.3s"/> Neither knows about the other. <break time="0.5s"/> They sync <break time="0.3s"/> — Bob to Alice, Alice to Bob. <break time="0.3s"/> Bidirectional CRDT merge via delta exchange. <break time="0.5s"/> Both replicas converge: <break time="0.3s"/> page views equals ten, likes equals two. <break time="0.3s"/> Identical state, no coordination.
+
+---
+
+## Scene 15 — End Screen / Summary (3:26.75 – 3:44.75)
+**File:** `end_narration.mp3`
+**Duration:** ~18 seconds
+
+> CRDTs guarantee convergence without consensus <break time="0.3s"/> — and Carnelia makes it practical. <break time="0.5s"/> Open-membership, <break time="0.2s"/> offline-first, <break time="0.2s"/> peer-to-peer, <break time="0.2s"/> Byzantine-tolerant. <break time="0.5s"/> github.com/Agate-DB/Carnelia.
 
 ---
 
@@ -127,16 +148,16 @@ in `CrdtExplainer.tsx`. They fade in/out automatically with each scene.
 
 Place the ambient background music at:
 ```
-content/public/ambient_bg_soundtrack.mp3
+content/public/ambient_bg_soundtrack.ogg
 ```
 
-This plays across **all 14 scenes** at low volume (18%) as an ambient bed.
-It is loaded via `<Audio src={staticFile("ambient_bg_soundtrack.mp3")} volume={0.18} />`
+This plays across **all 15 scenes** at low volume (10%) as an ambient bed.
+It is loaded via `<Audio src={staticFile("ambient_bg_soundtrack.ogg")} volume={0.10} />`
 in the root `CrdtExplainer.tsx` composition.
 
-### Per-Scene Narration (optional)
+### Per-Scene Narration
 
-Once you've recorded the narration files, place them at:
+Narration files are loaded via `<Audio>` inside each `<Series.Sequence>`:
 ```
 content/public/audio/presentedby_narration.mp3
 content/public/audio/intro_narration.mp3
@@ -152,12 +173,28 @@ content/public/audio/merkle_narration.mp3
 content/public/audio/sync_narration.mp3
 content/public/audio/collab_narration.mp3
 content/public/audio/increment_narration.mp3
+content/public/audio/end_narration.mp3
 ```
 
-Add per-scene `<Audio>` elements as `<Sequence>` children once recorded.
+### ElevenLabs Settings
+
+| Setting | Recommended Value |
+|---|---|
+| **Voice** | Any clean narrator voice (e.g., Adam, Antoni, Josh) |
+| **Model** | Eleven Multilingual v2 or Turbo v2.5 |
+| **Stability** | 0.45–0.55 (allows natural variation) |
+| **Similarity** | 0.70 |
+| **Style** | 0.15–0.25 (subtle expressiveness) |
+| **Speaker Boost** | ON |
+
+**Tips:**
+- Paste each scene's blockquote text directly into ElevenLabs
+- `<break time="Xs"/>` tags are supported — they insert real pauses
+- Keep each scene as a separate generation for consistent pacing
+- Trim silence at start/end of each clip before placing in `content/public/audio/`
 
 ### Subtitles
 
 Subtitles are already embedded in the composition via the `SUBTITLES` array
 in `CrdtExplainer.tsx`. Each scene has 1–4 timed text segments that appear
-as a semi-transparent overlay at the bottom of the frame.
+as a semi-transparent overlay at the bottom or top of the frame.
