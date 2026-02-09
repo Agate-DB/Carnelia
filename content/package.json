@@ -8,15 +8,16 @@
   "dependencies": {
     "@react-three/fiber": "9.2.0",
     "@remotion/cli": "4.0.419",
+    "@remotion/fonts": "4.0.419",
     "@remotion/media": "4.0.419",
     "@remotion/three": "4.0.419",
     "@remotion/zod-types": "4.0.419",
+    "mediabunny": "1.29.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "remotion": "4.0.419",
     "three": "0.178.0",
-    "zod": "3.22.3",
-    "mediabunny": "1.29.0"
+    "zod": "3.22.3"
   },
   "devDependencies": {
     "@remotion/eslint-config-flat": "4.0.419",
