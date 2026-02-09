@@ -156,7 +156,6 @@ export const CrdtExplainer: React.FC<z.infer<typeof crdtExplainerSchema>> = () =
       <Series>
         <Series.Sequence durationInFrames={220}>
           <PresentedByScene />
-          <Audio src={staticFile("audio/presentedby_narration.mp3")} volume={0.9} />
         </Series.Sequence>
 
         <Series.Sequence durationInFrames={280}>
