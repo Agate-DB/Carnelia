@@ -7,9 +7,11 @@
   "private": true,
   "dependencies": {
     "@react-three/fiber": "9.2.0",
+    "@remotion/bundler": "^4.0.419",
     "@remotion/cli": "4.0.419",
     "@remotion/fonts": "4.0.419",
     "@remotion/media": "4.0.419",
+    "@remotion/renderer": "^4.0.419",
     "@remotion/three": "4.0.419",
     "@remotion/zod-types": "4.0.419",
     "mediabunny": "1.29.0",
