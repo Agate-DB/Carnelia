@@ -183,7 +183,7 @@ export const MergeScene: React.FC = () => {
   const secOpacity = interpolate(frame, [150, 170], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const secY = interpolate(spring({ frame, fps, delay: 150, config: { damping: 200 } }), [0, 1], [10, 0]);
 
-  const fadeOut = interpolate(frame, [300, 330], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [470, 500], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>

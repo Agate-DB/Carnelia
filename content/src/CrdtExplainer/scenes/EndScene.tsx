@@ -60,7 +60,7 @@ export const EndScene: React.FC = () => {
 
   /* ── entrances ── */
   const titleEnt = spring({ frame, fps, delay: 5, config: { damping: 16 } });
-  const fadeOut = interpolate(frame, [250, 270], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [370, 400], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   /* Carnelia block entrance */
   const carneliEnt = spring({ frame, fps, delay: 120, config: { damping: 14 } });

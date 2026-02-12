@@ -201,7 +201,7 @@ export const ReplicaScene: React.FC = () => {
   const descY = interpolate(descProgress, [0, 1], [15, 0]);
 
   // Fade out
-  const fadeOut = interpolate(frame, [290, 320], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [470, 500], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>
