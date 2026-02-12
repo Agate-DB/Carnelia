@@ -14,10 +14,12 @@
     "@remotion/renderer": "^4.0.419",
     "@remotion/three": "4.0.419",
     "@remotion/zod-types": "4.0.419",
+    "culori": "^4.0.2",
     "mediabunny": "1.29.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "remotion": "4.0.419",
+    "remotion-bits": "^0.1.12",
     "three": "0.178.0",
     "zod": "3.22.3"
   },
