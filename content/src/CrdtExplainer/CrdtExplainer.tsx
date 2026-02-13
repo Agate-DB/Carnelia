@@ -54,14 +54,14 @@ const SUBTITLES: SubSeg[][] = [
   /* 1  Coordination Bottleneck */    [
     { text: "Meet BirdWatch, the future of social media. Watcher 302 posts a photo of a falcon, and it goes viral.", fadeIn: 10, fadeOut: 180 },
     { text: "To handle this traffic, we scale out, adding dozens of servers to our cluster.", fadeIn: 200, fadeOut: 370 },
-    { text: "But the click count is now split across all these nodes. Your server doesn't know the total.", fadeIn: 370, fadeOut: 520, pos: "top" },
-    { text: "This is coordination. It is slow, it is fragile, and latency gets exponentially worse.", fadeIn: 520, fadeOut: 680, pos: "top" },
+    { text: "But the click count is now split across all these nodes. Your server doesn't know the total.", fadeIn: 370, fadeOut: 520 },
+    { text: "This is coordination. It is slow, it is fragile, and latency gets exponentially worse.", fadeIn: 520, fadeOut: 680 },
   ],
   /* 2  CRDT Breakthrough */    [
     { text: "Users don't need the perfect global total instantly — they just need immediate feedback.", fadeIn: 10, fadeOut: 150 },
-    { text: "CRDTs — Conflict-free Replicated Data Types — break the deadlock.", fadeIn: 155, fadeOut: 300, pos: "top" },
-    { text: "Every node accepts updates locally and instantly. They gossip in the background.", fadeIn: 300, fadeOut: 420, pos: "top" },
-    { text: "Even with delays, duplication, or reordering, the mathematics guarantee convergence.", fadeIn: 420, fadeOut: 480, pos: "top" },
+    { text: "CRDTs — Conflict-free Replicated Data Types — break the deadlock.", fadeIn: 155, fadeOut: 300},
+    { text: "Every node accepts updates locally and instantly. They gossip in the background.", fadeIn: 300, fadeOut: 420 },
+    { text: "Even with delays, duplication, or reordering, the mathematics guarantee convergence.", fadeIn: 420, fadeOut: 480 },
   ],
   /* 2  Scaling */      [
     { text: "We need to scale. We add more servers so clients can connect to any node.", fadeIn: 10, fadeOut: 140, pos: "top" },
@@ -80,9 +80,9 @@ const SUBTITLES: SubSeg[][] = [
   ],
   /* 5  GCounter */     [
     { text: "The G-Counter: a Grow-Only Counter. We store a vector — one slot per server.", fadeIn: 10, fadeOut: 130 },
-    { text: "Server A receives a click? It only increments its own slot.", fadeIn: 130, fadeOut: 260, pos: "top" },
-    { text: "When gossiping, they merge by taking the max of each slot. The total is the sum of all slots.", fadeIn: 260, fadeOut: 410, pos: "top" },
-    { text: "Every server writes independently. The final total is mathematically correct.", fadeIn: 410, fadeOut: 480, pos: "top" },
+    { text: "Server A receives a click? It only increments its own slot.", fadeIn: 130, fadeOut: 260 },
+    { text: "When gossiping, they merge by taking the max of each slot. The total is the sum of all slots.", fadeIn: 260, fadeOut: 410 },
+    { text: "Every server writes independently. The final total is mathematically correct.", fadeIn: 410, fadeOut: 480 },
   ],
   /* 6  Limits */       [
     { text: "However, basic CRDTs have flaws. Sending the entire vector every sync wastes bandwidth — state bloat.", fadeIn: 10, fadeOut: 140, pos: "top" },
@@ -117,8 +117,8 @@ const SUBTITLES: SubSeg[][] = [
   ],
   /* 12 Collab Demo */    [
     { text: "Traditional collaborative editing relies on central servers — a single point of failure.", fadeIn: 10, fadeOut: 150 },
-    { text: "Carnelia uses peer-to-peer δ-CRDTs: no server needed, full offline support.", fadeIn: 150, fadeOut: 290, pos: "top" },
-    { text: "Multiple editors modify JSON documents simultaneously — all changes merge conflict-free.", fadeIn: 290, fadeOut: 440, pos: "top" },
+    { text: "Carnelia uses peer-to-peer δ-CRDTs: no server needed, full offline support.", fadeIn: 150, fadeOut: 290 },
+    { text: "Multiple editors modify JSON documents simultaneously — all changes merge conflict-free.", fadeIn: 290, fadeOut: 440 },
   ],
   /* 13 Real-World CRDTs */[
     { text: "CRDTs already power the tools you use every day.", fadeIn: 10, fadeOut: 130 },

@@ -246,12 +246,12 @@ export const DeltaScene: React.FC = () => {
         </div>
 
         {/* Delta label on the particle path */}
-        <div style={{ position: "absolute", left: "46%", top: "36%", opacity: deltaLblOpacity }}>
+        <div style={{ position: "absolute", left: "44%", top: "26%", opacity: deltaLblOpacity }}>
           <span style={{ fontFamily: FONT_PRIMARY, fontSize: 18, color: "#6eff9e" }}>Δ (delta)</span>
         </div>
 
         {/* Full state "not this" with cross */}
-        <div style={{ position: "absolute", left: "43%", top: "22%", opacity: crossOpacity }}>
+        <div style={{ position: "absolute", left: "50%", top: "26%", opacity: crossOpacity }}>
           <span style={{
             fontFamily: FONT_PRIMARY,
             fontSize: 16,

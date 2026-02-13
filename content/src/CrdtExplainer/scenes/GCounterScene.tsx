@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import {
   AnimatedText,
@@ -6,7 +6,6 @@ import {
   Particles,
   Spawner,
   Behavior,
-  StaggeredMotion,
   GradientTransition,
   useViewportRect,
 } from "remotion-bits";
@@ -23,7 +22,6 @@ import { FONT_PRIMARY, FONT_DISPLAY } from "../fonts";
  *   Particles, GradientTransition
  */
 
-const BRAND = "#e06040";
 const ACCENT_BLUE = "#4a9eff";
 const ACCENT_GREEN = "#6eff9e";
 const ACCENT_GOLD = "#ffc46a";
@@ -38,12 +36,6 @@ const SERVERS = [
   { id: "C", color: ACCENT_PURPLE, localVal: 28, mergedVal: 42 },
 ] as const;
 
-/* ── Arrow SVG ─────────────────────────────────────── */
-const ArrowDown: React.FC<{ size: number; color: string; opacity?: number }> = ({ size, color, opacity = 1 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} opacity={opacity}>
-    <path d="M12 5v14M5 12l7 7 7-7" />
-  </svg>
-);
 
 export const GCounterScene: React.FC = () => {
   const frame = useCurrentFrame();
@@ -61,7 +53,6 @@ export const GCounterScene: React.FC = () => {
   // Phase 3: Gossip / merge animation (220–350)
   // Phase 4: Sum = total count (350–500)
 
-  const titleSpring = spring({ frame: frame - 5, fps, config: { damping: 14 } });
   const vectorAppear = spring({ frame: frame - 40, fps, config: { damping: 12, stiffness: 120 } });
 
   /* ── Server card springs ───────────────────────────── */
@@ -73,9 +64,6 @@ export const GCounterScene: React.FC = () => {
   const clickPulse = spring({ frame: frame - 140, fps, config: { damping: 8, stiffness: 200 } });
   const clickFade = interpolate(frame, [140, 155], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
-  /* ── Merge phase ───────────────────────────────────── */
-  const mergeProgress = interpolate(frame, [230, 340], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const mergeSpring = spring({ frame: frame - 230, fps, config: { damping: 16, stiffness: 80 } });
 
   /* ── Gossip arrows between servers ─────────────────── */
   const gossipOpacity = interpolate(frame, [230, 250, 320, 340], [0, 0.8, 0.8, 0], {
@@ -93,8 +81,6 @@ export const GCounterScene: React.FC = () => {
   const slotAValue = frame < 140 ? 42 : 43;         // Click increments A's slot
   const slotBDisplay = frame < 230 ? 37 : 42;       // After merge, takes max
   const slotCDisplay = frame < 230 ? 28 : 42;       // After merge, takes max
-  const totalBefore = 42 + 37 + 28; // 107
-  const totalAfter = 42 + 43; // Actually would be 43 + 42 + 42 = 127 after merge. Let's simplify:
   // Before click: [42, 37, 28] → sum = 107
   // After click on A: [43, 37, 28] → sum = 108
   // After merge (max): [43, 42, 42] → sum = 127
@@ -328,7 +314,7 @@ export const GCounterScene: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          bottom: vmin * 10,
+          bottom: vmin * 14,
           left: "50%",
           transform: `translateX(-50%) translateY(${(1 - sumSpring) * 25}px)`,
           opacity: sumSpring,
@@ -374,7 +360,7 @@ export const GCounterScene: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          bottom: vmin * 3,
+          bottom: vmin * 8,
           left: "50%",
           transform: `translateX(-50%) scale(${formulaSpring})`,
           opacity: formulaSpring,

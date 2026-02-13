@@ -44,21 +44,21 @@ const DeviceNode: React.FC<{
   return (
     <group position={[position[0], position[1] + yBob * entrance, position[2]]}>
       {/* Device body */}
-      <mesh scale={type === "mobile" ? [s * 0.5, s * 0.9, s * 0.1] : [s * 1.2, s * 0.8, s * 0.1]} rotation={[0.1, frame * 0.003, 0]}>
-        <boxGeometry args={[1, 1, 1]} />
+      <mesh scale={type === "mobile" ? [s * 0.5, s * 1, s * 0.1] : [s * 1.2, s * 0.8, s * 0.1]} rotation={[0.1, frame * 0.003, 0]}>
+        <boxGeometry args={[10, 10, 10]} />
         <meshStandardMaterial
           color={color}
           roughness={0.2}
           metalness={0.7}
           emissive={color}
-          emissiveIntensity={isOffline ? offlinePulse : 0.3}
+          emissiveIntensity={isOffline ? offlinePulse : 0.5}
           transparent
           opacity={entrance * (isOffline ? 0.5 : 0.85)}
         />
       </mesh>
       {/* Screen area */}
       <mesh scale={type === "mobile" ? [s * 0.4, s * 0.7, s * 0.105] : [s * 1.0, s * 0.6, s * 0.105]} rotation={[0.1, frame * 0.003, 0]}>
-        <boxGeometry args={[1, 1, 1]} />
+        <boxGeometry args={[10, 10, 10]} />
         <meshStandardMaterial
           color={isOffline ? "#333333" : "#1a1a3a"}
           emissive={isOffline ? "#331111" : "#1a1a4a"}
@@ -67,19 +67,6 @@ const DeviceNode: React.FC<{
           opacity={entrance * 0.9}
         />
       </mesh>
-      {/* Offline indicator */}
-      {isOffline && (
-        <group>
-          <mesh position={[0, s * 0.6, 0.1]} rotation={[0, 0, Math.PI / 4]} scale={[0.005, s * 0.3, 0.005]}>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshBasicMaterial color="#ff4444" transparent opacity={entrance * 0.6} />
-          </mesh>
-          <mesh position={[0, s * 0.6, 0.1]} rotation={[0, 0, -Math.PI / 4]} scale={[0.005, s * 0.3, 0.005]}>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshBasicMaterial color="#ff4444" transparent opacity={entrance * 0.6} />
-          </mesh>
-        </group>
-      )}
     </group>
   );
 };
@@ -205,13 +192,6 @@ export const CarneliaSyncScene: React.FC = () => {
         <SyncBeam fromX={-2.0} toX={2.0} y={0.3} progress={syncLeft} color="#6eff9e" />
         <SyncBeam fromX={2.0} toX={-2.0} y={0.0} progress={syncRight} color="#6affea" />
 
-        {/* Convergence flash */}
-        {convergenceFlash > 0 && (
-          <mesh position={[0, 0.2, 0]} scale={[convergenceFlash * 1.5, convergenceFlash * 1.5, convergenceFlash * 1.5]}>
-            <sphereGeometry args={[1, 24, 24]} />
-            <meshBasicMaterial color="#6eff9e" transparent opacity={Math.max(0, 0.3 - convergenceFlash * 0.3)} />
-          </mesh>
-        )}
       </ThreeCanvas>
 
       <AbsoluteFill style={{ pointerEvents: "none" }}>

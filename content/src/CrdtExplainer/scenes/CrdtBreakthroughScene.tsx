@@ -52,8 +52,8 @@ const ReplicaNode: React.FC<{
       {pulseGlow && (
         <div style={{
           position: "absolute",
-          left: "50%",
-          top: "50%",
+          left: "49%",
+          top: "35%",
           transform: "translate(-50%, -50%)",
           width: 72,
           height: 72,
@@ -472,7 +472,7 @@ export const CrdtBreakthroughScene: React.FC = () => {
       {frame >= 400 && (
         <div style={{
           position: "absolute",
-          bottom: vmin * 5,
+          bottom: vmin * 10,
           left: "50%",
           transform: `translateX(-50%) translateY(${(1 - resultAppear) * 20}px)`,
           opacity: resultAppear,

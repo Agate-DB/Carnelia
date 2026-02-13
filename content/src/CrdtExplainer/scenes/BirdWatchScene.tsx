@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import {
   AnimatedText,
   AnimatedCounter,
@@ -80,11 +80,11 @@ export const BirdWatchScene: React.FC = () => {
   /* ── Phase B: Server cluster (200–400) ─────────────── */
   const serversAppear = interpolate(frame, [220, 300], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const serverNodes = useMemo(() => [
-    { x: 18, y: -12, delay: 230, label: "US-East" },
-    { x: 32, y: -6, delay: 245, label: "US-West" },
-    { x: 25, y: 6, delay: 260, label: "EU-Central" },
-    { x: 12, y: 4, delay: 275, label: "Asia-Pacific" },
-    { x: 38, y: 8, delay: 290, label: "SA-South" },
+    { x: 0, y: -16, delay: 230, label: "US-East" },
+    { x: 22, y: -6, delay: 245, label: "US-West" },
+    { x: 14, y: 12, delay: 260, label: "EU-Central" },
+    { x: -14, y: 10, delay: 275, label: "Asia-Pacific" },
+    { x: -20, y: -4, delay: 290, label: "SA-South" },
   ], []);
 
   /* ── Phase C: Coordination lines (400–560) ─────────── */
@@ -195,7 +195,18 @@ export const BirdWatchScene: React.FC = () => {
               justifyContent: "center",
             }}
           >
-            <BirdIcon size={vmin * 2.8} color="#fff" />
+            <img
+              src="https://randomuser.me/api/portraits/men/32.jpg"
+              alt="Watcher 302 avatar"
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: `${vmin * 0.18}px solid rgba(255,255,255,0.7)`,
+                boxShadow: `0 0 ${vmin * 0.7}px ${BRAND}`,
+              }}
+            />
           </div>
           <div>
             <div style={{ fontFamily: FONT_DISPLAY, fontSize: vmin * 2, fontWeight: 700, color: "#fff" }}>
@@ -212,15 +223,38 @@ export const BirdWatchScene: React.FC = () => {
           style={{
             width: "100%",
             height: vmin * 28,
-            background: `linear-gradient(${shimmerAngle}deg, #2a3a4a, #1e2e3e, #3a2a3a, #2a3a4a)`,
-            backgroundSize: "200% 200%",
+            position: "relative",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            position: "relative",
+            overflow: "hidden",
+            borderRadius: vmin * 1.2,
+            boxShadow: `0 0 ${vmin * 2}px rgba(0,0,0,0.25)`
           }}
         >
-          <div style={{ fontSize: vmin * 12, opacity: 0.25, filter: "blur(1px)" }}>🦅</div>
+          <Img
+            src={staticFile("falcon.jpg")}
+            alt="Falcon"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: vmin * 1.2,
+              boxShadow: `0 0 ${vmin * 2}px rgba(0,0,0,0.25)`
+            }} 
+          />
+          {/* Optional shimmer overlay for effect */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              background: `linear-gradient(${shimmerAngle}deg, #2a3a4a88, #1e2e3e44, #3a2a3a33, #2a3a4a88)`,
+              backgroundSize: "200% 200%",
+              mixBlendMode: "soft-light",
+              borderRadius: vmin * 1.2,
+            }}
+          />
           <div
             style={{
               position: "absolute",
@@ -234,7 +268,7 @@ export const BirdWatchScene: React.FC = () => {
               borderRadius: vmin * 0.5,
             }}
           >
-            Peregrine Falcon · Colorado
+            Photo by Vincent van Zalinge on Unsplash
           </div>
         </div>
 
@@ -307,22 +341,15 @@ export const BirdWatchScene: React.FC = () => {
       {frame >= 210 && (
         <div style={{
           position: "absolute",
-          right: vmin * 4,
-          top: vmin * 14,
+          left: "50%",
+          top: "38%",
+          transform: "translate(-50%, -50%)",
+          width: vmin * 56,
+          height: vmin * 44,
           opacity: serversAppear,
           zIndex: 6,
         }}>
-          {/* "Scaling out" label */}
-          <div style={{
-            fontFamily: FONT_DISPLAY,
-            fontSize: vmin * 2.2,
-            color: SERVER_COLOR,
-            marginBottom: vmin * 2,
-            textAlign: "center",
-            opacity: interpolate(frame, [220, 240], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
-          }}>
-            Server Cluster
-          </div>
+          
 
           {/* Server nodes */}
           {serverNodes.map((srv, i) => {
@@ -334,17 +361,18 @@ export const BirdWatchScene: React.FC = () => {
                 key={i}
                 style={{
                   position: "absolute",
-                  left: vmin * (srv.x - 18),
-                  top: vmin * (srv.y + 8),
-                  transform: `scale(${ent})`,
+                  left: `calc(50% + ${vmin * srv.x}px)`,
+                  top: `calc(50% + ${vmin * srv.y}px)`,
+                  transform: `translate(-50%, -50%) scale(${ent})`,
                   textAlign: "center",
                   opacity: activePulse,
                 }}
               >
-                <ServerIcon size={vmin * 3.5} color={isActive ? DANGER : SERVER_COLOR} pulse={isActive} />
+                <ServerIcon size={vmin * 5} color={isActive ? DANGER : SERVER_COLOR} pulse={isActive} />
                 <div style={{
                   fontFamily: FONT_PRIMARY,
-                  fontSize: vmin * 1,
+                  fontSize: vmin * 1.6,
+                  textWrap: "nowrap",
                   color: "rgba(255,255,255,0.5)",
                   marginTop: vmin * 0.3,
                 }}>
@@ -354,9 +382,10 @@ export const BirdWatchScene: React.FC = () => {
                 {frame >= 300 && (
                   <div style={{
                     fontFamily: FONT_PRIMARY,
-                    fontSize: vmin * 1.1,
+                    fontSize: vmin * 1.2,
                     color: BRAND,
                     marginTop: vmin * 0.2,
+                    textWrap: "nowrap",
                     opacity: interpolate(frame, [300 + i * 10, 320 + i * 10], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
                   }}>
                     count: {Math.floor(983742 / 5 * (i + 1) / 5).toLocaleString()}
@@ -370,8 +399,10 @@ export const BirdWatchScene: React.FC = () => {
           {frame >= 340 && (
             <div style={{
               position: "absolute",
-              left: vmin * 2,
-              top: vmin * 22,
+              left: "50%",
+              bottom: 0,
+              transform: "translateX(-50%)",
+              whiteSpace: "nowrap",
               opacity: interpolate(frame, [340, 370], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
               background: "rgba(224,96,64,0.12)",
               border: `1px solid ${BRAND}`,
@@ -404,11 +435,12 @@ export const BirdWatchScene: React.FC = () => {
           ].map(([a, b], i) => {
             const sA = serverNodes[a];
             const sB = serverNodes[b];
-            const baseRight = rect.width - vmin * 4;
-            const x1 = baseRight + vmin * (sA.x - 18) + vmin * 1.75;
-            const y1 = vmin * 14 + vmin * (sA.y + 8) + vmin * 3.5 + vmin * 1.75;
-            const x2 = baseRight + vmin * (sB.x - 18) + vmin * 1.75;
-            const y2 = vmin * 14 + vmin * (sB.y + 8) + vmin * 3.5 + vmin * 1.75;
+            const clusterCX = rect.width * 0.50;
+            const clusterCY = rect.height * 0.38;
+            const x1 = clusterCX + vmin * sA.x;
+            const y1 = clusterCY + vmin * sA.y;
+            const x2 = clusterCX + vmin * sB.x;
+            const y2 = clusterCY + vmin * sB.y;
             const lineDelay = 400 + i * 6;
             const lineOpacity = interpolate(frame, [lineDelay, lineDelay + 20], [0, 0.4], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
             return (
@@ -416,8 +448,8 @@ export const BirdWatchScene: React.FC = () => {
                 key={i}
                 x1={x1} y1={y1} x2={x2} y2={y2}
                 stroke={DANGER}
-                strokeWidth={1.5}
-                strokeDasharray="6 4"
+                strokeWidth={2}
+                strokeDasharray="8 5"
                 opacity={lineOpacity}
               />
             );
@@ -430,7 +462,7 @@ export const BirdWatchScene: React.FC = () => {
         <div style={{
           position: "absolute",
           left: "50%",
-          bottom: vmin * 16,
+          bottom: vmin * 8,
           transform: `translateX(-50%) translateY(${(1 - interpolate(frame, [430, 460], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })) * 20}px)`,
           opacity: interpolate(frame, [430, 460, 555, 565], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
           zIndex: 10,
@@ -455,7 +487,7 @@ export const BirdWatchScene: React.FC = () => {
           <div style={{
             display: "flex",
             gap: vmin * 1,
-            marginTop: vmin * 1.5,
+            marginTop: vmin * 3,
             justifyContent: "center",
             alignItems: "flex-end",
           }}>
@@ -471,18 +503,18 @@ export const BirdWatchScene: React.FC = () => {
                 }}>
                   <div style={{
                     fontFamily: FONT_PRIMARY,
-                    fontSize: vmin * 0.9,
+                    fontSize: vmin * 1.2,
                     color: "rgba(255,255,255,0.5)",
                     textAlign: "center",
-                    marginTop: -vmin * 1.2,
+                    marginTop: -vmin * 2,
                   }}>
                     {n * 50}ms
                   </div>
                 </div>
               );
             })}
-            <div style={{ fontFamily: FONT_PRIMARY, fontSize: vmin * 1, color: "rgba(255,255,255,0.4)", marginLeft: vmin * 0.5, alignSelf: "center" }}>
-              +servers → +latency
+            <div style={{ fontFamily: FONT_PRIMARY, fontSize: vmin * 1.8, color: "rgba(255,255,255,0.4)", marginLeft: vmin * 0.5, alignSelf: "center" }}>
+              more servers → more latency
             </div>
           </div>
         </div>
