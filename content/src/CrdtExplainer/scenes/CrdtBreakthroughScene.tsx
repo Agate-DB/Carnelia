@@ -129,7 +129,7 @@ export const CrdtBreakthroughScene: React.FC = () => {
 
   /* ── Fade in / out ─────────────────────────────────── */
   const fadeIn = interpolate(frame, [0, 20], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const fadeOut = interpolate(frame, [470, 500], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [470, 620], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   /* ── Phase A: Immediate feedback concept (0–160) ──── */
   const feedbackAppear = interpolate(frame, [20, 50], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });

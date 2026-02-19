@@ -201,7 +201,7 @@ export const DeltaScene: React.FC = () => {
   const calloutopacity = interpolate(frame, [110, 130], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const calloutY = interpolate(spring({ frame, fps, delay: 110, config: { damping: 200 } }), [0, 1], [15, 0]);
 
-  const fadeOut = interpolate(frame, [400, 430], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [400, 520], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1e1e1e", opacity: fadeOut }}>

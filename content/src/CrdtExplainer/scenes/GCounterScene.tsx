@@ -45,7 +45,7 @@ export const GCounterScene: React.FC = () => {
 
   /* ── Fade in / out ─────────────────────────────────── */
   const fadeIn = interpolate(frame, [0, 20], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const fadeOut = interpolate(frame, [470, 500], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const fadeOut = interpolate(frame, [470, 580], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   /* ── Phase timings (frames) ────────────────────────── */
   // Phase 1: Show the vector concept (0–120)
@@ -153,7 +153,7 @@ export const GCounterScene: React.FC = () => {
             padding: `${vmin * 0.8}px ${vmin * 2}px`,
           }}
         >
-          Not a single integer — a <span style={{ color: ACCENT_GOLD, fontWeight: 700 }}>vector</span>, one slot per server
+          Not a single integer — a <span style={{ color: ACCENT_GOLD, fontWeight: 700 }}>vector</span>, one slot per replica
         </div>
       </div>
 
@@ -221,7 +221,7 @@ export const GCounterScene: React.FC = () => {
                     }}
                   />
                   <span style={{ fontFamily: FONT_DISPLAY, fontSize: vmin * 2.2, fontWeight: 700, color: "#fff" }}>
-                    Server {srv.id}
+                    Replica {srv.id}
                   </span>
                 </div>
 
@@ -266,7 +266,7 @@ export const GCounterScene: React.FC = () => {
                 <div
                   style={{
                     textAlign: "center",
-                    marginTop: vmin * 1,
+                    marginTop: vmin * 2,
                     fontFamily: FONT_PRIMARY,
                     fontSize: vmin * 1.4,
                     color: ACCENT_GOLD,
@@ -286,7 +286,7 @@ export const GCounterScene: React.FC = () => {
         <div
           style={{
             position: "absolute",
-            top: "42%",
+            top: "35%",
             left: "50%",
             transform: "translate(-50%, 0)",
             display: "flex",

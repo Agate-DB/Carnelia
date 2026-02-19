@@ -10,22 +10,30 @@ import {
 import { FONT_PRIMARY, FONT_DISPLAY } from "../fonts";
 
 /**
- * Scene 15 — End Screen / Summary
+ * Scene — End Screen / Conclusion
  *
- * Summarizes what was covered, reiterates Carnelia's value, and closes.
+ * Three-phase recap + Carnelia value prop + CTA.
+ * Phases: 1) Understanding CRDTs, 2) The MDCS Solution, 3) Real-World Impact
  *
- * Timeline (230 frames @ 20fps = 11.5s):
- *   0–30:    Title fade in — "What We Covered"
- *   20–120:  Key takeaways appear one by one
+ * Timeline (400 frames @ 20fps = 20s):
+ *   0–30:    Title fade in — "The Journey So Far"
+ *   15–60:   Phase recap cards appear
+ *   60–120:  Key takeaway pills
  *   120–170: Carnelia value prop block
  *   155–210: CTA / links
- *   200–230: Fade out
+ *   370–400: Fade out
  *
- * AUDIO CUE: end_narration.mp3
+ * AUDIO CUE: conclusion_narration.mp3
  */
 
 const BRAND = "#e06040";
 const BG = "#1e1e1e";
+
+const PHASES = [
+  { num: "1", title: "Understanding CRDTs", desc: "Semilattices, G-Counters, conflict-free merge", color: "#4a9eff" },
+  { num: "2", title: "The MDCS Solution", desc: "Delta CRDTs · Merkle-Clock · Dot Store", color: BRAND },
+  { num: "3", title: "Real-World Impact", desc: "Offline sync · Collab editing · P2P apps", color: "#6affea" },
+];
 
 const TAKEAWAYS = [
   { icon: "⊔", label: "Join-Semilattice", desc: "Commutative, associative, idempotent merge" },
@@ -114,7 +122,7 @@ export const EndScene: React.FC = () => {
         <div
           style={{
             position: "absolute",
-            top: 36,
+            top: 24,
             left: 0,
             right: 0,
             textAlign: "center",
@@ -123,51 +131,88 @@ export const EndScene: React.FC = () => {
           }}
         >
           <span style={{ fontFamily: FONT_DISPLAY, fontSize: 26, color: "rgba(255,255,255,0.9)" }}>
-            What We Covered
+            The Journey So Far
           </span>
         </div>
 
-        {/* Key takeaways — staggered entrance */}
+        {/* Phase recap — three columns */}
         <div
           style={{
             position: "absolute",
-            top: 80,
+            top: 64,
             left: "50%",
             transform: "translateX(-50%)",
             display: "flex",
-            flexDirection: "column",
+            gap: 18,
+          }}
+        >
+          {PHASES.map((phase, i) => {
+            const ent = spring({ frame, fps, delay: 15 + i * 14, config: { damping: 14 } });
+            return (
+              <div
+                key={i}
+                style={{
+                  opacity: ent,
+                  transform: `translateY(${(1 - ent) * 20}px)`,
+                  background: "rgba(255,255,255,0.025)",
+                  border: `1px solid ${phase.color}22`,
+                  borderRadius: 10,
+                  padding: "10px 16px",
+                  width: 166,
+                  textAlign: "center",
+                }}
+              >
+                <div style={{ fontFamily: FONT_DISPLAY, fontSize: 11, letterSpacing: 3, color: phase.color, marginBottom: 4, textTransform: "uppercase" }}>
+                  Phase {phase.num}
+                </div>
+                <div style={{ fontFamily: FONT_DISPLAY, fontSize: 14, color: "rgba(255,255,255,0.85)", marginBottom: 4 }}>
+                  {phase.title}
+                </div>
+                <div style={{ fontFamily: FONT_PRIMARY, fontSize: 10, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
+                  {phase.desc}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Key takeaways — compact row below phases */}
+        <div
+          style={{
+            position: "absolute",
+            top: 192,
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            flexWrap: "wrap",
             gap: 6,
-            width: 520,
+            justifyContent: "center",
+            maxWidth: 560,
           }}
         >
           {TAKEAWAYS.map((t, i) => {
-            const ent = spring({ frame, fps, delay: 25 + i * 16, config: { damping: 14 } });
+            const ent = spring({ frame, fps, delay: 60 + i * 10, config: { damping: 14 } });
             return (
               <div
                 key={i}
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 12,
+                  gap: 8,
                   opacity: ent,
-                  transform: `translateX(${(1 - ent) * 30}px)`,
+                  transform: `translateX(${(1 - ent) * 20}px)`,
                   background: "rgba(255,255,255,0.03)",
                   border: "1px solid rgba(255,255,255,0.06)",
-                  borderRadius: 8,
-                  padding: "6px 14px",
+                  borderRadius: 16,
+                  padding: "4px 12px",
                 }}
               >
-                <span style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: BRAND, width: 24, textAlign: "center" }}>
+                <span style={{ fontFamily: FONT_DISPLAY, fontSize: 16, color: BRAND, width: 18, textAlign: "center" }}>
                   {t.icon}
                 </span>
-                <div>
-                  <span style={{ fontFamily: FONT_DISPLAY, fontSize: 16, color: "rgba(255,255,255,0.8)" }}>
-                    {t.label}
-                  </span>
-                  <span style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>
-                    {t.desc}
-                  </span>
-                </div>
+                <span style={{ fontFamily: FONT_PRIMARY, fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
+                  {t.label}
+                </span>
               </div>
             );
           })}
@@ -177,7 +222,7 @@ export const EndScene: React.FC = () => {
         <div
           style={{
             position: "absolute",
-            bottom: 100,
+            bottom: 88,
             left: 0,
             right: 0,
             textAlign: "center",
@@ -191,18 +236,18 @@ export const EndScene: React.FC = () => {
               background: `rgba(224, 96, 64, 0.06)`,
               border: `1px solid rgba(224, 96, 64, 0.18)`,
               borderRadius: 12,
-              padding: "14px 32px",
-              maxWidth: 620,
+              padding: "12px 28px",
+              maxWidth: 600,
             }}
           >
-            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, color: BRAND, marginBottom: 6 }}>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 20, color: BRAND, marginBottom: 4 }}>
               Carnelia — Merkle-Delta CRDT Store
             </div>
-            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
+            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
               Open-membership · Offline-first · Peer-to-peer · Byzantine-tolerant
             </div>
-            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 13, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>
-              Strong eventual consistency without consensus.
+            <div style={{ fontFamily: FONT_PRIMARY, fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>
+              From BirdWatch's coordination bottleneck to strong eventual consistency — without consensus.
             </div>
           </div>
         </div>
@@ -211,7 +256,7 @@ export const EndScene: React.FC = () => {
         <div
           style={{
             position: "absolute",
-            bottom: 40,
+            bottom: 36,
             left: 0,
             right: 0,
             textAlign: "center",
