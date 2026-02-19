@@ -12,7 +12,7 @@ importers:
         specifier: 9.2.0
         version: 9.2.0(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.178.0)
       '@remotion/bundler':
-        specifier: ^4.0.421
+        specifier: 4.0.421
         version: 4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@remotion/cli':
         specifier: 4.0.421
@@ -20,11 +20,14 @@ importers:
       '@remotion/fonts':
         specifier: 4.0.421
         version: 4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@remotion/google-fonts':
+        specifier: 4.0.421
+        version: 4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@remotion/media':
         specifier: 4.0.421
         version: 4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@remotion/renderer':
-        specifier: ^4.0.421
+        specifier: 4.0.421
         version: 4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@remotion/three':
         specifier: 4.0.421
@@ -33,7 +36,7 @@ importers:
         specifier: 4.0.421
         version: 4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(zod@3.22.3)
       culori:
-        specifier: ^4.0.2
+        specifier: 4.0.2
         version: 4.0.2
       mediabunny:
         specifier: 1.29.0
@@ -48,7 +51,7 @@ importers:
         specifier: 4.0.421
         version: 4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       remotion-bits:
-        specifier: ^0.1.12
+        specifier: 0.1.12
         version: 0.1.12(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(remotion@4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3))
       three:
         specifier: 0.178.0
@@ -417,6 +420,9 @@ packages:
 
   '@remotion/fonts@4.0.421':
     resolution: {integrity: sha512-Sl5eo2u92RxlGmWx+AAHdyFmH+BzzrYP4TjpLCWIR8yoeWIWsVbwK/vJO7uB8cwrwF/OL2zSsj5mhOJ1gzTLIA==}
+
+  '@remotion/google-fonts@4.0.421':
+    resolution: {integrity: sha512-PRJJKq2nZ6MOXibUWNCnXzEySFovvg5GdCNyxaRZYDnSUX5otT2w53A4/Fu7h7vXWVceew2OhZD8pOv/md+87A==}
 
   '@remotion/licensing@4.0.421':
     resolution: {integrity: sha512-kSbssnwkTXDxtY/PXzu9Q6mFt9jmgNN6wygZxxH6gy01lzua1ucivSZOSrrdRRbtF0kk3BZ4EqOqW5D5ovyHXA==}
@@ -1873,6 +1879,13 @@ snapshots:
       - typescript
 
   '@remotion/fonts@4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      remotion: 4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+    transitivePeerDependencies:
+      - react
+      - react-dom
+
+  '@remotion/google-fonts@4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
       remotion: 4.0.421(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     transitivePeerDependencies:

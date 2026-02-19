@@ -12,11 +12,11 @@ Config.setScale(2);
 
 // ── Highest quality settings ──
 Config.setVideoImageFormat("png");
-Config.setCrf(1);
-Config.setPixelFormat("yuv444p");
+Config.setCrf(16);
+Config.setPixelFormat("yuv420p");
 Config.setCodec("h264");
 
 // ── WSL / headless rendering ──
-Config.setChromiumOpenGlRenderer("angle");
+// Config.setChromiumOpenGlRenderer("angle");
 Config.setConcurrency(2);
 Config.setDelayRenderTimeoutInMilliseconds(120000);
