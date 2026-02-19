@@ -7,5 +7,16 @@
 
 import { Config } from "@remotion/cli/config";
 
-// Config.setChromiumOpenGlRenderer("angle");
-Config.setVideoImageFormat("jpeg");
+// ── 4K UHD output (3840×2160 from 1920×1080 base) ──
+Config.setScale(2);
+
+// ── Highest quality settings ──
+Config.setVideoImageFormat("png");
+Config.setCrf(1);
+Config.setPixelFormat("yuv444p");
+Config.setCodec("h264");
+
+// ── WSL / headless rendering ──
+Config.setChromiumOpenGlRenderer("angle");
+Config.setConcurrency(2);
+Config.setDelayRenderTimeoutInMilliseconds(120000);
