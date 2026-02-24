@@ -22,6 +22,7 @@ members = [
     "crates/mdcs-db",         # Database API layer (Phase 6)
     "crates/mdcs-sdk",        # High-level SDK for collaborative apps
     "crates/mdcs-wasm",       # WebAssembly bindings for browser use
+    "benchmarks",             # CRDT benchmark suite (Phase 7)
 ]
 
 [dependencies]
