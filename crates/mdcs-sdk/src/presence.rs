@@ -50,7 +50,10 @@ pub struct Awareness {
 }
 
 impl Awareness {
-    /// Create a new awareness manager.
+    /// Create a new awareness manager for a local user.
+    ///
+    /// The local user is initialized with a default color and an online
+    /// presence record in the underlying tracker.
     pub fn new(local_user_id: impl Into<String>, local_user_name: impl Into<String>) -> Self {
         let local_user_id = local_user_id.into();
         let local_user_name = local_user_name.into();
@@ -68,17 +71,19 @@ impl Awareness {
         }
     }
 
-    /// Get the local user ID.
+    /// Return the local user identifier.
     pub fn local_user_id(&self) -> &str {
         &self.local_user_id
     }
 
-    /// Get the local user name.
+    /// Return the local user display name.
     pub fn local_user_name(&self) -> &str {
         &self.local_user_name
     }
 
-    /// Set the local user's cursor position.
+    /// Set the local user's cursor position for a document.
+    ///
+    /// Emits [`AwarenessEvent::CursorMoved`].
     pub fn set_cursor(&self, document_id: &str, position: usize) {
         let cursor = Cursor::at(position);
         self.tracker.write().set_cursor(document_id, cursor);
@@ -96,7 +101,9 @@ impl Awareness {
         let _ = self.event_tx.send(AwarenessEvent::CursorMoved(cursor_info));
     }
 
-    /// Set the local user's selection.
+    /// Set the local user's selection range for a document.
+    ///
+    /// Emits [`AwarenessEvent::CursorMoved`].
     pub fn set_selection(&self, document_id: &str, start: usize, end: usize) {
         let cursor = Cursor::with_selection(start, end);
         self.tracker.write().set_cursor(document_id, cursor);
@@ -114,12 +121,12 @@ impl Awareness {
         let _ = self.event_tx.send(AwarenessEvent::CursorMoved(cursor_info));
     }
 
-    /// Set the local user's status.
+    /// Update the local user's presence status.
     pub fn set_status(&self, status: UserStatus) {
         self.tracker.write().set_status(status);
     }
 
-    /// Get all users' presence information.
+    /// Return a snapshot of all known users and cursor states.
     pub fn get_users(&self) -> Vec<UserPresenceInfo> {
         let tracker = self.tracker.read();
 
@@ -160,7 +167,7 @@ impl Awareness {
             .collect()
     }
 
-    /// Get cursors for a specific document.
+    /// Return cursor information for users active in a specific document.
     pub fn get_cursors(&self, document_id: &str) -> Vec<CursorInfo> {
         self.get_users()
             .into_iter()
@@ -168,17 +175,20 @@ impl Awareness {
             .collect()
     }
 
-    /// Get the local user's assigned color.
+    /// Return the local user's assigned color string.
     pub fn get_local_color(&self) -> &str {
         &self.local_color
     }
 
-    /// Subscribe to awareness events.
+    /// Subscribe to awareness updates.
+    ///
+    /// This uses a broadcast channel; late subscribers receive only future
+    /// events.
     pub fn subscribe(&self) -> broadcast::Receiver<AwarenessEvent> {
         self.event_tx.subscribe()
     }
 
-    /// Remove stale users who haven't been active.
+    /// Remove stale user entries that have not been active recently.
     pub fn cleanup_stale(&self) {
         self.tracker.write().cleanup_stale();
     }

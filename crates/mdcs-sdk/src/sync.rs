@@ -39,37 +39,44 @@ pub struct SyncConfigBuilder {
 }
 
 impl SyncConfigBuilder {
+    /// Create a builder initialized with [`SyncConfig::default`].
     pub fn new() -> Self {
         Self {
             config: SyncConfig::default(),
         }
     }
 
+    /// Set how often periodic sync should run (milliseconds).
     pub fn sync_interval(mut self, ms: u64) -> Self {
         self.config.sync_interval_ms = ms;
         self
     }
 
+    /// Set how often presence updates should be emitted (milliseconds).
     pub fn presence_interval(mut self, ms: u64) -> Self {
         self.config.presence_interval_ms = ms;
         self
     }
 
+    /// Set the sync request timeout (milliseconds).
     pub fn sync_timeout(mut self, ms: u64) -> Self {
         self.config.sync_timeout_ms = ms;
         self
     }
 
+    /// Set the maximum number of deltas to send in one batch.
     pub fn max_batch_size(mut self, size: usize) -> Self {
         self.config.max_batch_size = size;
         self
     }
 
+    /// Enable or disable automatic background synchronization.
     pub fn auto_sync(mut self, enabled: bool) -> Self {
         self.config.auto_sync = enabled;
         self
     }
 
+    /// Build and return the final [`SyncConfig`].
     pub fn build(self) -> SyncConfig {
         self.config
     }
@@ -119,7 +126,7 @@ pub struct SyncManager<T: NetworkTransport> {
 }
 
 impl<T: NetworkTransport> SyncManager<T> {
-    /// Create a new sync manager.
+    /// Create a new sync manager for a transport and configuration.
     pub fn new(transport: Arc<T>, config: SyncConfig) -> Self {
         Self {
             transport,
@@ -128,12 +135,16 @@ impl<T: NetworkTransport> SyncManager<T> {
         }
     }
 
-    /// Get the sync configuration.
+    /// Return the active synchronization configuration.
     pub fn config(&self) -> &SyncConfig {
         &self.config
     }
 
     /// Broadcast a document update to all connected peers.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SdkError::SyncError`] if the transport broadcast fails.
     pub async fn broadcast_update(
         &mut self,
         document_id: &str,
@@ -153,6 +164,10 @@ impl<T: NetworkTransport> SyncManager<T> {
     }
 
     /// Send a sync request to a specific peer.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SdkError::SyncError`] if sending the request fails.
     pub async fn request_sync(
         &mut self,
         peer_id: &PeerId,
@@ -170,7 +185,7 @@ impl<T: NetworkTransport> SyncManager<T> {
             .map_err(|e| SdkError::SyncError(e.to_string()))
     }
 
-    /// Update sync state for a peer.
+    /// Update local sync metadata for a peer/document pair.
     pub fn update_peer_state(&mut self, peer_id: &PeerId, document_id: &str, version: u64) {
         let state = self.peer_states.entry(peer_id.clone()).or_default();
         state
@@ -179,7 +194,7 @@ impl<T: NetworkTransport> SyncManager<T> {
         state.last_sync = Some(Instant::now());
     }
 
-    /// Get sync state for a peer.
+    /// Return sync metadata for a peer if present.
     pub fn get_peer_state(&self, peer_id: &PeerId) -> Option<&PeerSyncState> {
         self.peer_states.get(peer_id)
     }

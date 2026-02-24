@@ -670,27 +670,31 @@ The **MDCS SDK** provides a high-level, easy-to-use API for building collaborati
 ### Quick Start
 
 ```rust
-use mdcs_sdk::{Client, quick};
+use mdcs_sdk::client::quick::create_collaborative_clients;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
     // Create two connected clients instantly
-    let (client_a, client_b) = quick::create_collaborative_clients();
-    
+    let clients = create_collaborative_clients(&["Alice", "Bob"]);
+    let client_a = &clients[0];
+    let client_b = &clients[1];
+
     // Create sessions
-    let session_a = client_a.create_session("room-1").await?;
-    let session_b = client_b.create_session("room-1").await?;
-    
+    let session_a = client_a.create_session("room-1");
+    let session_b = client_b.create_session("room-1");
+
     // Open text documents
-    let doc_a = session_a.open_text_doc("shared-doc")?;
-    let doc_b = session_b.open_text_doc("shared-doc")?;
-    
-    // Concurrent edits - CRDT handles conflicts automatically!
+    let doc_a = session_a.open_text_doc("shared-doc");
+    let doc_b = session_b.open_text_doc("shared-doc");
+
+    // Concurrent edits - CRDT handles conflicts automatically
     doc_a.write().insert(0, "Hello ");
     doc_b.write().insert(0, "World!");
-    
-    // Both documents converge to the same state
-    Ok(())
+
+    // Exchange state and merge to demonstrate convergence
+    let state_a = doc_a.read().clone_state();
+    let state_b = doc_b.read().clone_state();
+    doc_a.write().merge(&state_b);
+    doc_b.write().merge(&state_a);
 }
 ```
 
@@ -711,7 +715,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #### TextDoc - Simple Text Editing
 
 ```rust
-let doc = session.open_text_doc("notes")?;
+let doc = session.open_text_doc("notes");
 {
     let mut d = doc.write();
     d.insert(0, "Hello World");
@@ -725,7 +729,7 @@ println!("{}", doc.read().get_text());  // "World"
 ```rust
 use mdcs_sdk::MarkType;
 
-let doc = session.open_rich_text_doc("article")?;
+let doc = session.open_rich_text_doc("article");
 {
     let mut d = doc.write();
     d.insert(0, "Hello World");
@@ -739,7 +743,7 @@ let doc = session.open_rich_text_doc("article")?;
 ```rust
 use mdcs_sdk::JsonValue;
 
-let doc = session.open_json_doc("config")?;
+let doc = session.open_json_doc("config");
 {
     let mut d = doc.write();
     d.set("theme", JsonValue::String("dark".into()));
@@ -755,20 +759,16 @@ if let Some(theme) = doc.read().get("theme") {
 Track user cursors and status in real-time:
 
 ```rust
-use mdcs_sdk::{UserStatus, CursorInfo};
+use mdcs_sdk::UserStatus;
 
-// Set user info
-session.awareness().set_user_name("Alice");
+// Set user status
 session.awareness().set_status(UserStatus::Online);
 
 // Track cursor position
-session.awareness().set_cursor(CursorInfo {
-    position: 42,
-    document_id: "doc-1".to_string(),
-});
+session.awareness().set_cursor("doc-1", 42);
 
 // Track text selection
-session.awareness().set_selection(10, 50, "doc-1");
+session.awareness().set_selection("doc-1", 10, 50);
 
 // Get all users in the session
 for user in session.awareness().get_users() {
@@ -844,24 +844,27 @@ Diana: Away
 The SDK uses a pluggable network transport. The built-in `MemoryTransport` is perfect for testing:
 
 ```rust
-use mdcs_sdk::network::{create_network, Message, PeerId};
+use mdcs_sdk::network::{create_network, Message, NetworkTransport, PeerId};
 
 // Create 4 fully-connected peers
 let transports = create_network(4);
 
 // Send messages
 let target = PeerId::new("peer-1");
-transports[0].send(&target, Message::Update {
+let rt = tokio::runtime::Runtime::new().unwrap();
+rt.block_on(async {
+    transports[0].send(&target, Message::Update {
     document_id: "doc".into(),
     delta: vec![1, 2, 3],
     version: 1,
-}).await?;
+    }).await.unwrap();
 
-// Receive messages
-let mut rx = transports[1].subscribe();
-while let Some((from, msg)) = rx.recv().await {
-    println!("From {}: {:?}", from, msg);
-}
+    // Receive messages
+    let mut rx = transports[1].subscribe();
+    if let Some((from, msg)) = rx.recv().await {
+        println!("From {}: {:?}", from, msg);
+    }
+});
 ```
 
 For production, implement the `NetworkTransport` trait with your preferred transport (WebSocket, WebRTC, libp2p, etc.).

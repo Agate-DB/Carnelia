@@ -37,5 +37,5 @@ impl fmt::Display for SdkError {
 
 impl std::error::Error for SdkError {}
 
-/// Result type for SDK operations.
+/// Convenient result alias used by SDK public APIs.
 pub type Result<T> = std::result::Result<T, SdkError>;

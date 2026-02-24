@@ -12,6 +12,7 @@ use tokio::sync::mpsc;
 pub struct PeerId(pub String);
 
 impl PeerId {
+    /// Construct a new peer identifier from any string-like input.
     pub fn new(id: impl Into<String>) -> Self {
         Self(id.into())
     }
@@ -78,9 +79,13 @@ pub enum Message {
 /// Network error type.
 #[derive(Clone, Debug)]
 pub enum NetworkError {
+    /// Failed to establish a connection.
     ConnectionFailed(String),
+    /// Target peer is not known by this transport.
     PeerNotFound(String),
+    /// Message send failed.
     SendFailed(String),
+    /// Transport is disconnected.
     Disconnected,
 }
 
@@ -134,6 +139,7 @@ pub struct MemoryTransport {
 }
 
 impl MemoryTransport {
+    /// Create a new in-memory transport instance for a local peer.
     pub fn new(local_id: PeerId) -> Self {
         let (tx, rx) = mpsc::channel(100);
         Self {
@@ -145,6 +151,7 @@ impl MemoryTransport {
         }
     }
 
+    /// Return the local peer ID associated with this transport.
     pub fn local_id(&self) -> &PeerId {
         &self.local_id
     }
@@ -244,7 +251,10 @@ impl NetworkTransport for MemoryTransport {
     }
 }
 
-/// Create a network of connected memory transports for testing.
+/// Create a fully connected in-memory transport network.
+///
+/// Each peer is connected to every other peer, making this helper ideal for
+/// deterministic tests and examples.
 pub fn create_network(count: usize) -> Vec<MemoryTransport> {
     let transports: Vec<_> = (0..count)
         .map(|i| MemoryTransport::new(PeerId::new(format!("peer-{}", i))))

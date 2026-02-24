@@ -34,27 +34,32 @@ pub struct ClientConfigBuilder {
 }
 
 impl ClientConfigBuilder {
+    /// Create a new builder initialized with [`ClientConfig::default`].
     pub fn new() -> Self {
         Self {
             config: ClientConfig::default(),
         }
     }
 
+    /// Set the display name advertised to other collaborators.
     pub fn user_name(mut self, name: impl Into<String>) -> Self {
         self.config.user_name = name.into();
         self
     }
 
+    /// Enable or disable automatic reconnection attempts.
     pub fn auto_reconnect(mut self, enabled: bool) -> Self {
         self.config.auto_reconnect = enabled;
         self
     }
 
+    /// Set the maximum number of reconnect attempts.
     pub fn max_reconnect_attempts(mut self, attempts: u32) -> Self {
         self.config.max_reconnect_attempts = attempts;
         self
     }
 
+    /// Build and return the final [`ClientConfig`].
     pub fn build(self) -> ClientConfig {
         self.config
     }
@@ -97,7 +102,10 @@ pub struct Client<T: NetworkTransport> {
 }
 
 impl Client<MemoryTransport> {
-    /// Create a new client with an in-memory transport (for testing).
+    /// Create a new client backed by [`MemoryTransport`].
+    ///
+    /// This constructor is ideal for tests, local demos, and examples where
+    /// all peers run in the same process.
     pub fn new_with_memory_transport(config: ClientConfig) -> Self {
         let peer_id = PeerId::new(format!("peer-{}", uuid_simple()));
         let transport = Arc::new(MemoryTransport::new(peer_id.clone()));
@@ -112,7 +120,10 @@ impl Client<MemoryTransport> {
 }
 
 impl<T: NetworkTransport> Client<T> {
-    /// Create a new client with a custom transport.
+    /// Create a new client with a custom transport implementation.
+    ///
+    /// Use this constructor when integrating with a real networking backend
+    /// (WebSocket, QUIC, custom RPC, etc.).
     pub fn new(peer_id: PeerId, transport: Arc<T>, config: ClientConfig) -> Self {
         Self {
             peer_id,
@@ -122,22 +133,24 @@ impl<T: NetworkTransport> Client<T> {
         }
     }
 
-    /// Get the local peer ID.
+    /// Return the unique identifier of this local peer.
     pub fn peer_id(&self) -> &PeerId {
         &self.peer_id
     }
 
-    /// Get the user name.
+    /// Return the configured local user name.
     pub fn user_name(&self) -> &str {
         &self.config.user_name
     }
 
-    /// Get the transport.
+    /// Return the transport used by this client.
     pub fn transport(&self) -> &Arc<T> {
         &self.transport
     }
 
-    /// Create a new collaborative session.
+    /// Create or fetch a collaborative session by ID.
+    ///
+    /// If the session already exists, this returns the same shared instance.
     pub fn create_session(&self, session_id: impl Into<String>) -> Arc<Session<T>> {
         let session_id = session_id.into();
         let mut sessions = self.sessions.write();
@@ -156,22 +169,30 @@ impl<T: NetworkTransport> Client<T> {
         }
     }
 
-    /// Get an existing session.
+    /// Get an existing session if it has already been created on this client.
     pub fn get_session(&self, session_id: &str) -> Option<Arc<Session<T>>> {
         self.sessions.read().get(session_id).cloned()
     }
 
-    /// Close a session.
+    /// Close a local session handle and remove it from the client cache.
+    ///
+    /// This does not notify remote peers directly; use higher-level app
+    /// signaling if your protocol requires explicit leave semantics.
     pub fn close_session(&self, session_id: &str) {
         self.sessions.write().remove(session_id);
     }
 
-    /// List all active session IDs.
+    /// List all currently active local session IDs.
     pub fn session_ids(&self) -> Vec<String> {
         self.sessions.read().keys().cloned().collect()
     }
 
-    /// Connect to a peer.
+    /// Establish a transport-level connection to a peer.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SdkError::ConnectionFailed`] if the underlying transport
+    /// cannot connect to the target peer.
     pub async fn connect_peer(&self, peer_id: &PeerId) -> Result<(), SdkError> {
         self.transport
             .connect(peer_id)
@@ -180,6 +201,11 @@ impl<T: NetworkTransport> Client<T> {
     }
 
     /// Disconnect from a peer.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SdkError::NetworkError`] if the transport reports a failure
+    /// while disconnecting.
     pub async fn disconnect_peer(&self, peer_id: &PeerId) -> Result<(), SdkError> {
         self.transport
             .disconnect(peer_id)
@@ -187,7 +213,7 @@ impl<T: NetworkTransport> Client<T> {
             .map_err(|e| SdkError::NetworkError(e.to_string()))
     }
 
-    /// Get list of connected peers.
+    /// Return the current list of connected peers reported by the transport.
     pub async fn connected_peers(&self) -> Vec<Peer> {
         self.transport.connected_peers().await
     }
@@ -208,9 +234,15 @@ pub mod quick {
     use super::*;
     use crate::network::create_network;
 
-    /// Create a simple collaborative setup with multiple clients.
+    /// Create a fully connected in-memory set of collaborative clients.
     ///
-    /// Returns a vector of clients with their connected memory transports.
+    /// The returned clients can immediately open the same session/document IDs
+    /// and exchange updates in examples or tests.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `user_names` and generated transports differ in length, which
+    /// should not happen for a correctly constructed in-memory network.
     pub fn create_collaborative_clients(user_names: &[&str]) -> Vec<Client<MemoryTransport>> {
         let network = create_network(user_names.len());
 

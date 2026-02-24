@@ -30,7 +30,7 @@ mdcs-delta = { path = "crates/mdcs-delta", version = "0.1.1" }
 mdcs-merkle = { path = "crates/mdcs-merkle", version = "0.1.1" }
 mdcs-compaction = { path = "crates/mdcs-compaction", version = "0.1.1" }
 mdcs-db = { path = "crates/mdcs-db", version = "0.1.1" }
-mdcs-sdk = { path = "crates/mdcs-sdk", version = "0.1.1" }
+mdcs-sdk = { path = "crates/mdcs-sdk", version = "0.1.2" }
 tokio = { version = "1.35", features = ["full"] }
 rand = "0.8"
 chrono = "0.4"
@@ -46,6 +46,10 @@ name = "causal_example"
 path = "examples/mdcs-delta/causal_example.rs"
 
 # MDCS SDK Examples
+[[example]]
+name = "plain_test"
+path = "examples/mdcs-sdk/plain_test.rs"
+
 [[example]]
 name = "collaborative_text"
 path = "examples/mdcs-sdk/collaborative_text.rs"

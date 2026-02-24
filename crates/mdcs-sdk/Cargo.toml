@@ -1,6 +1,6 @@
 [package]
 name = "mdcs-sdk"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
 description = "High-level SDK for building collaborative applications with the Carnelia MDCS"

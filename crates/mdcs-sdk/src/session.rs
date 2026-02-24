@@ -40,7 +40,10 @@ pub struct Session<T: NetworkTransport> {
 }
 
 impl<T: NetworkTransport> Session<T> {
-    /// Create a new session.
+    /// Create a new collaborative session bound to a local peer.
+    ///
+    /// Most applications should use [`crate::client::Client::create_session`]
+    /// instead of calling this directly.
     pub fn new(
         session_id: impl Into<String>,
         local_peer_id: PeerId,
@@ -66,32 +69,41 @@ impl<T: NetworkTransport> Session<T> {
         }
     }
 
-    /// Get the session ID.
+    /// Return the stable session identifier.
     pub fn session_id(&self) -> &str {
         &self.session_id
     }
 
-    /// Get the local peer ID.
+    /// Return the local peer identifier for this session.
     pub fn local_peer_id(&self) -> &PeerId {
         &self.local_peer_id
     }
 
-    /// Get the user name.
+    /// Return the local user name for this session.
     pub fn user_name(&self) -> &str {
         &self.user_name
     }
 
-    /// Get the awareness manager.
+    /// Return the presence/awareness manager.
+    ///
+    /// Use this to set cursor position, selections, and status.
     pub fn awareness(&self) -> &Arc<Awareness> {
         &self.awareness
     }
 
-    /// Subscribe to session events.
+    /// Subscribe to session lifecycle events.
+    ///
+    /// This uses a broadcast channel; late subscribers only receive future
+    /// events.
     pub fn subscribe(&self) -> broadcast::Receiver<SessionEvent> {
         self.event_tx.subscribe()
     }
 
-    /// Connect to the session (announce presence to peers).
+    /// Connect to the session and broadcast a handshake to peers.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SdkError::NetworkError`] if the transport broadcast fails.
     pub async fn connect(&self) -> Result<(), SdkError> {
         let message = Message::Hello {
             replica_id: self.local_peer_id.0.clone(),
@@ -109,13 +121,17 @@ impl<T: NetworkTransport> Session<T> {
         Ok(())
     }
 
-    /// Disconnect from the session.
+    /// Disconnect from the session locally.
+    ///
+    /// This emits [`SessionEvent::Disconnected`] for local listeners.
     pub async fn disconnect(&self) -> Result<(), SdkError> {
         let _ = self.event_tx.send(SessionEvent::Disconnected);
         Ok(())
     }
 
-    /// Create or open a text document.
+    /// Create or open a plain-text document by ID.
+    ///
+    /// Returns a shared, lock-protected document handle.
     pub fn open_text_doc(&self, document_id: impl Into<String>) -> Arc<RwLock<TextDoc>> {
         let document_id = document_id.into();
         let mut docs = self.text_docs.write();
@@ -137,7 +153,9 @@ impl<T: NetworkTransport> Session<T> {
         }
     }
 
-    /// Create or open a rich text document.
+    /// Create or open a rich-text document by ID.
+    ///
+    /// Returns a shared, lock-protected document handle.
     pub fn open_rich_text_doc(&self, document_id: impl Into<String>) -> Arc<RwLock<RichTextDoc>> {
         let document_id = document_id.into();
         let mut docs = self.rich_text_docs.write();
@@ -159,7 +177,9 @@ impl<T: NetworkTransport> Session<T> {
         }
     }
 
-    /// Create or open a JSON document.
+    /// Create or open a JSON document by ID.
+    ///
+    /// Returns a shared, lock-protected document handle.
     pub fn open_json_doc(&self, document_id: impl Into<String>) -> Arc<RwLock<JsonDoc>> {
         let document_id = document_id.into();
         let mut docs = self.json_docs.write();
@@ -181,7 +201,9 @@ impl<T: NetworkTransport> Session<T> {
         }
     }
 
-    /// Close a document.
+    /// Close a locally opened document handle by ID.
+    ///
+    /// If a document exists in multiple local maps, all matches are removed.
     pub fn close_doc(&self, document_id: &str) {
         self.text_docs.write().remove(document_id);
         self.rich_text_docs.write().remove(document_id);
@@ -192,7 +214,7 @@ impl<T: NetworkTransport> Session<T> {
         });
     }
 
-    /// Get list of open document IDs.
+    /// Return all currently opened document IDs across document types.
     pub fn open_documents(&self) -> Vec<String> {
         let mut docs = Vec::new();
         docs.extend(self.text_docs.read().keys().cloned());
@@ -201,7 +223,7 @@ impl<T: NetworkTransport> Session<T> {
         docs
     }
 
-    /// Get connected peers.
+    /// Return peers currently connected through the underlying transport.
     pub async fn peers(&self) -> Vec<Peer> {
         self.transport.connected_peers().await
     }

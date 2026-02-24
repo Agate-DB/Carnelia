@@ -21,19 +21,21 @@ pub enum DocEvent {
 
 /// Trait for collaborative documents.
 pub trait CollaborativeDoc {
-    /// Get the document ID.
+    /// Return the stable document identifier.
     fn id(&self) -> &str;
 
-    /// Get the replica ID.
+    /// Return the local replica identifier that owns this document handle.
     fn replica_id(&self) -> &str;
 
-    /// Subscribe to document events.
+    /// Subscribe to document change events.
+    ///
+    /// Subscribers receive only future events from the time of subscription.
     fn subscribe(&self) -> broadcast::Receiver<DocEvent>;
 
-    /// Take pending deltas for sync.
+    /// Drain pending deltas to send through your sync transport.
     fn take_pending_deltas(&mut self) -> Vec<Vec<u8>>;
 
-    /// Apply a remote delta.
+    /// Apply a serialized remote delta payload.
     fn apply_remote(&mut self, delta: &[u8]);
 }
 
@@ -49,7 +51,7 @@ pub struct TextDoc {
 }
 
 impl TextDoc {
-    /// Create a new text document.
+    /// Create a new plain-text CRDT document.
     pub fn new(id: impl Into<String>, replica_id: impl Into<String>) -> Self {
         let replica_id = replica_id.into();
         let (event_tx, _) = broadcast::channel(100);
@@ -63,7 +65,7 @@ impl TextDoc {
         }
     }
 
-    /// Insert text at position.
+    /// Insert UTF-8 text at a character position.
     pub fn insert(&mut self, position: usize, text: &str) {
         self.text.insert(position, text);
         let _ = self.event_tx.send(DocEvent::Insert {
@@ -72,35 +74,38 @@ impl TextDoc {
         });
     }
 
-    /// Delete text at position.
+    /// Delete `length` characters starting at `position`.
     pub fn delete(&mut self, position: usize, length: usize) {
         self.text.delete(position, length);
         let _ = self.event_tx.send(DocEvent::Delete { position, length });
     }
 
-    /// Get the current text content.
+    /// Return the current plain-text content.
     pub fn get_text(&self) -> String {
         self.text.to_string()
     }
 
-    /// Get the text length.
+    /// Return the current text length.
     pub fn len(&self) -> usize {
         self.text.len()
     }
 
-    /// Check if the document is empty.
+    /// Return `true` when the document contains no characters.
     pub fn is_empty(&self) -> bool {
         self.text.is_empty()
     }
 
-    /// Merge another document's state into this one (CRDT merge).
-    /// This applies changes from the other document while preserving local changes.
+    /// Merge another replica state into this document.
+    ///
+    /// This is a commutative CRDT join, so order does not affect convergence.
     pub fn merge(&mut self, other: &TextDoc) {
         self.text = self.text.join(&other.text);
         let _ = self.event_tx.send(DocEvent::RemoteUpdate);
     }
 
-    /// Clone this document's state for syncing to another replica.
+    /// Clone this document's state for synchronization.
+    ///
+    /// The returned state clears local pending delta buffers.
     pub fn clone_state(&self) -> TextDoc {
         TextDoc {
             id: self.id.clone(),
@@ -147,7 +152,7 @@ pub struct RichTextDoc {
 }
 
 impl RichTextDoc {
-    /// Create a new rich text document.
+    /// Create a new rich-text CRDT document.
     pub fn new(id: impl Into<String>, replica_id: impl Into<String>) -> Self {
         let replica_id = replica_id.into();
         let (event_tx, _) = broadcast::channel(100);
@@ -161,7 +166,7 @@ impl RichTextDoc {
         }
     }
 
-    /// Insert text at position.
+    /// Insert UTF-8 text at a character position.
     pub fn insert(&mut self, position: usize, text: &str) {
         self.text.insert(position, text);
         let _ = self.event_tx.send(DocEvent::Insert {
@@ -170,51 +175,55 @@ impl RichTextDoc {
         });
     }
 
-    /// Delete text at position.
+    /// Delete `length` characters starting at `position`.
     pub fn delete(&mut self, position: usize, length: usize) {
         self.text.delete(position, length);
         let _ = self.event_tx.send(DocEvent::Delete { position, length });
     }
 
-    /// Apply formatting to a range.
+    /// Apply a formatting mark to the range `[start, end)`.
     pub fn format(&mut self, start: usize, end: usize, mark: MarkType) {
         self.text.add_mark(start, end, mark);
     }
 
-    /// Remove formatting by mark ID.
+    /// Remove a formatting mark by its unique mark ID.
     pub fn unformat_by_id(&mut self, mark_id: &mdcs_db::rich_text::MarkId) {
         self.text.remove_mark(mark_id);
     }
 
-    /// Get the plain text content.
+    /// Return the plain-text projection of the rich document.
     pub fn get_text(&self) -> String {
         self.text.to_string()
     }
 
-    /// Get the plain text as spans with marks.
-    /// Note: For full mark information, use the underlying RichText directly.
+    /// Return a plain-text rendering of the content.
+    ///
+    /// For full mark spans and metadata, use the underlying `RichText` model.
     pub fn get_content(&self) -> String {
         self.text.to_string()
     }
 
-    /// Get the text length.
+    /// Return the current text length.
     pub fn len(&self) -> usize {
         self.text.len()
     }
 
-    /// Check if the document is empty.
+    /// Return `true` when the document contains no characters.
     pub fn is_empty(&self) -> bool {
         self.text.is_empty()
     }
 
-    /// Merge another document's state into this one (CRDT merge).
-    /// This applies changes from the other document while preserving local changes.
+    /// Merge another replica state into this document.
+    ///
+    /// This is a commutative CRDT join, so order does not affect convergence.
     pub fn merge(&mut self, other: &RichTextDoc) {
         self.text = self.text.join(&other.text);
         let _ = self.event_tx.send(DocEvent::RemoteUpdate);
     }
 
-    /// Clone this document's state for syncing to another replica.
+    /// Clone this document's state for synchronization.
+    ///
+    /// The returned state clears local pending delta buffers.
     pub fn clone_state(&self) -> RichTextDoc {
         RichTextDoc {
             id: self.id.clone(),
@@ -260,7 +269,7 @@ pub struct JsonDoc {
 }
 
 impl JsonDoc {
-    /// Create a new JSON document.
+    /// Create a new JSON CRDT document.
     pub fn new(id: impl Into<String>, replica_id: impl Into<String>) -> Self {
         let replica_id = replica_id.into();
         let (event_tx, _) = broadcast::channel(100);
@@ -274,42 +283,45 @@ impl JsonDoc {
         }
     }
 
-    /// Set a value at a path.
+    /// Set a value at a dot-path (for example, `"profile.name"`).
     pub fn set(&mut self, path: &str, value: JsonValue) {
         let json_path = JsonPath::parse(path);
         let _ = self.doc.set(&json_path, value);
     }
 
-    /// Get a value at a path.
+    /// Get a value at a dot-path.
     pub fn get(&self, path: &str) -> Option<JsonValue> {
         let json_path = JsonPath::parse(path);
         self.doc.get(&json_path).cloned()
     }
 
-    /// Delete a value at a path.
+    /// Delete a value at a dot-path.
     pub fn delete(&mut self, path: &str) {
         let json_path = JsonPath::parse(path);
         let _ = self.doc.delete(&json_path);
     }
 
-    /// Get the root value as a serde JSON Value.
+    /// Return the entire document as `serde_json::Value`.
     pub fn root(&self) -> serde_json::Value {
         self.doc.to_json()
     }
 
-    /// Get keys at a path.
+    /// Return top-level keys in the JSON object.
     pub fn keys(&self) -> Vec<String> {
         self.doc.keys()
     }
 
-    /// Merge another document's state into this one (CRDT merge).
-    /// This applies changes from the other document while preserving local changes.
+    /// Merge another replica state into this document.
+    ///
+    /// This is a commutative CRDT join, so order does not affect convergence.
     pub fn merge(&mut self, other: &JsonDoc) {
         self.doc = self.doc.join(&other.doc);
         let _ = self.event_tx.send(DocEvent::RemoteUpdate);
     }
 
-    /// Clone this document's state for syncing to another replica.
+    /// Clone this document's state for synchronization.
+    ///
+    /// The returned state clears local pending delta buffers.
     pub fn clone_state(&self) -> JsonDoc {
         JsonDoc {
             id: self.id.clone(),
