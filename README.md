@@ -5,6 +5,11 @@ An architecture for lock-free, offline-first, open-membership databases
 that systematically addresses the gaps in existing CRDT systems.
 
 ---
+> Watch our Product Introduction Video here
+
+[![Carnelia Product Validation](https://img.youtube.com/vi/ZrT90S6wSuM/0.jpg)](https://youtu.be/ZrT90S6wSuM)
+
+---
 
 ## Table of Contents
 
