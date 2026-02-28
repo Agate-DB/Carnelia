@@ -984,6 +984,12 @@ mdcs/
 └── docs/                    # Documentation
 ```
 
+
+## Structure
+[![Structure](https://images.repography.com/113178227/Agate-DB/Carnelia/structure/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/Bjjp-K089oDIUY_Kl8OjXawkxfvHk1T_5hrlb6A9Emo_table.svg)](https://github.com/Agate-DB/Carnelia)
+
+
+
 ---
 
 ## Running Tests
@@ -1024,5 +1030,26 @@ cargo run --example offline_sync
 | 5 | Compaction (`mdcs-compaction`) | ✅ Complete | 46 passing |
 | 6 | Database Layer (`mdcs-db`) | ✅ Complete | 66 passing |
 | — | SDK (`mdcs-sdk`) | ✅ Complete | 17 passing |
-| 7 | Benchmarks | 🔲 Planned | - |
-| 8 | Documentation | 🔲 Planned | - |
+| 7 | Benchmarks | ⌛ In Progress | 3 Standardized tests |
+| 8 | Documentation | ⌛ In Progress | - |
+
+---
+
+
+## Recent activity [![Time period](https://images.repography.com/113178227/Agate-DB/Carnelia/recent-activity/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/bQNSWf_y4KPfx1558N2lOQq0aASt3yLWK5TYeaoC_x0_badge.svg)](https://repography.com)
+[![Timeline graph](https://images.repography.com/113178227/Agate-DB/Carnelia/recent-activity/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/bQNSWf_y4KPfx1558N2lOQq0aASt3yLWK5TYeaoC_x0_timeline.svg)](https://github.com/Agate-DB/Carnelia/commits)
+[![Issue status graph](https://images.repography.com/113178227/Agate-DB/Carnelia/recent-activity/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/bQNSWf_y4KPfx1558N2lOQq0aASt3yLWK5TYeaoC_x0_issues.svg)](https://github.com/Agate-DB/Carnelia/issues)
+[![Pull request status graph](https://images.repography.com/113178227/Agate-DB/Carnelia/recent-activity/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/bQNSWf_y4KPfx1558N2lOQq0aASt3yLWK5TYeaoC_x0_prs.svg)](https://github.com/Agate-DB/Carnelia/pulls)
+[![Trending topics](https://images.repography.com/113178227/Agate-DB/Carnelia/recent-activity/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/bQNSWf_y4KPfx1558N2lOQq0aASt3yLWK5TYeaoC_x0_words.svg)](https://github.com/Agate-DB/Carnelia/commits)
+[![Top contributors](https://images.repography.com/113178227/Agate-DB/Carnelia/recent-activity/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/bQNSWf_y4KPfx1558N2lOQq0aASt3yLWK5TYeaoC_x0_users.svg)](https://github.com/Agate-DB/Carnelia/graphs/contributors)
+[![Activity map](https://images.repography.com/113178227/Agate-DB/Carnelia/recent-activity/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/bQNSWf_y4KPfx1558N2lOQq0aASt3yLWK5TYeaoC_x0_map.svg)](https://github.com/Agate-DB/Carnelia/commits)
+
+
+## [![Repography logo](https://images.repography.com/logo.svg)](https://repography.com) / Top contributors
+[![Top contributors](https://images.repography.com/113178227/Agate-DB/Carnelia/top-contributors/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/bQNSWf_y4KPfx1558N2lOQq0aASt3yLWK5TYeaoC_x0_table.svg)](https://github.com/Agate-DB/Carnelia/graphs/contributors)
+
+
+---
+> This Project is licensed under [MIT License](./LICENSE)
+
+
