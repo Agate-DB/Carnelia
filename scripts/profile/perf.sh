@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+
 
 perf report
 perf record -F 999 -- cargo run --release -- full
