@@ -11,9 +11,7 @@ use mdcs_db::json_crdt::{JsonCrdt, JsonPath, JsonValue};
 use mdcs_db::rga_list::RGAList;
 use rand::Rng;
 
-use crate::harness::{
-    allocated_bytes, log_result, measure_all_encodes, BenchmarkMetrics,
-};
+use crate::harness::{allocated_bytes, log_result, measure_all_encodes, BenchmarkMetrics};
 
 /// Compute number of concurrent clients: 20 * sqrt(N), floored, min 2.
 fn num_clients(n: usize) -> usize {
@@ -188,8 +186,7 @@ pub fn b3_4_insert_text_in_array(n: usize) {
     let start = Instant::now();
 
     let words = &[
-        "the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog",
-        "lorem", "ipsum",
+        "the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "lorem", "ipsum",
     ];
 
     let mut lists: Vec<RGAList<String>> = Vec::with_capacity(c);
@@ -224,7 +221,10 @@ pub fn b3_4_insert_text_in_array(n: usize) {
     let (json_sz, bc_sz, pc_sz, enc_t, parse_t) = measure_all_encodes(&sink);
 
     log_result(
-        &format!("B3.4 {}*sqrt(N) clients concurrently insert text in Array", 20),
+        &format!(
+            "B3.4 {}*sqrt(N) clients concurrently insert text in Array",
+            20
+        ),
         &BenchmarkMetrics {
             time: total_time,
             avg_update_size: total_update_size,
@@ -242,10 +242,7 @@ pub fn b3_4_insert_text_in_array(n: usize) {
 
 pub fn run_all(n: usize) {
     let c = num_clients(n);
-    println!(
-        "═══ B3: Many conflicts (N = {}, clients = {}) ═══\n",
-        n, c
-    );
+    println!("═══ B3: Many conflicts (N = {}, clients = {}) ═══\n", n, c);
     b3_1_set_number_in_map(n);
     b3_2_set_object_in_map(n);
     b3_3_set_string_in_map(n);

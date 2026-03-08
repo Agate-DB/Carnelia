@@ -11,9 +11,7 @@ use mdcs_sdk::document::TextDoc;
 use rand::Rng;
 
 use crate::b1_no_conflicts::WORDS;
-use crate::harness::{
-    allocated_bytes, log_result, measure_all_encodes, BenchmarkMetrics,
-};
+use crate::harness::{allocated_bytes, log_result, measure_all_encodes, BenchmarkMetrics};
 
 fn random_word(rng: &mut impl Rng) -> &'static str {
     WORDS[rng.gen_range(0..WORDS.len())]
@@ -176,7 +174,11 @@ pub fn b2_4_concurrent_insert_delete(n: usize) {
             doc_a.delete(pos, del);
         } else {
             let word = random_word(&mut rng);
-            let pos = if len_a == 0 { 0 } else { rng.gen_range(0..=len_a) };
+            let pos = if len_a == 0 {
+                0
+            } else {
+                rng.gen_range(0..=len_a)
+            };
             doc_a.insert(pos, word);
         }
 
@@ -188,7 +190,11 @@ pub fn b2_4_concurrent_insert_delete(n: usize) {
             doc_b.delete(pos, del);
         } else {
             let word = random_word(&mut rng);
-            let pos = if len_b == 0 { 0 } else { rng.gen_range(0..=len_b) };
+            let pos = if len_b == 0 {
+                0
+            } else {
+                rng.gen_range(0..=len_b)
+            };
             doc_b.insert(pos, word);
         }
     }

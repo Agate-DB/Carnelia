@@ -10,16 +10,41 @@ use mdcs_db::rga_list::RGAList;
 use mdcs_sdk::document::TextDoc;
 use rand::Rng;
 
-use crate::harness::{
-    allocated_bytes, log_result, measure_all_encodes, BenchmarkMetrics,
-};
+use crate::harness::{allocated_bytes, log_result, measure_all_encodes, BenchmarkMetrics};
 
 /// Random word list for B1.5 / B1.7.
 pub const WORDS: &[&str] = &[
-    "the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog",
-    "lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing",
-    "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore",
-    "et", "dolore", "magna", "aliqua", "enim", "ad", "minim", "veniam",
+    "the",
+    "quick",
+    "brown",
+    "fox",
+    "jumps",
+    "over",
+    "lazy",
+    "dog",
+    "lorem",
+    "ipsum",
+    "dolor",
+    "sit",
+    "amet",
+    "consectetur",
+    "adipiscing",
+    "elit",
+    "sed",
+    "do",
+    "eiusmod",
+    "tempor",
+    "incididunt",
+    "ut",
+    "labore",
+    "et",
+    "dolore",
+    "magna",
+    "aliqua",
+    "enim",
+    "ad",
+    "minim",
+    "veniam",
 ];
 
 fn random_word(rng: &mut impl Rng) -> &'static str {
@@ -141,7 +166,11 @@ pub fn b1_4_insert_n_chars_random(n: usize) {
     let mut doc = TextDoc::new("b1_4", "Alice");
 
     for i in 0..n {
-        let pos = if doc.len() == 0 { 0 } else { rng.gen_range(0..=doc.len()) };
+        let pos = if doc.len() == 0 {
+            0
+        } else {
+            rng.gen_range(0..=doc.len())
+        };
         let ch = (b'a' + (i % 26) as u8) as char;
         doc.insert(pos, &ch.to_string());
     }
@@ -180,7 +209,11 @@ pub fn b1_5_insert_n_words_random(n: usize) {
 
     for _ in 0..n {
         let word = random_word(&mut rng);
-        let pos = if doc.len() == 0 { 0 } else { rng.gen_range(0..=doc.len()) };
+        let pos = if doc.len() == 0 {
+            0
+        } else {
+            rng.gen_range(0..=doc.len())
+        };
         doc.insert(pos, word);
         total_update_bytes += word.len();
     }
@@ -396,7 +429,11 @@ pub fn b1_11_insert_n_numbers_random(n: usize) {
     let mut list = RGAList::<i64>::new("Alice");
 
     for i in 0..n {
-        let pos = if list.len() == 0 { 0 } else { rng.gen_range(0..=list.len()) };
+        let pos = if list.len() == 0 {
+            0
+        } else {
+            rng.gen_range(0..=list.len())
+        };
         list.insert(pos, i as i64);
     }
 
