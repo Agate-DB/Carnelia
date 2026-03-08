@@ -1,4 +1,3 @@
-
 ## MDCS: Modular Distributed CRDTs in Rust
 
 An architecture for lock-free, offline-first, open-membership databases
@@ -1018,6 +1017,23 @@ cargo run --example network_simulation
 cargo run --example offline_sync
 ```
 
+## Performance & Optimization Loop
+
+```bash
+# Quality gates
+cargo fmt --all --check
+cargo clippy --workspace --lib --bins --tests --benches -- -D warnings
+
+# Criterion stress benchmarks
+cargo bench -p carnelia --bench stress_core
+cargo bench -p carnelia --bench stress_db
+
+# Full stress path used before profiling
+cargo run --release -- full
+```
+
+For profiling details (`perf`/flamegraph scripts and workflow), see `docs/performance.md`.
+
 ---
 
 ## Implementation Status
@@ -1051,5 +1067,4 @@ cargo run --example offline_sync
 
 ---
 > This Project is licensed under [MIT License](./LICENSE)
-
 

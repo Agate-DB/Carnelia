@@ -37,6 +37,18 @@ rand = "0.8"
 chrono = "0.4"
 async-stream = "0.3"
 futures = "0.3"
+flamegraph = "0.6.11"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["async_tokio"] }
+
+[[bench]]
+name = "stress_core"
+harness = false
+
+[[bench]]
+name = "stress_db"
+harness = false
 
 [[example]]
 name = "delta_buffer_example"

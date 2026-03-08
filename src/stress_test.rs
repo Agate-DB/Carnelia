@@ -64,8 +64,8 @@ impl StressTestStats {
             self.total_time.as_secs_f64()
         );
         println!(
-            "║  Avg Sync Time:   {:>35}µs ║",
-            format!("{:.2}", self.avg_sync_time.as_micros())
+            "║  Avg Sync Time:   {:>33.3} ms ║",
+            self.avg_sync_time.as_secs_f64() * 1000.0
         );
         println!("║  Ops/Second:      {:>38.0} ║", self.ops_per_second);
         println!(
@@ -1174,9 +1174,9 @@ pub fn stress_test_document_store(num_docs: usize, ops_per_doc: usize) -> Stress
     let query_time = query_start.elapsed();
 
     println!(
-        "  Query returned {} documents in {:?}",
+        "  Query returned {} documents in {:.3} ms",
         results.len(),
-        query_time
+        query_time.as_secs_f64() * 1000.0
     );
 
     let total_time = start.elapsed();
@@ -1408,15 +1408,15 @@ pub async fn stress_test_scaling(max_replicas: usize, step_size: usize) {
     println!("\n╔════════════════════════════════════════════════════════════╗");
     println!("║                 SCALING SUMMARY                            ║");
     println!("╠════════════════════════════════════════════════════════════╣");
-    println!("║  Replicas │  Time (s) │   Ops/sec │ Avg Sync (µs)          ║");
+    println!("║  Replicas │  Time (s) │   Ops/sec │ Avg Sync (ms)          ║");
     println!("╠════════════════════════════════════════════════════════════╣");
     for (replicas, stats) in &results {
         println!(
-            "║  {:>7} │ {:>9.3} │ {:>9.0} │ {:>10.2}             ║",
+            "║  {:>7} │ {:>9.3} │ {:>9.0} │ {:>10.3}             ║",
             replicas,
             stats.total_time.as_secs_f64(),
             stats.ops_per_second,
-            stats.avg_sync_time.as_micros() as f64
+            stats.avg_sync_time.as_secs_f64() * 1000.0
         );
     }
     println!("╚════════════════════════════════════════════════════════════╝");
@@ -1461,10 +1461,7 @@ pub fn stress_test_all_db_crdts(num_replicas: usize, ops_per_replica: usize) {
         stress_test_rga_text(num_replicas, ops_per_replica),
         stress_test_rich_text(num_replicas, ops_per_replica),
         stress_test_json_crdt(num_replicas, ops_per_replica),
-        stress_test_document_store(
-            num_replicas * 5,
-            ops_per_replica / 2,
-        ),
+        stress_test_document_store(num_replicas * 5, ops_per_replica / 2),
     ];
 
     print_summary_table(&results);
@@ -1510,15 +1507,15 @@ fn print_summary_table(results: &[StressTestStats]) {
     println!("\n╔══════════════════════════════════════════════════════════════════════════╗");
     println!("║                          BENCHMARK SUMMARY                               ║");
     println!("╠══════════════════════════════════════════════════════════════════════════╣");
-    println!("║  Component       │  Time (s) │   Ops/sec │ Avg Sync (µs) │ Converged    ║");
+    println!("║  Component       │  Time (s) │   Ops/sec │ Avg Sync (ms) │ Converged    ║");
     println!("╠══════════════════════════════════════════════════════════════════════════╣");
     for stats in results {
         println!(
-            "║  {:14} │ {:>9.3} │ {:>9.0} │ {:>13.2} │ {:>12} ║",
+            "║  {:14} │ {:>9.3} │ {:>9.0} │ {:>13.3} │ {:>12} ║",
             stats.test_name,
             stats.total_time.as_secs_f64(),
             stats.ops_per_second,
-            stats.avg_sync_time.as_micros() as f64,
+            stats.avg_sync_time.as_secs_f64() * 1000.0,
             if stats.converged { "✓" } else { "✗" }
         );
     }

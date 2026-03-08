@@ -3,7 +3,7 @@
 //! This binary provides a command-line interface for running various
 //! stress tests and benchmarks for the MDCS crate family.
 
-use stress_test::{
+use carnelia::stress_test::{
     stress_test_all_core_crdts,
     stress_test_all_db_crdts,
     stress_test_document_store,
@@ -19,7 +19,6 @@ use stress_test::{
     stress_test_rich_text,
     stress_test_scaling,
 };
-pub mod stress_test;
 
 fn main() {
     let rt = tokio::runtime::Runtime::new().unwrap();
@@ -33,6 +32,7 @@ fn main() {
             "db" => run_db_tests(),
             "quick" => rt.block_on(run_quick_tests()),
             "full" => rt.block_on(run_full_suite()),
+            "tooling" => run_tooling_plan(),
             "scaling" => rt.block_on(run_scaling_analysis()),
             "help" | "--help" | "-h" => print_usage(),
             _ => {
@@ -59,6 +59,7 @@ fn print_usage() {
     println!("  db       - Database layer tests (RGAText, RichText, JsonCrdt)");
     println!("  scaling  - Scaling analysis with performance metrics");
     println!("  full     - Complete benchmark suite (takes longer)");
+    println!("  tooling  - Print perf/flamegraph/clippy/rustfmt/criterion plan");
     println!("  help     - Show this help message");
     println!();
     println!("Examples:");
@@ -67,7 +68,33 @@ fn print_usage() {
     println!("  cargo run core         # Run core CRDT tests");
     println!("  cargo run db           # Run database layer tests");
     println!("  cargo run full         # Run complete suite");
+    println!("  cargo run tooling      # Print tooling & profiling commands");
     println!();
+}
+
+fn run_tooling_plan() {
+    println!("\n╔════════════════════════════════════════════════════════════╗");
+    println!("║            TOOLING PLAN (PERF + QUALITY)                  ║");
+    println!("╚════════════════════════════════════════════════════════════╝\n");
+
+    println!("1) Formatting + lint gates:");
+    println!("   cargo fmt --all --check");
+    println!("   cargo clippy --workspace --lib --bins --tests --benches -- -D warnings\n");
+
+    println!("2) Criterion stress benchmarks:");
+    println!("   cargo bench -p carnelia --bench stress_core");
+    println!("   cargo bench -p carnelia --bench stress_db\n");
+
+    println!("3) Flamegraph (Linux/WSL, cargo-flamegraph required):");
+    println!("   cargo flamegraph -p carnelia --bin carnelia -- full\n");
+
+    println!("4) perf sampling (Linux/WSL):");
+    println!("   perf record -F 999 -- cargo run --release -- full");
+    println!("   perf report\n");
+
+    println!("5) Full stress logic path:");
+    println!("   cargo run --release -- full");
+    println!("   # then run criterion + flamegraph/perf to optimize hotspots\n");
 }
 
 async fn run_quick_tests() {
@@ -301,6 +328,13 @@ async fn run_full_suite() {
     println!("  ✓ All core CRDT tests passed");
     println!("  ✓ All database layer tests passed");
     println!("  ✓ Scaling analysis completed");
+    println!();
+    println!("  Tooling next steps:");
+    println!("    • cargo fmt --all --check");
+    println!("    • cargo clippy --workspace --lib --bins --tests --benches -- -D warnings");
+    println!("    • cargo bench -p carnelia --bench stress_core");
+    println!("    • cargo bench -p carnelia --bench stress_db");
+    println!("    • cargo run tooling   # perf/flamegraph command plan");
     println!();
     println!("  All tests verify:");
     println!("    • Idempotence: join(a, a) = a");

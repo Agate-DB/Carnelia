@@ -44,7 +44,10 @@ fn main() {
     println!("║             MDCS CRDT Benchmarks                       ║");
     println!("║  Port of dmonad/crdt-benchmarks                        ║");
     println!("╠══════════════════════════════════════════════════════════╣");
-    println!("║  N = {:<6}                                             ║", n);
+    println!(
+        "║  N = {:<6}                                             ║",
+        n
+    );
     if let Some(f) = only {
         println!("║  Filter: {:<48}║", f);
     }
@@ -110,7 +113,10 @@ fn run_filtered(filter: &str, n: usize) {
         "b3.4" => b3_many_conflicts::b3_4_insert_text_in_array(n),
 
         _ => {
-            eprintln!("Unknown filter: '{}'. Valid: b1, b1.1..b1.11, b2, b2.1..b2.4, b3, b3.1..b3.4", filter);
+            eprintln!(
+                "Unknown filter: '{}'. Valid: b1, b1.1..b1.11, b2, b2.1..b2.4, b3, b3.1..b3.4",
+                filter
+            );
             std::process::exit(1);
         }
     }

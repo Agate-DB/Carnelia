@@ -100,9 +100,7 @@ impl<T: Ord + Clone> ORSet<T> {
 
     /// Check whether `value` is present in the set (has at least one live tag).
     pub fn contains(&self, value: &T) -> bool {
-        self.entries
-            .get(value)
-            .is_some_and(|tags| !tags.is_empty())
+        self.entries.get(value).is_some_and(|tags| !tags.is_empty())
     }
 
     /// Iterate over all elements currently in the set.
@@ -120,7 +118,6 @@ impl<T: Ord + Clone> ORSet<T> {
         self.entries.is_empty()
     }
 }
-
 
 impl<T: Ord + Clone> Default for ORSet<T> {
     fn default() -> Self {

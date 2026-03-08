@@ -1,0 +1,7 @@
+[alias]
+fmt-check = "fmt --all --check"
+lint = "clippy --workspace --lib --bins --tests --benches -- -D warnings"
+stress-full = "run --release -- full"
+bench-core = "bench -p carnelia --bench stress_core"
+bench-db = "bench -p carnelia --bench stress_db"
+

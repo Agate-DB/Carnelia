@@ -53,7 +53,11 @@ unsafe impl GlobalAlloc for TrackingAllocator {
 /// Return current live-heap bytes according to the tracking allocator.
 pub fn allocated_bytes() -> usize {
     let v = ALLOCATED.load(Ordering::Relaxed);
-    if v < 0 { 0 } else { v as usize }
+    if v < 0 {
+        0
+    } else {
+        v as usize
+    }
 }
 
 /// Take a snapshot of allocated bytes, run `f`, and return the delta.
@@ -171,7 +175,11 @@ pub fn format_duration(d: Duration) -> String {
 
 /// Log a single benchmark result in the same format as crdt-benchmarks.
 pub fn log_result(test_name: &str, m: &BenchmarkMetrics) {
-    println!("[{}] (time)               {}", test_name, format_duration(m.time));
+    println!(
+        "[{}] (time)               {}",
+        test_name,
+        format_duration(m.time)
+    );
     if m.avg_update_size > 0 {
         println!(
             "[{}] (avgUpdateSize)      {} bytes",
@@ -189,10 +197,7 @@ pub fn log_result(test_name: &str, m: &BenchmarkMetrics) {
             test_name, m.doc_size_json
         );
     } else {
-        println!(
-            "[{}] (docSize:json)       n/a (non-string keys)",
-            test_name
-        );
+        println!("[{}] (docSize:json)       n/a (non-string keys)", test_name);
     }
     println!(
         "[{}] (docSize:bincode)    {} bytes",
