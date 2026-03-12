@@ -133,9 +133,8 @@ impl<T: Ord + Clone> Lattice for MVRegister<T> {
     fn join(&self, other: &Self) -> Self {
         let mut values = self.values.clone();
 
-        // Union all values from other
-        for (dot, value) in &other.values {
-            // Only insert if we don't already have a value with this dot
+        // Union all values from other with minimal cloning
+        for (dot, value) in other.values.iter() {
             values.entry(dot.clone()).or_insert_with(|| value.clone());
         }
 
