@@ -308,7 +308,7 @@ impl<T: Clone + PartialEq> RGAList<T> {
             .unwrap_or(children.len());
         children.insert(pos, id.clone());
 
-        // Ensure this node has a children entry
+        // Ensure this node has a children entry (reuse cloned id)
         self.children.entry(id).or_default();
     }
 
@@ -319,6 +319,11 @@ impl<T: Clone + PartialEq> RGAList<T> {
 
     /// Apply a delta from another replica.
     pub fn apply_delta(&mut self, delta: &RGAListDelta<T>) {
+        // Reserve capacity to avoid repeated HashMap reallocations during batch operations
+        self.nodes.reserve(delta.inserts.len());
+        // Also reserve for children (estimate: few unique origins per batch)
+        self.children.reserve((delta.inserts.len() / 4).max(1));
+
         // Apply inserts
         for node in &delta.inserts {
             if !self.nodes.contains_key(&node.id) {
