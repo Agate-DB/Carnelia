@@ -1,0 +1,125 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+pncounter_join/replicas_2
+                        time:   [323.00 ns 339.38 ns 360.17 ns]
+                        change: [-12.526% -8.7653% -4.0332%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 12 outliers among 100 measurements (12.00%)
+  5 (5.00%) high mild
+  7 (7.00%) high severe
+pncounter_join/replicas_5
+                        time:   [794.87 ns 828.18 ns 866.99 ns]
+                        change: [-19.515% -15.292% -11.378%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 10 outliers among 100 measurements (10.00%)
+  5 (5.00%) high mild
+  5 (5.00%) high severe
+pncounter_join/replicas_10
+                        time:   [1.6311 µs 1.6920 µs 1.7545 µs]
+                        change: [-23.121% -20.154% -17.175%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 14 outliers among 100 measurements (14.00%)
+  5 (5.00%) high mild
+  9 (9.00%) high severe
+pncounter_join/replicas_20
+                        time:   [3.6735 µs 3.7335 µs 3.8138 µs]
+                        change: [-19.609% -15.909% -12.226%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 12 outliers among 100 measurements (12.00%)
+  4 (4.00%) high mild
+  8 (8.00%) high severe
+
+gset_join/elements_100  time:   [2.1122 µs 2.1470 µs 2.1853 µs]
+                        change: [-18.903% -15.810% -12.831%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 13 outliers among 100 measurements (13.00%)
+  6 (6.00%) high mild
+  7 (7.00%) high severe
+gset_join/elements_500  time:   [12.817 µs 12.980 µs 13.180 µs]
+                        change: [-23.411% -20.928% -18.462%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 7 outliers among 100 measurements (7.00%)
+  4 (4.00%) high mild
+  3 (3.00%) high severe
+gset_join/elements_1000 time:   [28.942 µs 29.185 µs 29.467 µs]
+                        change: [-25.622% -22.452% -19.212%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 9 outliers among 100 measurements (9.00%)
+  4 (4.00%) high mild
+  5 (5.00%) high severe
+gset_join/elements_5000 time:   [257.55 µs 263.55 µs 270.82 µs]
+                        change: [-19.779% -16.604% -13.467%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 8 outliers among 100 measurements (8.00%)
+  5 (5.00%) high mild
+  3 (3.00%) high severe
+
+rga_list_apply_delta/inserts_10
+                        time:   [150.48 µs 157.80 µs 165.34 µs]
+                        change: [+27.099% +35.454% +44.527%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 4 outliers among 100 measurements (4.00%)
+  1 (1.00%) low mild
+  3 (3.00%) high mild
+rga_list_apply_delta/inserts_50
+                        time:   [307.70 µs 314.69 µs 322.28 µs]
+                        change: [+31.547% +37.724% +44.457%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+rga_list_apply_delta/inserts_100
+                        time:   [217.02 µs 226.61 µs 237.84 µs]
+                        change: [-11.095% -5.2248% +1.5376%] (p = 0.12 > 0.05)
+                        No change in performance detected.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+rga_list_apply_delta/inserts_500
+                        time:   [669.90 µs 701.60 µs 741.33 µs]
+                        change: [-19.000% -14.827% -9.8604%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 15 outliers among 100 measurements (15.00%)
+  8 (8.00%) high mild
+  7 (7.00%) high severe
+rga_list_apply_delta/inserts_1000
+                        time:   [1.2885 ms 1.3149 ms 1.3447 ms]
+                        change: [-19.263% -16.656% -14.126%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 6 outliers among 100 measurements (6.00%)
+  5 (5.00%) high mild
+  1 (1.00%) high severe
+
+merkle_topo_order/nodes_100
+                        time:   [172.23 ns 193.45 ns 211.50 ns]
+                        change: [-17.157% -9.5752% -0.8048%] (p = 0.04 < 0.05)
+                        Change within noise threshold.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+merkle_topo_order/nodes_500
+                        time:   [633.72 ns 667.96 ns 704.05 ns]
+                        change: [+8.7812% +23.655% +39.896%] (p = 0.01 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) low mild
+merkle_topo_order/nodes_1000
+                        time:   [1.8679 µs 2.1831 µs 2.3838 µs]
+                        change: [+8.5814% +25.449% +45.077%] (p = 0.02 < 0.05)
+                        Performance has regressed.
+
+merkle_cache_sequential_hits
+                        time:   [10.978 µs 11.662 µs 12.437 µs]
+                        change: [+87.418% +101.71% +116.71%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 6 outliers among 100 measurements (6.00%)
+  5 (5.00%) high mild
+  1 (1.00%) high severe
+
+large_pncounter_merge_50_replicas
+                        time:   [16.659 µs 17.869 µs 19.293 µs]
+                        change: [+11.049% +23.719% +34.482%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+
