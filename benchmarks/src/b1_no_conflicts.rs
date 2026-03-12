@@ -166,7 +166,7 @@ pub fn b1_4_insert_n_chars_random(n: usize) {
     let mut doc = TextDoc::new("b1_4", "Alice");
 
     for i in 0..n {
-        let pos = if doc.len() == 0 {
+        let pos = if doc.is_empty() {
             0
         } else {
             rng.gen_range(0..=doc.len())
@@ -209,7 +209,7 @@ pub fn b1_5_insert_n_words_random(n: usize) {
 
     for _ in 0..n {
         let word = random_word(&mut rng);
-        let pos = if doc.len() == 0 {
+        let pos = if doc.is_empty() {
             0
         } else {
             rng.gen_range(0..=doc.len())
@@ -429,7 +429,7 @@ pub fn b1_11_insert_n_numbers_random(n: usize) {
     let mut list = RGAList::<i64>::new("Alice");
 
     for i in 0..n {
-        let pos = if list.len() == 0 {
+        let pos = if list.is_empty() {
             0
         } else {
             rng.gen_range(0..=list.len())

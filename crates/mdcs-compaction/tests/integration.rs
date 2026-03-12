@@ -327,7 +327,7 @@ fn test_rebuild_matches_full_replay() {
     let mut full_replay_state: i64 = 0;
 
     // Create operations
-    let ops = vec![
+    let ops = [
         b"inc:5".to_vec(),
         b"inc:3".to_vec(),
         b"dec:2".to_vec(),

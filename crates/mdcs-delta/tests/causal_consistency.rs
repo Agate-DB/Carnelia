@@ -125,7 +125,7 @@ fn test_crash_loses_volatile_state() {
 
     // r0 creates mutations
     for i in 1..=5 {
-        let val = i as i32;
+        let val = i;
         cluster.mutate(0, move |_| {
             let mut d = GSet::new();
             d.insert(val);
@@ -260,7 +260,7 @@ fn test_concurrent_mutations() {
     // All 40 elements should be present
     for replica_idx in 0..4 {
         for j in 0..10 {
-            let val = (replica_idx * 100 + j) as i32;
+            let val = replica_idx * 100 + j;
             assert!(
                 cluster.replica(0).state().contains(&val),
                 "Missing value {} from replica {}",
@@ -439,7 +439,7 @@ fn test_snapshot_bootstrap() {
 
     // Populate with data
     for i in 0..100 {
-        let val = i as i32;
+        let val = i;
         cluster.mutate(0, move |_| {
             let mut d = GSet::new();
             d.insert(val);

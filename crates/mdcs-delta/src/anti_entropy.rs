@@ -490,7 +490,7 @@ mod tests {
         for i in 0..4 {
             for j in 0..4 {
                 for k in 0..5 {
-                    let val = (j * 10 + k) as i32;
+                    let val = j * 10 + k;
                     assert!(
                         cluster.replica(i).state().contains(&val),
                         "Replica {} missing value {}",

@@ -83,7 +83,7 @@ fn test_gset_convergence_chaotic_network() {
         AntiEntropyCluster::new(5, NetworkConfig::chaotic());
 
     // Multiple concurrent additions
-    let items = vec!["alpha", "beta", "gamma", "delta", "epsilon"];
+    let items = ["alpha", "beta", "gamma", "delta", "epsilon"];
     for (i, item) in items.iter().enumerate() {
         let item_owned = item.to_string();
         cluster.mutate(i, move |_| gset::insert_delta(item_owned));

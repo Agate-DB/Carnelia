@@ -14,8 +14,6 @@ use mdcs_core::orset::ORSet;
 use mdcs_core::pncounter::PNCounter;
 use proptest::prelude::*;
 
-/// Generate strategies for prop-testing
-
 fn gset_i32_strategy() -> impl Strategy<Value = GSet<i32>> {
     prop::collection::btree_set(0i32..100, 0..20).prop_map(|elements| {
         let mut set = GSet::new();
