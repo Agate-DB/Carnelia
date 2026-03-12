@@ -63,7 +63,16 @@ Configuration for a `Client` instance.
 | `auto_reconnect` | `bool` | `true` | Enable automatic reconnection |
 | `max_reconnect_attempts` | `u32` | `5` | Max reconnection attempts |
 
-Built via `ClientConfigBuilder`:
+`ClientConfig` also implements `Default` directly and can be used with struct update syntax:
+
+```rust
+ClientConfig {
+    user_name: "Alice".to_string(),
+    ..Default::default()
+}
+```
+
+Or via `ClientConfigBuilder`:
 
 ```rust
 ClientConfigBuilder::new()
@@ -143,8 +152,8 @@ All methods from `TextDoc` plus:
 
 | Method | Signature | Notes |
 |--------|-----------|-------|
-| `format` | `(&mut self, start: usize, end: usize, mark: MarkType)` | Applies formatting mark via `add_mark` |
-| `unformat_by_id` | `(&mut self, mark_id: &MarkId)` | Removes a specific mark |
+| `format` | `(&mut self, start: usize, end: usize, mark: MarkType)` | Applies formatting mark via `add_mark`; **does not emit a `DocEvent`** (unlike `insert`/`delete`) |
+| `unformat_by_id` | `(&mut self, mark_id: &mdcs_db::rich_text::MarkId)` | Removes a specific mark by ID; return value (`bool`) is discarded |
 | `get_text` | `(&self) -> String` | Plain-text projection |
 | `get_content` | `(&self) -> String` | Alias for `get_text` |
 
@@ -213,7 +222,7 @@ Wire protocol message enum (`Serialize`, `Deserialize`).
 
 ### `Peer` & `PeerId`
 
-- `PeerId` — newtype around `String`. Implements `Display`, `Serialize`, `Deserialize`.
+- `PeerId` — newtype around `String` with a **public inner field** `pub struct PeerId(pub String)`. Access the raw string via `.0`. Implements `Display`, `Serialize`, `Deserialize`.
 - `Peer` — `{ id: PeerId, name: String, state: PeerState }`
 - `PeerState` — `Disconnected | Connecting | Connected`
 
@@ -234,7 +243,7 @@ Groups documents and peers under a named collaborative session. Owns an `Awarene
 
 | Method | Signature | Notes |
 |--------|-----------|-------|
-| `new` | `(session_id, local_peer_id, user_name, transport: Arc<T>) -> Self` | Creates `Awareness` from peer_id + user_name |
+| `new` | `(session_id, local_peer_id, user_name, transport: Arc<T>) -> Self` | Creates `Awareness` using `local_peer_id.0` (the inner string) as the awareness user_id. Most callers should use `Client::create_session` instead. |
 | `session_id` | `(&self) -> &str` | |
 | `local_peer_id` | `(&self) -> &PeerId` | |
 | `user_name` | `(&self) -> &str` | |
@@ -432,7 +441,7 @@ These are current implementation gaps identified in the source:
 
 1. **`apply_remote()` is a stub** — On all document types (`TextDoc`, `RichTextDoc`, `JsonDoc`), `apply_remote()` emits a `DocEvent::RemoteUpdate` event but does **not** deserialize or apply the delta bytes. Use `merge()` with a cloned document state for actual CRDT integration.
 
-2. **`uuid_simple()` is not a proper UUID** — `Client::new_with_memory_transport` generates peer IDs using nanosecond timestamps formatted as hex, not RFC 4122 UUIDs. Collisions are possible under high-frequency creation.
+2. **`uuid_simple()` is not a proper UUID** — `Client::new_with_memory_transport` generates peer IDs as `"peer-{hex_nanoseconds}"` (e.g. `"peer-17c3a9f2b1d"`), not RFC 4122 UUIDs. Collisions are possible under high-frequency creation. By contrast, `create_network(n)` uses sequential IDs `"peer-0"`, `"peer-1"`, etc.
 
 3. **`MemoryTransport::subscribe()` is single-use** — The receiver is stored in an `Option` and consumed on first call. A second call will panic.
 
