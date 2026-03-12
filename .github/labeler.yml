@@ -113,24 +113,24 @@ hotfix:
 
 source:
   - changed-files:
-    - any-glob-to-any-file: 'src/**/*'
-    - all-globs-to-all-files: '!src/docs/*'
+      - any-glob-to-any-file: 'src/**/*'
+      - all-globs-to-all-files: '!src/docs/*'
 
 crates-only:
   - changed-files:
-    - any-glob-to-all-files: 'crates/**'
+      - any-glob-to-all-files: 'crates/**'
 
 cross-crate-change:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'crates/mdcs-core/**'
-      - 'crates/mdcs-delta/**'
+      - any-glob-to-any-file:
+          - 'crates/mdcs-core/**'
+          - 'crates/mdcs-delta/**'
 
 needs-updating:
   - head-branch: '^dependabot'
 
 merge conflict:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.rej'
-      - '**/*.orig'
+      - any-glob-to-any-file:
+          - '**/*.rej'
+          - '**/*.orig'
