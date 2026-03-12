@@ -1405,9 +1405,11 @@ name = "mdcs-benchmarks"
 version = "0.1.0"
 dependencies = [
  "bincode",
+ "criterion",
  "mdcs-core",
  "mdcs-db",
  "mdcs-delta",
+ "mdcs-merkle",
  "mdcs-sdk",
  "postcard",
  "rand 0.8.5",

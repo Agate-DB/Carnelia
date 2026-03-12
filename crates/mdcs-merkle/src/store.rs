@@ -100,6 +100,10 @@ pub struct MemoryDAGStore {
 
     /// Referenced but missing nodes.
     missing: HashSet<Hash>,
+
+    /// Cached topological order (invalidated on put/put_unchecked).
+    #[serde(skip)]
+    cached_topo_order: std::cell::RefCell<Option<Vec<Hash>>>,
 }
 
 impl MemoryDAGStore {
@@ -110,6 +114,7 @@ impl MemoryDAGStore {
             heads: HashSet::new(),
             children_index: HashMap::new(),
             missing: HashSet::new(),
+            cached_topo_order: std::cell::RefCell::new(None),
         }
     }
 
@@ -230,6 +235,9 @@ impl DAGStore for MemoryDAGStore {
         // Store the node
         self.nodes.insert(cid, node);
 
+        // Invalidate topological order cache
+        self.cached_topo_order.borrow_mut().take();
+
         Ok(cid)
     }
 
@@ -272,6 +280,9 @@ impl DAGStore for MemoryDAGStore {
         // Store the node
         self.nodes.insert(cid, node);
 
+        // Invalidate topological order cache
+        self.cached_topo_order.borrow_mut().take();
+
         Ok(cid)
     }
 
@@ -312,6 +323,14 @@ impl DAGStore for MemoryDAGStore {
     }
 
     fn topological_order(&self) -> Vec<Hash> {
+        // Check cache first
+        {
+            let cached = self.cached_topo_order.borrow();
+            if let Some(order) = cached.as_ref() {
+                return order.clone();
+            }
+        }
+
         // Kahn's algorithm for topological sort
         let mut in_degree: HashMap<Hash, usize> = HashMap::new();
         let mut result = Vec::new();
@@ -347,6 +366,8 @@ impl DAGStore for MemoryDAGStore {
             }
         }
 
+        // Cache the result
+        self.cached_topo_order.borrow_mut().replace(result.clone());
         result
     }
 
