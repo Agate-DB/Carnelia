@@ -1,0 +1,136 @@
+root:
+  - changed-files:
+      - any-glob-to-any-file: '*'
+
+AnyChange:
+  - changed-files:
+      - any-glob-to-any-file: '**'
+
+Documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'README.md'
+          - 'docs/**'
+          - '**/*.md'
+
+CI:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/actions/**'
+          - '.github/labeler.yml'
+
+Rust:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.rs'
+          - '**/Cargo.toml'
+          - 'Cargo.lock'
+
+Workspace:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'Cargo.toml'
+          - 'src/**'
+          - 'apps/**'
+
+core:
+  - changed-files:
+      - any-glob-to-any-file: 'crates/mdcs-core/**'
+
+delta:
+  - changed-files:
+      - any-glob-to-any-file: 'crates/mdcs-delta/**'
+
+db:
+  - changed-files:
+      - any-glob-to-any-file: 'crates/mdcs-db/**'
+
+merkle:
+  - changed-files:
+      - any-glob-to-any-file: 'crates/mdcs-merkle/**'
+
+sdk:
+  - changed-files:
+      - any-glob-to-any-file: 'crates/mdcs-sdk/**'
+
+compaction:
+  - changed-files:
+      - any-glob-to-any-file: 'crates/mdcs-compaction/**'
+
+wasm:
+  - changed-files:
+      - any-glob-to-any-file: 'crates/mdcs-wasm/**'
+
+Benchmarks:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'benchmarks/**'
+          - 'benches/**'
+
+Examples:
+  - changed-files:
+      - any-glob-to-any-file: 'examples/**'
+
+Scripts:
+  - changed-files:
+      - any-glob-to-any-file: 'scripts/**'
+
+Content:
+  - changed-files:
+      - any-glob-to-any-file: 'content/**'
+
+Dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/Cargo.toml'
+          - 'Cargo.lock'
+          - 'content/package.json'
+          - 'content/pnpm-lock.yaml'
+
+feature:
+  - head-branch:
+      - '^feature'
+      - 'feature'
+
+bugfix:
+  - head-branch:
+      - '^fix'
+      - '^bugfix'
+      - 'bugfix'
+
+release:
+  - base-branch:
+      - '^main$'
+
+release-branch:
+  - head-branch:
+      - '^release'
+
+hotfix:
+  - head-branch:
+      - '^hotfix'
+
+source:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*'
+    - all-globs-to-all-files: '!src/docs/*'
+
+crates-only:
+  - changed-files:
+    - any-glob-to-all-files: 'crates/**'
+
+cross-crate-change:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'crates/mdcs-core/**'
+      - 'crates/mdcs-delta/**'
+
+needs-updating:
+  - head-branch: '^dependabot'
+
+merge conflict:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.rej'
+      - '**/*.orig'
