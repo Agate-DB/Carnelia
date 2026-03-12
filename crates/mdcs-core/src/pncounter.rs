@@ -89,7 +89,7 @@ impl<K: Ord + Clone> Lattice for PNCounter<K> {
         let mut increments = self.increments.clone();
         let mut decrements = self.decrements.clone();
 
-        // Merge counters in a single pass (avoid cloning k which is already K)
+        // Merge counters by taking the per-replica maximum from `other` into this replica
         for (k, v) in &other.increments {
             increments
                 .entry(k.clone())
