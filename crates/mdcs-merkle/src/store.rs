@@ -7,6 +7,7 @@ use crate::hash::Hash;
 use crate::node::MerkleNode;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
+use std::sync::RwLock;
 
 /// Errors that can occur during DAG operations.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -87,7 +88,7 @@ pub trait DAGStore {
 }
 
 /// In-memory implementation of DAGStore.
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct MemoryDAGStore {
     /// All nodes indexed by CID.
     nodes: HashMap<Hash, MerkleNode>,
@@ -103,7 +104,25 @@ pub struct MemoryDAGStore {
 
     /// Cached topological order (invalidated on put/put_unchecked).
     #[serde(skip)]
-    cached_topo_order: std::cell::RefCell<Option<Vec<Hash>>>,
+    cached_topo_order: RwLock<Option<Vec<Hash>>>,
+}
+
+impl Clone for MemoryDAGStore {
+    fn clone(&self) -> Self {
+        let cached_topo_order = self
+            .cached_topo_order
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone();
+
+        Self {
+            nodes: self.nodes.clone(),
+            heads: self.heads.clone(),
+            children_index: self.children_index.clone(),
+            missing: self.missing.clone(),
+            cached_topo_order: RwLock::new(cached_topo_order),
+        }
+    }
 }
 
 impl MemoryDAGStore {
@@ -114,7 +133,7 @@ impl MemoryDAGStore {
             heads: HashSet::new(),
             children_index: HashMap::new(),
             missing: HashSet::new(),
-            cached_topo_order: std::cell::RefCell::new(None),
+            cached_topo_order: RwLock::new(None),
         }
     }
 
@@ -236,7 +255,10 @@ impl DAGStore for MemoryDAGStore {
         self.nodes.insert(cid, node);
 
         // Invalidate topological order cache
-        self.cached_topo_order.borrow_mut().take();
+        self.cached_topo_order
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .take();
 
         Ok(cid)
     }
@@ -281,7 +303,10 @@ impl DAGStore for MemoryDAGStore {
         self.nodes.insert(cid, node);
 
         // Invalidate topological order cache
-        self.cached_topo_order.borrow_mut().take();
+        self.cached_topo_order
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .take();
 
         Ok(cid)
     }
@@ -325,7 +350,10 @@ impl DAGStore for MemoryDAGStore {
     fn topological_order(&self) -> Vec<Hash> {
         // Check cache first
         {
-            let cached = self.cached_topo_order.borrow();
+            let cached = self
+                .cached_topo_order
+                .read()
+                .unwrap_or_else(|e| e.into_inner());
             if let Some(order) = cached.as_ref() {
                 return order.clone();
             }
@@ -367,7 +395,10 @@ impl DAGStore for MemoryDAGStore {
         }
 
         // Cache the result
-        self.cached_topo_order.borrow_mut().replace(result.clone());
+        self.cached_topo_order
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .replace(result.clone());
         result
     }
 
@@ -394,6 +425,12 @@ pub struct DAGStats {
 mod tests {
     use super::*;
     use crate::node::{NodeBuilder, Payload};
+
+    #[test]
+    fn test_memory_store_is_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+        assert_send_sync::<MemoryDAGStore>();
+    }
 
     #[test]
     fn test_genesis_store() {

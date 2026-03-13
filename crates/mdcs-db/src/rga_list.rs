@@ -319,10 +319,26 @@ impl<T: Clone + PartialEq> RGAList<T> {
 
     /// Apply a delta from another replica.
     pub fn apply_delta(&mut self, delta: &RGAListDelta<T>) {
-        // Reserve capacity to avoid repeated HashMap reallocations during batch operations
-        self.nodes.reserve(delta.inserts.len());
-        // Also reserve for children (estimate: few unique origins per batch)
-        self.children.reserve((delta.inserts.len() / 4).max(1));
+        // Estimate how many entries are truly new before reserving.
+        // This avoids allocating proportional to raw delta size when inserts are duplicates.
+        let mut new_nodes = 0usize;
+        let mut new_origins = 0usize;
+
+        for node in &delta.inserts {
+            if !self.nodes.contains_key(&node.id) {
+                new_nodes += 1;
+                if !self.children.contains_key(&node.origin) {
+                    new_origins += 1;
+                }
+            }
+        }
+
+        if new_nodes > 0 {
+            self.nodes.reserve(new_nodes);
+        }
+        if new_origins > 0 {
+            self.children.reserve(new_origins);
+        }
 
         // Apply inserts
         for node in &delta.inserts {
