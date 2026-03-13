@@ -48,8 +48,8 @@ fn gset_join_benchmark(c: &mut Criterion) {
                 let mut set2 = GSet::<i32>::new();
 
                 for i in 0..(element_count / 2) {
-                    set1.insert(i as i32);
-                    set2.insert((i + element_count / 4) as i32);
+                    set1.insert(i);
+                    set2.insert(i + element_count / 4);
                 }
 
                 b.iter(|| {
