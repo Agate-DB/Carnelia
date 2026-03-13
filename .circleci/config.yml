@@ -76,14 +76,14 @@ jobs:
 
       - run:
           name: Benchmark stress_core with coverage
-          command: cargo llvm-cov bench -p carnelia --bench stress_core --lcov --output-path coverage_stress_core.lcov
+          command: cargo llvm-cov test -p carnelia --bench stress_core --lcov --output-path coverage_stress_core.lcov
       - codecov/upload:
           files: coverage_stress_core.lcov
           flags: stress_core
 
       - run:
           name: Benchmark stress_db with coverage
-          command: cargo llvm-cov bench -p carnelia --bench stress_db --lcov --output-path coverage_stress_db.lcov
+          command: cargo llvm-cov test -p carnelia --bench stress_db --lcov --output-path coverage_stress_db.lcov
       - codecov/upload:
           files: coverage_stress_db.lcov
           flags: stress_db
