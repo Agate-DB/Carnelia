@@ -20,95 +20,50 @@ jobs:
           command: cargo install cargo-llvm-cov
 
       - run:
-          name: Create JUnit helper
-          command: |
-            cat > /tmp/run_with_junit.sh <<'EOF'
-            #!/usr/bin/env bash
-            set -uo pipefail
-
-            suite_name="$1"
-            xml_path="$2"
-            shift 2
-
-            mkdir -p "$(dirname "$xml_path")"
-
-            if "$@"; then
-              failures=0
-            else
-              failures=1
-            fi
-
-            if [ "$failures" -eq 0 ]; then
-              cat > "$xml_path" <<XML
-            <?xml version="1.0" encoding="UTF-8"?>
-            <testsuites tests="1" failures="0">
-              <testsuite name="$suite_name" tests="1" failures="0">
-                <testcase classname="cargo" name="$suite_name"/>
-              </testsuite>
-            </testsuites>
-            XML
-            else
-              cat > "$xml_path" <<XML
-            <?xml version="1.0" encoding="UTF-8"?>
-            <testsuites tests="1" failures="1">
-              <testsuite name="$suite_name" tests="1" failures="1">
-                <testcase classname="cargo" name="$suite_name">
-                  <failure message="Command failed">Coverage test command failed for $suite_name</failure>
-                </testcase>
-              </testsuite>
-            </testsuites>
-            XML
-            fi
-
-            exit "$failures"
-            EOF
-            chmod +x /tmp/run_with_junit.sh
-
-      - run:
           name: Run workspace tests with coverage
-          command: /tmp/run_with_junit.sh workspace test-results/workspace-results.xml cargo llvm-cov test --workspace --lcov --output-path coverage_workspace.lcov
+          command: cargo llvm-cov test --workspace --lcov --output-path coverage_workspace.lcov
       - codecov/upload:
           files: coverage_workspace.lcov
           flags: workspace
 
       - run:
           name: Run specific crate tests - core
-          command: /tmp/run_with_junit.sh mdcs-core test-results/core-results.xml cargo llvm-cov test -p mdcs-core --lcov --output-path coverage_core.lcov
+          command: cargo llvm-cov test -p mdcs-core --lcov --output-path coverage_core.lcov
       - codecov/upload:
           files: coverage_core.lcov
           flags: mdcs-core
 
       - run:
           name: Run specific crate tests - delta
-          command: /tmp/run_with_junit.sh mdcs-delta test-results/delta-results.xml cargo llvm-cov test -p mdcs-delta --lcov --output-path coverage_delta.lcov
+          command: cargo llvm-cov test -p mdcs-delta --lcov --output-path coverage_delta.lcov
       - codecov/upload:
           files: coverage_delta.lcov
           flags: mdcs-delta
 
       - run:
           name: Run specific crate tests - merkle
-          command: /tmp/run_with_junit.sh mdcs-merkle test-results/merkle-results.xml cargo llvm-cov test -p mdcs-merkle --lcov --output-path coverage_merkle.lcov
+          command: cargo llvm-cov test -p mdcs-merkle --lcov --output-path coverage_merkle.lcov
       - codecov/upload:
           files: coverage_merkle.lcov
           flags: mdcs-merkle
 
       - run:
           name: Run specific crate tests - compaction
-          command: /tmp/run_with_junit.sh mdcs-compaction test-results/compaction-results.xml cargo llvm-cov test -p mdcs-compaction --lcov --output-path coverage_compaction.lcov
+          command: cargo llvm-cov test -p mdcs-compaction --lcov --output-path coverage_compaction.lcov
       - codecov/upload:
           files: coverage_compaction.lcov
           flags: mdcs-compaction
 
       - run:
           name: Run specific crate tests - db
-          command: /tmp/run_with_junit.sh mdcs-db test-results/db-results.xml cargo llvm-cov test -p mdcs-db --lcov --output-path coverage_db.lcov
+          command: cargo llvm-cov test -p mdcs-db --lcov --output-path coverage_db.lcov
       - codecov/upload:
           files: coverage_db.lcov
           flags: mdcs-db
 
       - run:
           name: Run specific crate tests - sdk
-          command: /tmp/run_with_junit.sh mdcs-sdk test-results/sdk-results.xml cargo llvm-cov test -p mdcs-sdk --lcov --output-path coverage_sdk.lcov
+          command: cargo llvm-cov test -p mdcs-sdk --lcov --output-path coverage_sdk.lcov
       - codecov/upload:
           files: coverage_sdk.lcov
           flags: mdcs-sdk
@@ -125,20 +80,17 @@ jobs:
 
       - run:
           name: Benchmark stress_core with coverage
-          command: cargo llvm-cov bench -p carnelia --bench stress_core --lcov --output-path coverage_stress_core.lcov || true
+          command: cargo llvm-cov bench -p carnelia --bench stress_core --lcov --output-path coverage_stress_core.lcov
       - codecov/upload:
           files: coverage_stress_core.lcov
           flags: stress_core
 
       - run:
           name: Benchmark stress_db with coverage
-          command: cargo llvm-cov bench -p carnelia --bench stress_db --lcov --output-path coverage_stress_db.lcov || true
+          command: cargo llvm-cov bench -p carnelia --bench stress_db --lcov --output-path coverage_stress_db.lcov
       - codecov/upload:
           files: coverage_stress_db.lcov
           flags: stress_db
-
-      - store_test_results:
-          path: test-results
 
       - save_cache:
           key: cargo-{{ checksum "Cargo.lock" }}

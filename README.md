@@ -903,94 +903,11 @@ a ⊔ ⊥ = a                        // Bottom is identity
 
 ---
 
-## Project Structure Overview
-
-```txt
-mdcs/
-├── crates/
-│   ├── mdcs-core/           # Phase 1: CRDT kernel ✓
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── lattice.rs   # Join-semilattice trait
-│   │   │   ├── gset.rs      # Grow-only set
-│   │   │   ├── pncounter.rs # PN-Counter
-│   │   │   ├── orset.rs     # Observed-Remove Set
-│   │   │   ├── lwwreg.rs    # Last-Writer-Wins Register
-│   │   │   ├── mvreg.rs     # Multi-Value Register
-│   │   │   └── map.rs       # CRDT Map composition
-│   │   └── tests/
-│   │
-│   ├── mdcs-delta/          # Phase 2-3: Delta-state layer ✓
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── mutators.rs  # Delta-mutators for each type
-│   │   │   ├── buffer.rs    # Delta buffer & grouping
-│   │   │   └── anti_entropy.rs  # Sync protocol
-│   │   └── tests/
-│   │
-│   ├── mdcs-merkle/         # Phase 4: Merkle-Clock ✓
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── hash.rs      # Content-addressed hashing
-│   │   │   ├── node.rs      # DAG node structure
-│   │   │   ├── store.rs     # DAG storage & operations
-│   │   │   ├── syncer.rs    # DAGSyncer reconciliation
-│   │   │   └── broadcaster.rs  # Gossip protocol
-│   │   └── tests/
-│   │
-│   ├── mdcs-compaction/     # Phase 5: Compaction & Stability ✓
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── version_vector.rs  # Compact causal context
-│   │   │   ├── stability.rs # Stability monitoring
-│   │   │   ├── snapshot.rs  # Snapshot management
-│   │   │   ├── pruning.rs   # Safe DAG pruning
-│   │   │   └── compactor.rs # High-level orchestration
-│   │   └── tests/
-│   │
-│   ├── mdcs-db/             # Phase 6: Database layer ✓
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── error.rs     # Error types
-│   │   │   ├── rga_list.rs  # Replicated Growable Array
-│   │   │   ├── rga_text.rs  # Collaborative text CRDT
-│   │   │   ├── rich_text.rs # Rich text with formatting
-│   │   │   ├── json_crdt.rs # Automerge-like nested JSON
-│   │   │   ├── document.rs  # Document store API
-│   │   │   ├── presence.rs  # Cursor & presence tracking
-│   │   │   └── undo.rs      # Undo/redo system
-│   │   └── tests/
-│   │
-│   ├── mdcs-sdk/            # High-level SDK ✓
-│   │   ├── src/
-│   │   │   ├── lib.rs
-│   │   │   ├── client.rs    # Client entry point
-│   │   │   ├── session.rs   # Session management
-│   │   │   ├── document.rs  # TextDoc, RichTextDoc, JsonDoc
-│   │   │   ├── presence.rs  # Awareness system
-│   │   │   ├── network.rs   # Network transport
-│   │   │   ├── sync.rs      # Sync configuration
-│   │   │   └── error.rs     # SDK errors
-│   │   └── README.md
-│   │
-│   └── mdcs-sim/            # Testing infrastructure (planned)
-│       ├── src/
-│       │   ├── lib.rs
-│       │   ├── network.rs   # Simulated network
-│       │   ├── faults.rs    # Fault injection
-│       │   └── oracle.rs    # Reference interpreter
-│       └── tests/
-│
-├── benches/                 # Criterion benchmarks
-├── examples/                # Usage examples
-└── docs/                    # Documentation
-```
-
 
 ## Structure
 [![Structure](https://images.repography.com/113178227/Agate-DB/Carnelia/structure/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/Bjjp-K089oDIUY_Kl8OjXawkxfvHk1T_5hrlb6A9Emo_table.svg)](https://github.com/Agate-DB/Carnelia)
 
-![codecov][https://codecov.io/github/Agate-DB/Carnelia/graphs/tree.svg?token=M6PR3ORECL]
+![codecov](https://codecov.io/github/Agate-DB/Carnelia/graphs/tree.svg?token=M6PR3ORECL)
 
 ---
 
