@@ -1,20 +1,20 @@
 [package]
 name = "mdcs-merkle"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
 description = "Merkle-Clock DAG for causal history tracking in the Carnelia MDCS"
 license = "GPL-3.0"
 repository = "https://github.com/Agate-DB/Carnelia"
-homepage = "https://suvangs.tech"
+homepage = "https://docs.carnelia.dev"
 keywords = ["Merkle-Clock", "DAG", "causal", "CRDT", "distributed"]
 categories = ["data-structures"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 sha2 = "0.10"
-mdcs-core = { path = "../mdcs-core", version = "0.1.1" }
-mdcs-delta = { path = "../mdcs-delta", version = "0.1.1" }
+mdcs-core = { path = "../mdcs-core", version = "0.1.2" }
+mdcs-delta = { path = "../mdcs-delta", version = "0.1.2 }
 
 [dev-dependencies]
 proptest = "1.0"
