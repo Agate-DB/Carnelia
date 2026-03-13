@@ -5,7 +5,7 @@ orbs:
 jobs:
   test-rust:
     docker:
-      - image: cimg/rust:1.76.0
+      - image: cimg/rust:1.94.0
     resource_class: large
     steps:
       - checkout
@@ -15,38 +15,41 @@ jobs:
           name: Install cargo-llvm-cov
           command: cargo install cargo-llvm-cov
       - run:
+          name: Install cargo2junit
+          command: cargo install cargo2junit
+      - run:
           name: Run workspace tests with coverage
-          command: cargo llvm-cov test --workspace --lcov --output-path coverage_workspace.lcov || true
+          command: mkdir -p test-results && cargo llvm-cov test --workspace --lcov --output-path coverage_workspace.lcov -- -Z unstable-options --format json | cargo2junit > test-results/workspace-results.xml || true
       - codecov/upload:
           flags: workspace
       - run:
           name: Run specific crate tests - core
-          command: cargo llvm-cov test -p mdcs-core --lcov --output-path coverage_core.lcov
+          command: cargo llvm-cov test -p mdcs-core --lcov --output-path coverage_core.lcov -- -Z unstable-options --format json | cargo2junit > test-results/core-results.xml || true
       - codecov/upload:
           flags: mdcs-core
       - run:
           name: Run specific crate tests - delta
-          command: cargo llvm-cov test -p mdcs-delta --lcov --output-path coverage_delta.lcov || true
+          command: cargo llvm-cov test -p mdcs-delta --lcov --output-path coverage_delta.lcov -- -Z unstable-options --format json | cargo2junit > test-results/delta-results.xml || true
       - codecov/upload:
           flags: mdcs-delta
       - run:
           name: Run specific crate tests - merkle
-          command: cargo llvm-cov test -p mdcs-merkle --lcov --output-path coverage_merkle.lcov || true
+          command: cargo llvm-cov test -p mdcs-merkle --lcov --output-path coverage_merkle.lcov -- -Z unstable-options --format json | cargo2junit > test-results/merkle-results.xml || true
       - codecov/upload:
           flags: mdcs-merkle
       - run:
           name: Run specific crate tests - compaction
-          command: cargo llvm-cov test -p mdcs-compaction --lcov --output-path coverage_compaction.lcov || true
+          command: cargo llvm-cov test -p mdcs-compaction --lcov --output-path coverage_compaction.lcov -- -Z unstable-options --format json | cargo2junit > test-results/compaction-results.xml || true
       - codecov/upload:
           flags: mdcs-compaction
       - run:
           name: Run specific crate tests - db
-          command: cargo llvm-cov test -p mdcs-db --lcov --output-path coverage_db.lcov || true
+          command: cargo llvm-cov test -p mdcs-db --lcov --output-path coverage_db.lcov -- -Z unstable-options --format json | cargo2junit > test-results/db-results.xml || true
       - codecov/upload:
           flags: mdcs-db
       - run:
           name: Run specific crate tests - sdk
-          command: cargo llvm-cov test -p mdcs-sdk --lcov --output-path coverage_sdk.lcov || true
+          command: cargo llvm-cov test -p mdcs-sdk --lcov --output-path coverage_sdk.lcov -- -Z unstable-options --format json | cargo2junit > test-results/sdk-results.xml || true
       - codecov/upload:
           flags: mdcs-sdk
       - run:
@@ -68,6 +71,8 @@ jobs:
           command: cargo llvm-cov bench -p carnelia --bench stress_db --lcov --output-path coverage_stress_db.lcov || true
       - codecov/upload:
           flags: stress_db
+      - store_test_results:
+          path: test-results
       - save_cache:
           key: cargo-{{ checksum "Cargo.lock" }}
           paths:
@@ -76,4 +81,3 @@ workflows:
   build-and-test:
     jobs:
       - test-rust
-
