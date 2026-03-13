@@ -79,6 +79,9 @@ fn rga_list_apply_delta_benchmark(c: &mut Criterion) {
                 for i in 0..100 {
                     list.push_back(format!("item_{}", i));
                 }
+                // Clear local pending delta so clone cost does not include
+                // unrelated local edit history.
+                let _ = list.take_delta();
 
                 // Create delta from another replica
                 let mut delta_list = RGAList::<String>::new("replica2");
