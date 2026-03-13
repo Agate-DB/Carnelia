@@ -73,7 +73,6 @@ jobs:
           command: |
             cargo run --example collaborative_text || true
             cargo run --example rich_text_collab || true
-            cargo run --example json_collab || true
 
       - run:
           name: Benchmark stress_core with coverage
