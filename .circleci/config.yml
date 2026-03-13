@@ -1,0 +1,105 @@
+# Stacks detected: cicd:github-actions:.github/workflows,deps:rust:.
+version: 2.1
+
+orbs:
+  codecov: codecov/codecov@5.4.3
+
+jobs:
+  test-rust:
+    docker:
+      - image: cimg/rust:1.94.0
+    resource_class: large
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: cargo-{{ checksum "Cargo.lock" }}
+
+      - run:
+          name: Install cargo-llvm-cov
+          command: cargo install cargo-llvm-cov
+
+      - run:
+          name: Run workspace tests with coverage
+          command: cargo llvm-cov test --workspace --lcov --output-path coverage_workspace.lcov
+      - codecov/upload:
+          files: coverage_workspace.lcov
+          flags: workspace
+
+      - run:
+          name: Run specific crate tests - core
+          command: cargo llvm-cov test -p mdcs-core --lcov --output-path coverage_core.lcov
+      - codecov/upload:
+          files: coverage_core.lcov
+          flags: mdcs-core
+
+      - run:
+          name: Run specific crate tests - delta
+          command: cargo llvm-cov test -p mdcs-delta --lcov --output-path coverage_delta.lcov
+      - codecov/upload:
+          files: coverage_delta.lcov
+          flags: mdcs-delta
+
+      - run:
+          name: Run specific crate tests - merkle
+          command: cargo llvm-cov test -p mdcs-merkle --lcov --output-path coverage_merkle.lcov
+      - codecov/upload:
+          files: coverage_merkle.lcov
+          flags: mdcs-merkle
+
+      - run:
+          name: Run specific crate tests - compaction
+          command: cargo llvm-cov test -p mdcs-compaction --lcov --output-path coverage_compaction.lcov
+      - codecov/upload:
+          files: coverage_compaction.lcov
+          flags: mdcs-compaction
+
+      - run:
+          name: Run specific crate tests - db
+          command: cargo llvm-cov test -p mdcs-db --lcov --output-path coverage_db.lcov
+      - codecov/upload:
+          files: coverage_db.lcov
+          flags: mdcs-db
+
+      - run:
+          name: Run specific crate tests - sdk
+          command: cargo llvm-cov test -p mdcs-sdk --lcov --output-path coverage_sdk.lcov
+      - codecov/upload:
+          files: coverage_sdk.lcov
+          flags: mdcs-sdk
+
+      - run:
+          name: Run SDK examples
+          command: |
+            cargo run --example collaborative_text || true
+            cargo run --example rich_text_collab || true
+            cargo run --example json_collab || true
+            cargo run --example presence_demo || true
+
+      - run:
+          name: Benchmark stress_core with coverage
+          command: cargo llvm-cov bench -p carnelia --bench stress_core --lcov --output-path coverage_stress_core.lcov
+      - codecov/upload:
+          files: coverage_stress_core.lcov
+          flags: stress_core
+
+      - run:
+          name: Benchmark stress_db with coverage
+          command: cargo llvm-cov bench -p carnelia --bench stress_db --lcov --output-path coverage_stress_db.lcov
+      - codecov/upload:
+          files: coverage_stress_db.lcov
+          flags: stress_db
+
+      - save_cache:
+          key: cargo-{{ checksum "Cargo.lock" }}
+          paths:
+            - ~/.cargo
+
+workflows:
+  build-and-test:
+    jobs:
+            - test-rust:
+                    filters:
+                        branches:
+                            only:
+                                - main
