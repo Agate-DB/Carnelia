@@ -174,12 +174,19 @@ impl<T: Ord + Clone> Lattice for ORSetDelta<T> {
     fn join(&self, other: &Self) -> Self {
         let mut additions = self.additions.clone();
         for (k, v) in &other.additions {
-            additions.entry(k.clone()).or_default().extend(v.clone());
+            additions
+                .entry(k.clone())
+                .or_default()
+                .extend(v.iter().cloned());
         }
+
+        // Build removals by merging sets directly
+        let mut removals = self.removals.clone();
+        removals.extend(other.removals.iter().cloned());
 
         Self {
             additions,
-            removals: self.removals.union(&other.removals).cloned().collect(),
+            removals,
         }
     }
 }

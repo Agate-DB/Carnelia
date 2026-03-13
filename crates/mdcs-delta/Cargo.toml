@@ -1,18 +1,18 @@
 [package]
 name = "mdcs-delta"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
 description = "Delta-state CRDT machinery for the Carnelia Merkle-Delta CRDT Store"
 license = "GPL-3.0"
 repository = "https://github.com/Agate-DB/Carnelia"
-homepage = "https://suvangs.tech"
+homepage = "https://docs.carnelia.dev"
 keywords = ["CRDT", "delta-state", "anti-entropy", "distributed", "replication"]
 categories = ["data-structures"]
 
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
-mdcs-core = { path = "../mdcs-core", version = "0.1.1" }
+mdcs-core = { path = "../mdcs-core", version = "0.1.2" }
 
 [dev-dependencies]
 proptest = "1.0"

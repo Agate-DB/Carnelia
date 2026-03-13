@@ -79,9 +79,10 @@ impl<T: Ord + Clone> Lattice for GSet<T> {
     }
 
     fn join(&self, other: &Self) -> Self {
-        Self {
-            elements: self.elements.union(&other.elements).cloned().collect(),
-        }
+        // Clone current elements and extend with elements from `other`.
+        let mut elements = self.elements.clone();
+        elements.extend(other.elements.iter().cloned());
+        Self { elements }
     }
 }
 

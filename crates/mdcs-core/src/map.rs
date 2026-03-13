@@ -240,22 +240,18 @@ impl<K: Ord + Clone> Lattice for CRDTMap<K> {
     /// For each key, union all the dots and their values
     fn join(&self, other: &Self) -> Self {
         let mut entries = self.entries.clone();
-        let mut context = self.context.clone();
 
-        // Merge other's entries
+        // Merge other's entries with minimal nested cloning
         for (key, other_entry) in &other.entries {
             let entry = entries.entry(key.clone()).or_default();
-            for (dot, value) in other_entry {
+            for (dot, value) in other_entry.iter() {
                 entry.insert(dot.clone(), value.clone());
             }
         }
 
-        // Merge contexts
-        context = context.join(&other.context);
-
         Self {
             entries,
-            context,
+            context: self.context.join(&other.context),
             local_seq: self.local_seq.max(other.local_seq),
         }
     }
