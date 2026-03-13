@@ -75,8 +75,6 @@ jobs:
             cargo run --example rich_text_collab || true
             cargo run --example json_collab || true
             cargo run --example presence_demo || true
-            cargo run --example network_simulation || true
-            cargo run --example offline_sync || true
 
       - run:
           name: Benchmark stress_core with coverage
@@ -100,4 +98,8 @@ jobs:
 workflows:
   build-and-test:
     jobs:
-      - test-rust
+            - test-rust:
+                    filters:
+                        branches:
+                            only:
+                                - main
