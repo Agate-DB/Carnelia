@@ -1,5 +1,8 @@
 ## MDCS: Modular Distributed CRDTs in Rust
 
+[![codecov](https://codecov.io/github/Agate-DB/Carnelia/graph/badge.svg?token=M6PR3ORECL)](https://codecov.io/github/Agate-DB/Carnelia)
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/Ve9KmsFxBcKdmWSwbkvdND/CdGp6UbCo1B6YdJo3sAh2T/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/Ve9KmsFxBcKdmWSwbkvdND/CdGp6UbCo1B6YdJo3sAh2T/tree/main)
+
 An architecture for lock-free, offline-first, open-membership databases
 that systematically addresses the gaps in existing CRDT systems.
 
@@ -987,7 +990,7 @@ mdcs/
 ## Structure
 [![Structure](https://images.repography.com/113178227/Agate-DB/Carnelia/structure/Y8xbX1Lq2K9AJwK_2g_QGsveKM9jhkpFe1AeHDDWUJM/Bjjp-K089oDIUY_Kl8OjXawkxfvHk1T_5hrlb6A9Emo_table.svg)](https://github.com/Agate-DB/Carnelia)
 
-
+![codecov][https://codecov.io/github/Agate-DB/Carnelia/graphs/tree.svg?token=M6PR3ORECL]
 
 ---
 
