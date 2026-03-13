@@ -1,4 +1,4 @@
-# Stacks detected: cicd:github-actions:.github/workflows,deps:node:content,deps:python:benchmarks,deps:rust:.
+# Stacks detected: cicd:github-actions:.github/workflows,deps:rust:.
 version: 2.1
 orbs:
   codecov: codecov/codecov@5.4.3
