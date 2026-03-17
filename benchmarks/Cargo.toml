@@ -1,16 +1,16 @@
 [package]
 name = "mdcs-benchmarks"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "CRDT benchmark suite for MDCS — port of dmonad/crdt-benchmarks"
 publish = false
 
 [dependencies]
-mdcs-core = { path = "../crates/mdcs-core", version = "0.1.1" }
-mdcs-delta = { path = "../crates/mdcs-delta", version = "0.1.1" }
-mdcs-db = { path = "../crates/mdcs-db", version = "0.1.1" }
-mdcs-merkle = { path = "../crates/mdcs-merkle", version = "0.1.1" }
-mdcs-sdk = { path = "../crates/mdcs-sdk", version = "0.1.2" }
+mdcs-core = { path = "../crates/mdcs-core", version = "0.1.2" }
+mdcs-delta = { path = "../crates/mdcs-delta", version = "0.1.2" }
+mdcs-db = { path = "../crates/mdcs-db", version = "0.1.2" }
+mdcs-merkle = { path = "../crates/mdcs-merkle", version = "0.1.2" }
+mdcs-sdk = { path = "../crates/mdcs-sdk", version = "0.1.3" }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

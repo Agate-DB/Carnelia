@@ -7,10 +7,10 @@ pairs MDCS results against competitor data from dmonad/crdt-benchmarks,
 and produces grouped bar charts saved to benchmarks/charts/.
 
 Usage:
-    pip install matplotlib numpy
-    python benchmarks/chart_comparison.py
-    python benchmarks/chart_comparison.py --logfile logs/benchmark_results_raw.txt
-    python benchmarks/chart_comparison.py --outdir my_charts/
+    uv pip install matplotlib numpy
+    uv run python chart_comparison.py
+    uv run python chart_comparison.py --logfile logs/benchmark_results_raw.txt
+    uv run python chart_comparison.py --outdir my_charts/
 
 Dependencies: matplotlib, numpy
 """
@@ -511,9 +511,9 @@ def generate_overview_chart(tests: OrderedDict, outdir: str):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
                 str(c), ha="center", va="bottom", fontweight="bold", fontsize=11)
 
-    ax.set_ylabel("Wins (lowest value = best)", fontsize=11, fontweight="bold")
+    ax.set_ylabel("Wins (Higher  = best)", fontsize=11, fontweight="bold")
     ax.set_title(
-        "Best-in-class wins across all benchmarks\n(time, docSize, avgUpdateSize, parseTime — all \u25bc lower is better)",
+        "Best-in-class wins across all benchmarks\n(time, docSize, avgUpdateSize, parseTime — all)",
         fontsize=12, fontweight="bold",
     )
     ax.grid(axis="y", alpha=0.3, zorder=0)
@@ -528,7 +528,12 @@ def generate_radar_chart(tests: OrderedDict, outdir: str):
     """Generate a radar/spider chart comparing MDCS strengths across metric categories."""
     # Aggregate: for each metric, compute the average rank of each library
     metrics = ["time", "docSize", "avgUpdateSize", "parseTime"]
-    metric_labels = ["Execution Time", "Document Size", "Avg Update Size", "Parse Time"]
+    metric_labels = [
+        "Time Efficiency\n(Speed)", 
+        "Storage Efficiency\n(Doc Size)", 
+        "Network Efficiency\n(Update Size)", 
+        "Parse Speed"
+    ]
     bench_labels = list(COMPARISON_DATA.keys())
 
     avg_rank: dict[str, list[float]] = {lib: [] for lib in COMPETITORS}
@@ -576,7 +581,7 @@ def generate_radar_chart(tests: OrderedDict, outdir: str):
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(metric_labels, fontsize=10)
     ax.set_title(
-        "Average Ranking (higher = better)\nacross all benchmarks — all metrics: \u25bc lower is better",
+        "Average Ranking (higher = better)\nacross all benchmarks",
         fontsize=12, fontweight="bold", pad=20,
     )
     ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1), fontsize=9)
