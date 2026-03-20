@@ -25,7 +25,7 @@
 //! ```
 
 use mdcs_core::lattice::Lattice;
-use mdcs_db::{MarkType, RichText};
+use mdcs_db::{JsonCrdt, JsonPath, JsonValue, MarkType, RGAText, RichText};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
@@ -124,6 +124,12 @@ impl CollaborativeDocument {
         self.apply_mark(start, end, MarkType::Strikethrough);
     }
 
+    /// Apply inline code formatting to a range.
+    #[wasm_bindgen]
+    pub fn apply_code(&mut self, start: usize, end: usize) {
+        self.apply_mark(start, end, MarkType::Code);
+    }
+
     /// Apply a link to a range.
     ///
     /// # Arguments
@@ -140,6 +146,76 @@ impl CollaborativeDocument {
                 e,
                 MarkType::Link {
                     url: url.to_string(),
+                },
+            );
+            self.version += 1;
+        }
+    }
+
+    /// Apply a highlight color to a range.
+    ///
+    /// # Arguments
+    /// * `start` - Starting character index (inclusive)
+    /// * `end` - Ending character index (exclusive)
+    /// * `color` - CSS color string (e.g., "#FFEAA7")
+    #[wasm_bindgen]
+    pub fn apply_highlight(&mut self, start: usize, end: usize, color: &str) {
+        let s = start.min(self.text.len());
+        let e = end.min(self.text.len());
+        if s < e {
+            self.text.add_mark(
+                s,
+                e,
+                MarkType::Highlight {
+                    color: color.to_string(),
+                },
+            );
+            self.version += 1;
+        }
+    }
+
+    /// Apply a comment annotation to a range.
+    ///
+    /// # Arguments
+    /// * `start` - Starting character index (inclusive)
+    /// * `end` - Ending character index (exclusive)
+    /// * `author` - Comment author name/id
+    /// * `content` - Comment body
+    #[wasm_bindgen]
+    pub fn apply_comment(&mut self, start: usize, end: usize, author: &str, content: &str) {
+        let s = start.min(self.text.len());
+        let e = end.min(self.text.len());
+        if s < e {
+            self.text.add_mark(
+                s,
+                e,
+                MarkType::Comment {
+                    author: author.to_string(),
+                    content: content.to_string(),
+                },
+            );
+            self.version += 1;
+        }
+    }
+
+    /// Apply a custom formatting mark to a range.
+    ///
+    /// # Arguments
+    /// * `start` - Starting character index (inclusive)
+    /// * `end` - Ending character index (exclusive)
+    /// * `name` - Custom mark name
+    /// * `value` - Custom mark value
+    #[wasm_bindgen]
+    pub fn apply_custom_mark(&mut self, start: usize, end: usize, name: &str, value: &str) {
+        let s = start.min(self.text.len());
+        let e = end.min(self.text.len());
+        if s < e {
+            self.text.add_mark(
+                s,
+                e,
+                MarkType::Custom {
+                    name: name.to_string(),
+                    value: value.to_string(),
                 },
             );
             self.version += 1;
@@ -288,6 +364,600 @@ struct DocumentSnapshot {
     replica_id: String,
     version: u64,
     state: String,
+}
+
+// ============================================================================
+// TextDocument (Plain Text / RGA)
+// ============================================================================
+
+/// A collaborative plain text document backed by RGAText.
+#[wasm_bindgen]
+pub struct TextDocument {
+    id: String,
+    replica_id: String,
+    text: RGAText,
+    version: u64,
+}
+
+#[wasm_bindgen]
+impl TextDocument {
+    #[wasm_bindgen(constructor)]
+    pub fn new(doc_id: &str, replica_id: &str) -> Self {
+        Self {
+            id: doc_id.to_string(),
+            replica_id: replica_id.to_string(),
+            text: RGAText::new(replica_id),
+            version: 0,
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn insert(&mut self, position: usize, text: &str) {
+        let pos = position.min(self.text.len());
+        self.text.insert(pos, text);
+        self.version += 1;
+    }
+
+    #[wasm_bindgen]
+    pub fn delete(&mut self, position: usize, length: usize) {
+        let pos = position.min(self.text.len());
+        let len = length.min(self.text.len().saturating_sub(pos));
+        if len > 0 {
+            self.text.delete(pos, len);
+            self.version += 1;
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn replace(&mut self, start: usize, end: usize, text: &str) {
+        let s = start.min(self.text.len());
+        let e = end.min(self.text.len());
+        if s <= e {
+            self.text.replace(s, e, text);
+            self.version += 1;
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn splice(&mut self, position: usize, delete_count: usize, insert: &str) {
+        let pos = position.min(self.text.len());
+        self.text.splice(pos, delete_count, insert);
+        self.version += 1;
+    }
+
+    #[wasm_bindgen]
+    pub fn get_text(&self) -> String {
+        self.text.to_string()
+    }
+
+    #[wasm_bindgen]
+    pub fn len(&self) -> usize {
+        self.text.len()
+    }
+
+    #[wasm_bindgen]
+    pub fn is_empty(&self) -> bool {
+        self.text.is_empty()
+    }
+
+    #[wasm_bindgen]
+    pub fn version(&self) -> u64 {
+        self.version
+    }
+
+    #[wasm_bindgen]
+    pub fn doc_id(&self) -> String {
+        self.id.clone()
+    }
+
+    #[wasm_bindgen]
+    pub fn replica_id(&self) -> String {
+        self.replica_id.clone()
+    }
+
+    #[wasm_bindgen]
+    pub fn serialize(&self) -> Result<String, JsValue> {
+        let js_value = serde_wasm_bindgen::to_value(&self.text)
+            .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))?;
+
+        js_sys::JSON::stringify(&js_value)
+            .map(|s| s.into())
+            .map_err(|e| JsValue::from_str(&format!("JSON stringify error: {:?}", e)))
+    }
+
+    #[wasm_bindgen]
+    pub fn merge(&mut self, remote_state: &str) -> Result<(), JsValue> {
+        let js_value = js_sys::JSON::parse(remote_state)
+            .map_err(|e| JsValue::from_str(&format!("JSON parse error: {:?}", e)))?;
+
+        let remote: RGAText = serde_wasm_bindgen::from_value(js_value)
+            .map_err(|e| JsValue::from_str(&format!("Deserialization error: {}", e)))?;
+
+        self.text = self.text.join(&remote);
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn snapshot(&self) -> Result<JsValue, JsValue> {
+        let state_js = serde_wasm_bindgen::to_value(&self.text)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let state_str: String = js_sys::JSON::stringify(&state_js)
+            .map(|s| s.into())
+            .map_err(|e| JsValue::from_str(&format!("JSON stringify error: {:?}", e)))?;
+
+        let snapshot = DocumentSnapshot {
+            doc_id: self.id.clone(),
+            replica_id: self.replica_id.clone(),
+            version: self.version,
+            state: state_str,
+        };
+        serde_wasm_bindgen::to_value(&snapshot).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    #[wasm_bindgen]
+    pub fn restore(snapshot_js: JsValue) -> Result<TextDocument, JsValue> {
+        let snapshot: DocumentSnapshot = serde_wasm_bindgen::from_value(snapshot_js)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+        let state_js = js_sys::JSON::parse(&snapshot.state)
+            .map_err(|e| JsValue::from_str(&format!("JSON parse error: {:?}", e)))?;
+
+        let text: RGAText =
+            serde_wasm_bindgen::from_value(state_js).map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+        Ok(Self {
+            id: snapshot.doc_id,
+            replica_id: snapshot.replica_id,
+            text,
+            version: snapshot.version,
+        })
+    }
+}
+
+// ============================================================================
+// RichTextDocument (explicit rich-text wrapper)
+// ============================================================================
+
+/// Explicit rich text wrapper for SDK-style API naming.
+///
+/// This wraps `CollaborativeDocument` and exposes the same rich-text CRDT behavior.
+#[wasm_bindgen]
+pub struct RichTextDocument {
+    inner: CollaborativeDocument,
+}
+
+#[wasm_bindgen]
+impl RichTextDocument {
+    #[wasm_bindgen(constructor)]
+    pub fn new(doc_id: &str, replica_id: &str) -> Self {
+        Self {
+            inner: CollaborativeDocument::new(doc_id, replica_id),
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn insert(&mut self, position: usize, text: &str) {
+        self.inner.insert(position, text);
+    }
+
+    #[wasm_bindgen]
+    pub fn delete(&mut self, position: usize, length: usize) {
+        self.inner.delete(position, length);
+    }
+
+    #[wasm_bindgen]
+    pub fn apply_bold(&mut self, start: usize, end: usize) {
+        self.inner.apply_bold(start, end);
+    }
+
+    #[wasm_bindgen]
+    pub fn apply_italic(&mut self, start: usize, end: usize) {
+        self.inner.apply_italic(start, end);
+    }
+
+    #[wasm_bindgen]
+    pub fn apply_underline(&mut self, start: usize, end: usize) {
+        self.inner.apply_underline(start, end);
+    }
+
+    #[wasm_bindgen]
+    pub fn apply_strikethrough(&mut self, start: usize, end: usize) {
+        self.inner.apply_strikethrough(start, end);
+    }
+
+    #[wasm_bindgen]
+    pub fn apply_code(&mut self, start: usize, end: usize) {
+        self.inner.apply_code(start, end);
+    }
+
+    #[wasm_bindgen]
+    pub fn apply_link(&mut self, start: usize, end: usize, url: &str) {
+        self.inner.apply_link(start, end, url);
+    }
+
+    #[wasm_bindgen]
+    pub fn apply_highlight(&mut self, start: usize, end: usize, color: &str) {
+        self.inner.apply_highlight(start, end, color);
+    }
+
+    #[wasm_bindgen]
+    pub fn apply_comment(&mut self, start: usize, end: usize, author: &str, content: &str) {
+        self.inner.apply_comment(start, end, author, content);
+    }
+
+    #[wasm_bindgen]
+    pub fn apply_custom_mark(&mut self, start: usize, end: usize, name: &str, value: &str) {
+        self.inner.apply_custom_mark(start, end, name, value);
+    }
+
+    #[wasm_bindgen]
+    pub fn get_text(&self) -> String {
+        self.inner.get_text()
+    }
+
+    #[wasm_bindgen]
+    pub fn get_html(&self) -> String {
+        self.inner.get_html()
+    }
+
+    #[wasm_bindgen]
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    #[wasm_bindgen]
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
+    #[wasm_bindgen]
+    pub fn version(&self) -> u64 {
+        self.inner.version()
+    }
+
+    #[wasm_bindgen]
+    pub fn doc_id(&self) -> String {
+        self.inner.doc_id()
+    }
+
+    #[wasm_bindgen]
+    pub fn replica_id(&self) -> String {
+        self.inner.replica_id()
+    }
+
+    #[wasm_bindgen]
+    pub fn serialize(&self) -> Result<String, JsValue> {
+        self.inner.serialize()
+    }
+
+    #[wasm_bindgen]
+    pub fn merge(&mut self, remote_state: &str) -> Result<(), JsValue> {
+        self.inner.merge(remote_state)
+    }
+
+    #[wasm_bindgen]
+    pub fn snapshot(&self) -> Result<JsValue, JsValue> {
+        self.inner.snapshot()
+    }
+
+    #[wasm_bindgen]
+    pub fn restore(snapshot_js: JsValue) -> Result<RichTextDocument, JsValue> {
+        Ok(Self {
+            inner: CollaborativeDocument::restore(snapshot_js)?,
+        })
+    }
+}
+
+// ============================================================================
+// JsonDocument (JSON CRDT)
+// ============================================================================
+
+/// A collaborative JSON document backed by JsonCrdt.
+#[wasm_bindgen]
+pub struct JsonDocument {
+    id: String,
+    replica_id: String,
+    doc: JsonCrdt,
+    version: u64,
+}
+
+#[wasm_bindgen]
+impl JsonDocument {
+    #[wasm_bindgen(constructor)]
+    pub fn new(doc_id: &str, replica_id: &str) -> Self {
+        Self {
+            id: doc_id.to_string(),
+            replica_id: replica_id.to_string(),
+            doc: JsonCrdt::new(replica_id),
+            version: 0,
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn set_string(&mut self, path: &str, value: &str) -> Result<(), JsValue> {
+        self.doc
+            .set(&JsonPath::parse(path), JsonValue::String(value.to_string()))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn set_int(&mut self, path: &str, value: i64) -> Result<(), JsValue> {
+        self.doc
+            .set(&JsonPath::parse(path), JsonValue::Int(value))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn set_float(&mut self, path: &str, value: f64) -> Result<(), JsValue> {
+        self.doc
+            .set(&JsonPath::parse(path), JsonValue::Float(value))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn set_bool(&mut self, path: &str, value: bool) -> Result<(), JsValue> {
+        self.doc
+            .set(&JsonPath::parse(path), JsonValue::Bool(value))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn set_null(&mut self, path: &str) -> Result<(), JsValue> {
+        self.doc
+            .set(&JsonPath::parse(path), JsonValue::Null)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn set_object(&mut self, path: &str) -> Result<(), JsValue> {
+        self.doc
+            .set_object(&JsonPath::parse(path))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn set_array(&mut self, path: &str) -> Result<(), JsValue> {
+        self.doc
+            .set_array(&JsonPath::parse(path))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn array_push_string(&mut self, path: &str, value: &str) -> Result<(), JsValue> {
+        let arr_id = self.get_array_id(path)?;
+        self.doc
+            .array_push(&arr_id, JsonValue::String(value.to_string()))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn array_push_int(&mut self, path: &str, value: i64) -> Result<(), JsValue> {
+        let arr_id = self.get_array_id(path)?;
+        self.doc
+            .array_push(&arr_id, JsonValue::Int(value))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn array_push_float(&mut self, path: &str, value: f64) -> Result<(), JsValue> {
+        let arr_id = self.get_array_id(path)?;
+        self.doc
+            .array_push(&arr_id, JsonValue::Float(value))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn array_push_bool(&mut self, path: &str, value: bool) -> Result<(), JsValue> {
+        let arr_id = self.get_array_id(path)?;
+        self.doc
+            .array_push(&arr_id, JsonValue::Bool(value))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn array_push_null(&mut self, path: &str) -> Result<(), JsValue> {
+        let arr_id = self.get_array_id(path)?;
+        self.doc
+            .array_push(&arr_id, JsonValue::Null)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn array_remove(&mut self, path: &str, index: usize) -> Result<JsValue, JsValue> {
+        let arr_id = self.get_array_id(path)?;
+        let removed = self
+            .doc
+            .array_remove(&arr_id, index)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+
+        let removed_json = match removed {
+            JsonValue::Null => serde_json::Value::Null,
+            JsonValue::Bool(b) => serde_json::Value::Bool(b),
+            JsonValue::Int(i) => serde_json::Value::Number(i.into()),
+            JsonValue::Float(f) => serde_json::Number::from_f64(f)
+                .map(serde_json::Value::Number)
+                .unwrap_or(serde_json::Value::Null),
+            JsonValue::String(s) => serde_json::Value::String(s),
+            JsonValue::Array(_) | JsonValue::Object(_) => serde_json::Value::String(
+                "[complex_json_reference]".to_string(),
+            ),
+        };
+
+        serde_wasm_bindgen::to_value(&removed_json).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    #[wasm_bindgen]
+    pub fn delete(&mut self, path: &str) -> Result<(), JsValue> {
+        self.doc
+            .delete(&JsonPath::parse(path))
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn get(&self, path: &str) -> Result<JsValue, JsValue> {
+        let root = self.doc.to_json();
+        let maybe_value = get_json_at_dot_path(&root, path);
+        match maybe_value {
+            Some(value) => {
+                serde_wasm_bindgen::to_value(&value).map_err(|e| JsValue::from_str(&e.to_string()))
+            }
+            None => Ok(JsValue::UNDEFINED),
+        }
+    }
+
+    #[wasm_bindgen]
+    pub fn to_json(&self) -> Result<JsValue, JsValue> {
+        serde_wasm_bindgen::to_value(&self.doc.to_json())
+            .map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    #[wasm_bindgen]
+    pub fn keys(&self) -> Result<JsValue, JsValue> {
+        let keys = self.doc.keys();
+        serde_wasm_bindgen::to_value(&keys).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    #[wasm_bindgen]
+    pub fn contains_key(&self, key: &str) -> bool {
+        self.doc.contains_key(key)
+    }
+
+    #[wasm_bindgen]
+    pub fn version(&self) -> u64 {
+        self.version
+    }
+
+    #[wasm_bindgen]
+    pub fn doc_id(&self) -> String {
+        self.id.clone()
+    }
+
+    #[wasm_bindgen]
+    pub fn replica_id(&self) -> String {
+        self.replica_id.clone()
+    }
+
+    #[wasm_bindgen]
+    pub fn serialize(&self) -> Result<String, JsValue> {
+        let js_value = serde_wasm_bindgen::to_value(&self.doc)
+            .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))?;
+
+        js_sys::JSON::stringify(&js_value)
+            .map(|s| s.into())
+            .map_err(|e| JsValue::from_str(&format!("JSON stringify error: {:?}", e)))
+    }
+
+    #[wasm_bindgen]
+    pub fn merge(&mut self, remote_state: &str) -> Result<(), JsValue> {
+        let js_value = js_sys::JSON::parse(remote_state)
+            .map_err(|e| JsValue::from_str(&format!("JSON parse error: {:?}", e)))?;
+
+        let remote: JsonCrdt = serde_wasm_bindgen::from_value(js_value)
+            .map_err(|e| JsValue::from_str(&format!("Deserialization error: {}", e)))?;
+
+        self.doc = self.doc.join(&remote);
+        self.version += 1;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn snapshot(&self) -> Result<JsValue, JsValue> {
+        let state_js = serde_wasm_bindgen::to_value(&self.doc)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let state_str: String = js_sys::JSON::stringify(&state_js)
+            .map(|s| s.into())
+            .map_err(|e| JsValue::from_str(&format!("JSON stringify error: {:?}", e)))?;
+
+        let snapshot = DocumentSnapshot {
+            doc_id: self.id.clone(),
+            replica_id: self.replica_id.clone(),
+            version: self.version,
+            state: state_str,
+        };
+        serde_wasm_bindgen::to_value(&snapshot).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    #[wasm_bindgen]
+    pub fn restore(snapshot_js: JsValue) -> Result<JsonDocument, JsValue> {
+        let snapshot: DocumentSnapshot = serde_wasm_bindgen::from_value(snapshot_js)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+        let state_js = js_sys::JSON::parse(&snapshot.state)
+            .map_err(|e| JsValue::from_str(&format!("JSON parse error: {:?}", e)))?;
+
+        let doc: JsonCrdt =
+            serde_wasm_bindgen::from_value(state_js).map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+        Ok(Self {
+            id: snapshot.doc_id,
+            replica_id: snapshot.replica_id,
+            doc,
+            version: snapshot.version,
+        })
+    }
+}
+
+impl JsonDocument {
+    fn get_array_id(&self, path: &str) -> Result<mdcs_db::json_crdt::ArrayId, JsValue> {
+        let json_path = JsonPath::parse(path);
+        let value = self
+            .doc
+            .get(&json_path)
+            .ok_or_else(|| JsValue::from_str(&format!("Path not found: {}", path)))?;
+
+        match value {
+            JsonValue::Array(id) => Ok(id.clone()),
+            _ => Err(JsValue::from_str(&format!(
+                "Path is not an array: {}",
+                path
+            ))),
+        }
+    }
+}
+
+fn get_json_at_dot_path(root: &serde_json::Value, path: &str) -> Option<serde_json::Value> {
+    if path.is_empty() {
+        return Some(root.clone());
+    }
+
+    let mut current = root;
+    for seg in path.split('.') {
+        if let Ok(idx) = seg.parse::<usize>() {
+            current = current.get(idx)?;
+        } else {
+            current = current.get(seg)?;
+        }
+    }
+
+    Some(current.clone())
 }
 
 // ============================================================================
@@ -551,5 +1221,68 @@ mod tests {
         assert!(presence.has_selection());
         assert_eq!(presence.selection_start(), Some(5));
         assert_eq!(presence.selection_end(), Some(15));
+    }
+
+    #[test]
+    fn test_extended_mark_types() {
+        let mut doc = CollaborativeDocument::new("doc-1", "replica-1");
+        doc.insert(0, "hello world");
+
+        let initial_version = doc.version();
+
+        doc.apply_code(0, 5);
+        doc.apply_highlight(6, 11, "#FFEAA7");
+        doc.apply_comment(0, 11, "alice", "review this");
+        doc.apply_custom_mark(0, 5, "tag", "important");
+
+        assert!(doc.version() >= initial_version + 4);
+        assert_eq!(doc.get_text(), "hello world");
+        assert_eq!(doc.len(), 11);
+    }
+
+    #[test]
+    fn test_text_document_api() {
+        let mut doc = TextDocument::new("text-doc", "replica-1");
+        doc.insert(0, "Hello");
+        doc.insert(5, " World");
+        assert_eq!(doc.get_text(), "Hello World");
+
+        doc.replace(6, 11, "Rust");
+        assert_eq!(doc.get_text(), "Hello Rust");
+
+        doc.splice(5, 1, ",");
+        assert_eq!(doc.get_text(), "Hello,Rust");
+        assert!(doc.version() > 0);
+    }
+
+    #[test]
+    fn test_rich_text_document_wrapper() {
+        let mut doc = RichTextDocument::new("rich-doc", "replica-1");
+        doc.insert(0, "hello world");
+        doc.apply_bold(0, 5);
+        doc.apply_code(6, 11);
+
+        assert_eq!(doc.get_text(), "hello world");
+        assert_eq!(doc.len(), 11);
+        assert!(doc.version() > 0);
+    }
+
+    #[test]
+    fn test_json_document_api() {
+        let mut doc = JsonDocument::new("json-doc", "replica-1");
+        doc.set_string("name", "Alice").unwrap();
+        doc.set_int("age", 30).unwrap();
+        doc.set_bool("active", true).unwrap();
+        doc.set_object("profile").unwrap();
+        doc.set_string("profile.city", "Chennai").unwrap();
+        doc.set_array("tags").unwrap();
+        doc.array_push_string("tags", "crdt").unwrap();
+        doc.array_push_string("tags", "wasm").unwrap();
+
+        let root_v = doc.doc.to_json();
+        assert_eq!(root_v["name"], "Alice");
+        assert_eq!(root_v["profile"]["city"], "Chennai");
+        assert_eq!(root_v["tags"][0], "crdt");
+        assert!(doc.version() > 0);
     }
 }
