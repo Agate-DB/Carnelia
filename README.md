@@ -2,6 +2,9 @@
 
 [![codecov](https://codecov.io/github/Agate-DB/Carnelia/graph/badge.svg?token=M6PR3ORECL)](https://codecov.io/github/Agate-DB/Carnelia)
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/Ve9KmsFxBcKdmWSwbkvdND/CdGp6UbCo1B6YdJo3sAh2T/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/Ve9KmsFxBcKdmWSwbkvdND/CdGp6UbCo1B6YdJo3sAh2T/tree/main)
+![become a backer](https://opencollective.com/carnelia/tiers/backers.svg?avatarHeight=32)
+![count of backers](https://opencollective.com/carnelia/tiers/badge.svg)
+
 
 An architecture for lock-free, offline-first, open-membership databases
 that systematically addresses the gaps in existing CRDT systems.

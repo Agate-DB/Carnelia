@@ -1,0 +1,76 @@
+name: "💰 Funding Proposal"
+description: "Request a grant for a specific research goal or major feature build."
+title: "[PROPOSAL] - <Brief Title>"
+labels:
+  - funding-requested
+assignees: ["greeenboi"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Provide a 2-3 sentence overview of what you intend to build or research and how it benefits the Carnelia ecosystem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_problem
+    attributes:
+      label: The Technical Problem
+      description: What specific limitation of the current architecture (e.g., metadata bloat, sync latency, edge-case failures) are you addressing? Please link any existing GitHub Issues or Discussions.
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation_plan
+    attributes:
+      label: Implementation Plan
+      description: |
+        Outline your technical approach.
+
+        - What changes will be made to the Rust core?
+        - How does this affect the Merkle-DAG structure or pruning logic?
+        - Are there any breaking changes to the API?
+    validations:
+      required: true
+
+  - type: textarea
+    id: timeline_milestones
+    attributes:
+      label: Timeline & Milestones
+      description: |
+        Break the work down into measurable phases:
+
+        1. **Phase 1 (Initial Build/Research):** [Estimated Date]
+        2. **Phase 2 (Testing & Documentation):** [Estimated Date]
+        3. **Phase 3 (Final PR & Community Review):** [Estimated Date]
+    validations:
+      required: true
+
+  - type: textarea
+    id: requested_budget
+    attributes:
+      label: Requested Budget
+      description: |
+        - **Total Amount (INR/USD):**
+        - **Justification:** How did you calculate this amount? (e.g., Estimated hours x Rate, or Fixed-price for a specific deliverable).
+    validations:
+      required: true
+
+  - type: textarea
+    id: success_metrics
+    attributes:
+      label: Success Metrics
+      description: |
+        How will the core team know the work is "complete"?
+
+        - Example: "Passing 100% of the newly added distributed-sync stress tests."
+        - Example: "Documentation for the EMP logic is merged into the main site."
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        *Note: As per our Grant Expenses Policy, payouts are typically split 50% upfront and 50% upon successful completion and community review.*
