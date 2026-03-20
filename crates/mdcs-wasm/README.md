@@ -4,7 +4,9 @@ WebAssembly bindings for the Merkle-Delta CRDT Store (MDCS), enabling real-time 
 
 ## Features
 
-- **CollaborativeDocument**: Rich text document with CRDT-based conflict resolution
+- **TextDocument**: Plain-text CRDT document (RGA)
+- **RichTextDocument / CollaborativeDocument**: Rich text with formatting marks
+- **JsonDocument**: Nested JSON CRDT with path-based operations
 - **UserPresence**: Cursor and selection tracking for collaborative UIs
 - **Offline-first**: All CRDT operations work locally, sync when connected
 - **Zero dependencies at runtime**: Pure WASM, no JavaScript CRDT libraries needed
@@ -37,14 +39,14 @@ cd /your/project && npm link mdcs-wasm
 ### Basic Usage
 
 ```javascript
-import init, { CollaborativeDocument, UserPresence } from 'mdcs-wasm';
+import init, { RichTextDocument, UserPresence } from 'mdcs-wasm';
 
 async function main() {
   // Initialize WASM module
   await init();
 
   // Create a new document
-  const doc = new CollaborativeDocument('doc-123', 'user-abc');
+  const doc = new RichTextDocument('doc-123', 'user-abc');
   
   // Insert text
   doc.insert(0, 'Hello, World!');
@@ -65,16 +67,16 @@ main();
 ### Multi-User Collaboration
 
 ```javascript
-import init, { CollaborativeDocument } from 'mdcs-wasm';
+import init, { TextDocument } from 'mdcs-wasm';
 
 await init();
 
 // User A creates a document
-const docA = new CollaborativeDocument('shared-doc', 'user-a');
+const docA = new TextDocument('shared-doc', 'user-a');
 docA.insert(0, 'Hello');
 
 // User B creates their replica
-const docB = new CollaborativeDocument('shared-doc', 'user-b');
+const docB = new TextDocument('shared-doc', 'user-b');
 docB.insert(0, 'World');
 
 // Sync: serialize states
@@ -87,6 +89,25 @@ docB.merge(stateA);
 
 // Both converge to the same state
 console.log(docA.get_text() === docB.get_text()); // true
+```
+
+### JSON Document Example
+
+```javascript
+import init, { JsonDocument } from 'mdcs-wasm';
+
+await init();
+
+const doc = new JsonDocument('settings', 'user-a');
+doc.set_object('profile');
+doc.set_string('profile.name', 'Alice');
+doc.set_int('profile.age', 30);
+doc.set_array('tags');
+doc.array_push_string('tags', 'crdt');
+doc.array_push_string('tags', 'wasm');
+
+const json = doc.to_json();
+console.log(json.profile.name); // Alice
 ```
 
 ### User Presence Tracking
@@ -124,6 +145,81 @@ ws.onmessage = (event) => {
 ```
 
 ## API Reference
+
+### TextDocument
+
+| Method | Description |
+|--------|-------------|
+| `new(doc_id, replica_id)` | Create plain-text CRDT document |
+| `insert(position, text)` | Insert text at position |
+| `delete(position, length)` | Delete range |
+| `replace(start, end, text)` | Replace range with text |
+| `splice(position, delete_count, insert)` | Splice operation |
+| `get_text()` | Get plain text |
+| `len()` | Get character count |
+| `is_empty()` | Check if document is empty |
+| `version()` | Get local version counter |
+| `serialize()` | Export state for sync |
+| `merge(remote_state)` | Merge remote state |
+| `snapshot()` | Create snapshot |
+| `restore(snapshot)` | Restore from snapshot |
+
+### RichTextDocument
+
+`RichTextDocument` is the explicit rich-text API and mirrors `CollaborativeDocument`.
+
+| Method | Description |
+|--------|-------------|
+| `new(doc_id, replica_id)` | Create rich-text CRDT document |
+| `insert(position, text)` | Insert text |
+| `delete(position, length)` | Delete range |
+| `apply_bold(start, end)` | Apply bold mark |
+| `apply_italic(start, end)` | Apply italic mark |
+| `apply_underline(start, end)` | Apply underline mark |
+| `apply_strikethrough(start, end)` | Apply strikethrough mark |
+| `apply_code(start, end)` | Apply inline code mark |
+| `apply_link(start, end, url)` | Apply hyperlink mark |
+| `apply_highlight(start, end, color)` | Apply highlight mark |
+| `apply_comment(start, end, author, content)` | Apply comment mark |
+| `apply_custom_mark(start, end, name, value)` | Apply custom mark |
+| `get_text()` | Get plain text |
+| `get_html()` | Get formatted HTML |
+| `serialize()` | Export state for sync |
+| `merge(remote_state)` | Merge remote state |
+| `snapshot()` | Create snapshot |
+| `restore(snapshot)` | Restore from snapshot |
+
+### JsonDocument
+
+| Method | Description |
+|--------|-------------|
+| `new(doc_id, replica_id)` | Create JSON CRDT document |
+| `set_string(path, value)` | Set string at path |
+| `set_int(path, value)` | Set integer at path |
+| `set_float(path, value)` | Set float at path |
+| `set_bool(path, value)` | Set boolean at path |
+| `set_null(path)` | Set null at path |
+| `set_object(path)` | Create object at path |
+| `set_array(path)` | Create array at path |
+| `array_push_string(path, value)` | Push string to array at path |
+| `array_push_int(path, value)` | Push integer to array at path |
+| `array_push_float(path, value)` | Push float to array at path |
+| `array_push_bool(path, value)` | Push boolean to array at path |
+| `array_push_null(path)` | Push null to array at path |
+| `array_remove(path, index)` | Remove item from array at path |
+| `delete(path)` | Delete value at path |
+| `get(path)` | Get value at path |
+| `to_json()` | Get full JSON object |
+| `keys()` | Get root-level keys |
+| `contains_key(key)` | Check root key existence |
+| `serialize()` | Export state for sync |
+| `merge(remote_state)` | Merge remote state |
+| `snapshot()` | Create snapshot |
+| `restore(snapshot)` | Restore from snapshot |
+
+### CollaborativeDocument
+
+`CollaborativeDocument` remains available as a compatibility alias-style rich-text surface.
 
 ### CollaborativeDocument
 
@@ -178,16 +274,16 @@ ws.onmessage = (event) => {
 ```tsx
 // hooks/useCollaborativeDocument.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
-import init, { CollaborativeDocument } from 'mdcs-wasm';
+import init, { RichTextDocument } from 'mdcs-wasm';
 
 export function useCollaborativeDocument(docId: string, userId: string) {
-  const [doc, setDoc] = useState<CollaborativeDocument | null>(null);
+  const [doc, setDoc] = useState<RichTextDocument | null>(null);
   const [content, setContent] = useState('');
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     init().then(() => {
-      const newDoc = new CollaborativeDocument(docId, userId);
+      const newDoc = new RichTextDocument(docId, userId);
       setDoc(newDoc);
       setIsReady(true);
     });
@@ -247,6 +343,88 @@ wasm-pack build --target web --release --out-dir pkg
 # - mdcs_wasm.js       (JavaScript glue code)
 # - mdcs_wasm_bg.wasm  (WebAssembly binary)
 # - mdcs_wasm.d.ts     (TypeScript definitions)
+```
+
+## Publish to GHCR as OCI Artifact
+
+This crate builds a **browser-targeted** WebAssembly module via `wasm-bindgen`.
+You can publish the generated `.wasm` to GitHub Container Registry (GHCR) as an OCI artifact,
+but this artifact is **not** a WASI component and is **not** expected to run with
+`wasmtime serve` directly.
+
+### Prerequisites
+
+```bash
+# Build tool (already used by this crate)
+cargo install wasm-pack
+
+# OCI push/pull for wasm artifacts
+cargo install wkg@0.5.1
+
+# Optional: inspect wasm binary/component metadata
+cargo install wasm-tools@1.216.0
+
+# Optional: inspect OCI manifests
+# https://github.com/regclient/regclient
+```
+
+### Build artifact
+
+```bash
+cd crates/mdcs-wasm
+wasm-pack build --target web --release --out-dir pkg
+ls -lh pkg/mdcs_wasm_bg.wasm
+```
+
+### Authenticate to GHCR
+
+Use a GitHub token with `write:packages` scope.
+
+```bash
+export GITHUB_USER="<your_github_username>"
+export GHCR_TOKEN="<github_token_with_write_packages>"
+
+echo "$GHCR_TOKEN" | wkg oci login ghcr.io --username "$GITHUB_USER" --password-stdin
+```
+
+### Push OCI artifact
+
+```bash
+export OCI_REF="ghcr.io/$GITHUB_USER/mdcs-wasm:latest"
+wkg oci push "$OCI_REF" pkg/mdcs_wasm_bg.wasm
+```
+
+### Pull artifact back
+
+```bash
+wkg oci pull "$OCI_REF" -o app.wasm
+ls -lh app.wasm
+```
+
+### Optional verification
+
+```bash
+# Check wasm details (imports/exports/sections)
+wasm-tools print app.wasm | head -n 40
+
+# If regctl is installed, inspect OCI manifest
+regctl manifest get "$OCI_REF"
+```
+
+### Automated helper script
+
+From the repository root, you can also run:
+
+```bash
+./scripts/publish-wasm-oci.sh \
+  --owner <your_github_username> \
+  --tag latest
+```
+
+Pass a token explicitly if needed:
+
+```bash
+GHCR_TOKEN=<token> ./scripts/publish-wasm-oci.sh --owner <your_github_username> --tag v0.1.2
 ```
 
 ### Bundle Size Optimization
