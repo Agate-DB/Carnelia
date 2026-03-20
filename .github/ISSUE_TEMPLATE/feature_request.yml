@@ -1,0 +1,66 @@
+name: Feature request
+description: Propose an enhancement for Carnelia
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your idea. Clear use-cases and scope help us review faster.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem are you trying to solve?
+      placeholder: Describe the current limitation or pain point.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What do you want to see added or changed?
+      placeholder: Describe the API/behavior you expect.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What alternatives did you evaluate?
+
+  - type: dropdown
+    id: crate
+    attributes:
+      label: Target area
+      options:
+        - mdcs-core
+        - mdcs-delta
+        - mdcs-merkle
+        - mdcs-compaction
+        - mdcs-db
+        - mdcs-sdk
+        - mdcs-wasm
+        - docs/examples
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact and trade-offs
+      description: Describe expected benefits, risks, and compatibility impact.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I can help with implementation/testing if needed.
+          required: false
