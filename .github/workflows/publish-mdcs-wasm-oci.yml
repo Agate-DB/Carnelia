@@ -1,0 +1,89 @@
+name: Publish mdcs-wasm OCI
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      owner:
+        description: "GHCR owner (user/org). Defaults to repository owner"
+        required: false
+      tag:
+        description: "OCI tag to publish. Defaults to git tag name for tag pushes, latest for manual"
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry & build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-mdcs-wasm-oci-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-mdcs-wasm-oci-
+
+      - name: Install wasm-pack and wkg
+        run: |
+          cargo install wasm-pack --locked
+          cargo install wkg@0.5.1 --locked
+
+      - name: Resolve publish owner and tags
+        id: meta
+        run: |
+          set -euo pipefail
+
+          OWNER="${{ github.event.inputs.owner }}"
+          if [[ -z "$OWNER" ]]; then
+            OWNER="${{ github.repository_owner }}"
+          fi
+
+          INPUT_TAG="${{ github.event.inputs.tag }}"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && -n "${GITHUB_REF_NAME}" ]]; then
+            PRIMARY_TAG="${INPUT_TAG:-$GITHUB_REF_NAME}"
+          else
+            PRIMARY_TAG="${INPUT_TAG:-latest}"
+          fi
+
+          echo "owner=$OWNER" >> "$GITHUB_OUTPUT"
+          echo "primary_tag=$PRIMARY_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Publish OCI artifact (primary tag)
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/publish-wasm-oci.sh \
+            --owner "${{ steps.meta.outputs.owner }}" \
+            --tag "${{ steps.meta.outputs.primary_tag }}"
+
+      - name: Publish OCI artifact (latest for tag pushes)
+        if: github.ref_type == 'tag'
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/publish-wasm-oci.sh \
+            --owner "${{ steps.meta.outputs.owner }}" \
+            --tag latest \
+            --no-build
+
+      - name: Upload wasm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mdcs-wasm-bg-${{ steps.meta.outputs.primary_tag }}
+          path: crates/mdcs-wasm/pkg/mdcs_wasm_bg.wasm
