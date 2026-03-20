@@ -503,8 +503,8 @@ impl TextDocument {
         let state_js = js_sys::JSON::parse(&snapshot.state)
             .map_err(|e| JsValue::from_str(&format!("JSON parse error: {:?}", e)))?;
 
-        let text: RGAText =
-            serde_wasm_bindgen::from_value(state_js).map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let text: RGAText = serde_wasm_bindgen::from_value(state_js)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
         Ok(Self {
             id: snapshot.doc_id,
@@ -804,9 +804,9 @@ impl JsonDocument {
                 .map(serde_json::Value::Number)
                 .unwrap_or(serde_json::Value::Null),
             JsonValue::String(s) => serde_json::Value::String(s),
-            JsonValue::Array(_) | JsonValue::Object(_) => serde_json::Value::String(
-                "[complex_json_reference]".to_string(),
-            ),
+            JsonValue::Array(_) | JsonValue::Object(_) => {
+                serde_json::Value::String("[complex_json_reference]".to_string())
+            }
         };
 
         serde_wasm_bindgen::to_value(&removed_json).map_err(|e| JsValue::from_str(&e.to_string()))
@@ -913,8 +913,8 @@ impl JsonDocument {
         let state_js = js_sys::JSON::parse(&snapshot.state)
             .map_err(|e| JsValue::from_str(&format!("JSON parse error: {:?}", e)))?;
 
-        let doc: JsonCrdt =
-            serde_wasm_bindgen::from_value(state_js).map_err(|e| JsValue::from_str(&e.to_string()))?;
+        let doc: JsonCrdt = serde_wasm_bindgen::from_value(state_js)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
         Ok(Self {
             id: snapshot.doc_id,
