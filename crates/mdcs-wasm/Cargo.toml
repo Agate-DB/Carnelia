@@ -1,6 +1,6 @@
 [package]
 name = "mdcs-wasm"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Suvan Gowri Shanker <suvan.gowrishanker.204@gmail.com>", "Avinash Chidambaram <avinash.a2k4@gmail.com>"]
 edition = "2021"
 description = "WebAssembly bindings for the Carnelia Merkle-Delta CRDT Store"
