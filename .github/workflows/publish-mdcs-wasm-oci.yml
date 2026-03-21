@@ -70,6 +70,7 @@ jobs:
         run: |
           ./scripts/publish-wasm-oci.sh \
             --owner "${{ steps.meta.outputs.owner }}" \
+            --username "${{ github.actor }}" \
             --tag "${{ steps.meta.outputs.primary_tag }}"
 
       - name: Publish OCI artifact (latest for tag pushes)
@@ -79,6 +80,7 @@ jobs:
         run: |
           ./scripts/publish-wasm-oci.sh \
             --owner "${{ steps.meta.outputs.owner }}" \
+            --username "${{ github.actor }}" \
             --tag latest \
             --no-build
 
