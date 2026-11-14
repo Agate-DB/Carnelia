@@ -18,4 +18,4 @@ mdcs-delta = { path = "../mdcs-delta", version = "0.1.2" }
 
 [dev-dependencies]
 proptest = "1.0"
-rand = "0.8"
+rand = "0.10"
